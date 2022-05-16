@@ -1,4 +1,7 @@
 <Project>
+    <PropertyGroup>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    </PropertyGroup>
     <ItemGroup>
         <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
         <PackageVersion Include="MSTest.TestAdapter" Version="2.2.8" />
