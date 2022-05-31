@@ -4,6 +4,8 @@ An API for creating and manipulating OCI containers, and build tasks for creatin
 
 You can learn more about the project from the project [Documentation](docs).
 
+[![.NET](https://github.com/rainersigwald/containers/actions/workflows/dotnet.yml/badge.svg)](https://github.com/rainersigwald/containers/actions/workflows/dotnet.yml)
+
 ## Using New Repo
 
 You can simply `git clone` this project to get started. It is recommended that you don't preserve history of the project (it isn't generally meaningful) for your repo, but make a copy and `git init` your project from source.
