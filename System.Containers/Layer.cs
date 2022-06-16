@@ -53,7 +53,7 @@ public record struct Layer
 
         Directory.CreateDirectory(Configuration.ContentRoot);
 
-        File.Move(tempTarballPath, storedContent);
+        File.Move(tempTarballPath, storedContent, overwrite: true);
 
         Layer l = new()
         {

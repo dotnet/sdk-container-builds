@@ -1,8 +1,11 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.VisualBasic;
+
+using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Xml.Linq;
 
 namespace System.Containers;
 
@@ -21,7 +24,7 @@ public record struct Registry(Uri BaseUri)
         client.DefaultRequestHeaders.Accept.Add(
             new MediaTypeWithQualityHeaderValue(DockerContainerV1));
 
-        client.DefaultRequestHeaders.Add("User-Agent", ".NET Foundation Repository Reporter");
+        client.DefaultRequestHeaders.Add("User-Agent", ".NET Container Library");
 
         var response = await client.GetAsync(new Uri(BaseUri, $"/v2/{name}/manifests/{reference}"));
 
@@ -46,5 +49,52 @@ public record struct Registry(Uri BaseUri)
         //Debug.Assert(((string?)configDoc["mediaType"]) == DockerContainerV1);
 
         return new Image(manifest, configDoc);
+    }
+
+    public async Task Push(Layer layer, string name)
+    {
+        using HttpClient client = new(new HttpClientHandler() { UseDefaultCredentials = true });
+
+        client.DefaultRequestHeaders.Accept.Clear();
+        client.DefaultRequestHeaders.Accept.Add(
+            new MediaTypeWithQualityHeaderValue("application/json"));
+        client.DefaultRequestHeaders.Accept.Add(
+            new MediaTypeWithQualityHeaderValue(DockerManifestV2));
+        client.DefaultRequestHeaders.Accept.Add(
+            new MediaTypeWithQualityHeaderValue(DockerContainerV1));
+
+        client.DefaultRequestHeaders.Add("User-Agent", ".NET Container Library");
+
+        HttpResponseMessage response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Head, new Uri(BaseUri, $"/v2/{name}/blobs/{layer.Descriptor.Digest}")));
+
+        if (response.StatusCode == Net.HttpStatusCode.OK)
+        {
+            // Already there!
+            return;
+        }
+
+        HttpResponseMessage pushResponse = await client.PostAsync(new Uri(BaseUri,$"/v2/{name}/blobs/uploads/"), content: null);
+
+        Debug.Assert(pushResponse.StatusCode == Net.HttpStatusCode.Accepted);
+
+        //Uri uploadUri = new(BaseUri, pushResponse.Headers.GetValues("location").Single() + $"?digest={layer.Descriptor.Digest}");
+        Debug.Assert(pushResponse.Headers.Location is not null);
+
+        var x = new UriBuilder(pushResponse.Headers.Location);
+
+        x.Query += $"&digest={Uri.EscapeDataString(layer.Descriptor.Digest)}";
+
+        using (FileStream contents = File.OpenRead(layer.BackingFile))
+        {
+            // TODO: consider chunking
+            StreamContent content = new StreamContent(contents);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+            content.Headers.ContentLength = contents.Length;
+            HttpResponseMessage putResponse = await client.PutAsync(x.Uri, content);
+
+            putResponse.Content.ToString();
+
+            Debug.Assert(putResponse.IsSuccessStatusCode);
+        }
     }
 }
