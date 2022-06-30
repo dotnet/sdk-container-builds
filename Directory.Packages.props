@@ -10,5 +10,7 @@
     <PackageVersion Include="MSTest.TestFramework" Version="2.2.8" />
     <PackageVersion Include="coverlet.collector" Version="3.1.2" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="1.4.1" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="7.0.0-preview.5.22303.8" />
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.2.3" />
   </ItemGroup>
 </Project>
