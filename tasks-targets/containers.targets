@@ -1,0 +1,59 @@
+<Project>
+
+
+    <!-- Container Defaults for REQUIRED properties -->
+    <PropertyGroup>
+    <TargetFrameworkVersion>6.0</TargetFrameworkVersion>
+    <AssemblyName>Foo</AssemblyName>
+        <ContainerBaseImageName Condition="'$(ContainerBaseImageName)' == ''">TODO</ContainerBaseImageName>
+        <ContainerBaseImageTag Condition="'$(ContainerBaseImageTag)' == '' and $([MSBuild]::VersionGreaterThanOrEquals('$(TargetFrameworkVersion)', 6.0))">6.0</ContainerBaseImageTag>
+        <ContainerBaseImage Condition="'$(ContainerBaseImage)' == ''">$(ContainerBaseImageName):$(ContainerBaseImageTag)</ContainerBaseImage>
+        <ContainerImageName Condition="'$(ContainerImageName)' == ''">$(AssemblyName.ToLower())</ContainerImageName>
+        <ContainerImageTag Condition="'$(ContainerImageTag)' == ''">$(Version)</ContainerImageTag>
+        <ContainerWorkingDirectory Condition="'$(ContainerWorkingDirectory)' == ''">/app</ContainerWorkingDirectory>
+        <!-- The baseline command to run first. eg. `dotnet foo.dll` -->
+        <!-- TargetPath is defined as $(TargetDir)$(TargetFileName) -->
+        <ContainerEntrypoint Condition="'$(ContainerEntrypoint)' == '' and '$(SelfContained)' != 'true'">dotnet $(TargetPath)</ContainerEntrypoint>
+        <!-- https://gist.github.com/BenVillalobos/e5336491e683b87e7ec2a5322f58dfbe -->
+        <ContainerEntrypoint Condition="'$(ContainerEntrypoint)' == '' and '$(SelfContained)' == 'true'">dotnet $(ContainerWorkingDirectory)/$(TargetDir)$(AssemblyName)$(_NativeExecutableExtension)</ContainerEntrypoint>
+        <!-- The arguments to pass alongside `ContainerEntrypoint` -->
+        <ContainerCommand Condition="'$(ContainerCommand)' == ''"></ContainerCommand>
+    </PropertyGroup>
+
+
+
+    <!-- Required targets dependencies -->
+    <PropertyGroup>
+        <PublishContainerDependsOn>
+            Build;
+            ComputeContainerConfig
+        </PublishContainerDependsOn>
+    </PropertyGroup>
+
+    <!--
+        This target should:
+            1. Gather up all project properties that affect the container to be published
+            2. Store that into a nice item for consumers
+    -->
+    <Target Name="ComputeContainerConfig" Returns="@(_ResolvedContainerConfig)" DependsOnTargets="Build" BeforeTargets="PublishContainer">
+        <!-- Step 1: Grab all the info -->
+        <ItemGroup>
+            <_ContainerConfiguration Include="@(ContainerConfiguration)"/>
+        </ItemGroup>
+
+        <!-- Step 2: Modify our private item as we need -->
+        <!-- Q: Will we call a task on this? If not, this is a simple process of setting tons of metadata on our item -->
+
+        <!-- Step 3: Output the canonical item for consumers to use -->
+        <ItemGroup>
+            <_ResolvedContainerConfig Include="@(_ContainerConfiguration)"/>
+        </ItemGroup>
+
+    </Target>
+
+    <!-- Q: Does this need inputs/outputs? -->
+    <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)" BeforeTargets="Publish">
+        <!-- Todo: create the `PublishContainer` task that does the publishing. -->
+        <!-- <PublishContainer ContainerItem="@(_ResolvedContainerConfig)" /> -->
+    </Target>
+</Project>
