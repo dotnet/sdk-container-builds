@@ -59,7 +59,7 @@ public record struct Layer
         {
             Descriptor = new()
             {
-                MediaType = "application/vnd.oci.image.layer.v1.tar", // TODO: configurable? gzip always?
+                MediaType = "application/vnd.docker.image.rootfs.diff.tar", // TODO: configurable? gzip always?
                 Size = fileSize,
                 Digest = $"sha256:{contentHash}"
             },

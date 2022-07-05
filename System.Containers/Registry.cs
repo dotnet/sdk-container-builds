@@ -3,6 +3,7 @@
 using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Xml.Linq;
@@ -96,5 +97,29 @@ public record struct Registry(Uri BaseUri)
 
             Debug.Assert(putResponse.IsSuccessStatusCode);
         }
+    }
+
+    public async Task Push(Image x, string name)
+    {
+        using HttpClient client = new(new HttpClientHandler() { UseDefaultCredentials = true });
+
+        client.DefaultRequestHeaders.Accept.Clear();
+        client.DefaultRequestHeaders.Accept.Add(
+            new MediaTypeWithQualityHeaderValue("application/json"));
+        client.DefaultRequestHeaders.Accept.Add(
+            new MediaTypeWithQualityHeaderValue(DockerManifestV2));
+        client.DefaultRequestHeaders.Accept.Add(
+            new MediaTypeWithQualityHeaderValue(DockerContainerV1));
+
+        client.DefaultRequestHeaders.Add("User-Agent", ".NET Container Library");
+
+        HttpContent manifestUploadContent = new StringContent(x.manifest.ToJsonString());
+        manifestUploadContent.Headers.ContentType = new MediaTypeHeaderValue(DockerManifestV2);
+
+        var putResponse = await client.PutAsync(new Uri(BaseUri, $"/v2/{name}/manifests/{x.GetSha()}"), manifestUploadContent);
+
+        string putresponsestr = await putResponse.Content.ReadAsStringAsync();
+
+        Debug.Assert(putResponse.IsSuccessStatusCode);
     }
 }
