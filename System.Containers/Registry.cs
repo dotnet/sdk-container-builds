@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualBasic;
+using Microsoft.VisualBasic;
 
 using System.Diagnostics;
 using System.Net.Http;
@@ -112,6 +112,18 @@ public record struct Registry(Uri BaseUri)
             new MediaTypeWithQualityHeaderValue(DockerContainerV1));
 
         client.DefaultRequestHeaders.Add("User-Agent", ".NET Container Library");
+
+        foreach (var layerJson in x.manifest["layers"].AsArray())
+        {
+            try
+            {
+                string digest = layerJson["digest"].ToString();
+                HttpResponseMessage pushResponse = await client.PostAsync(new Uri(BaseUri, $"/v2/{name}/blobs/uploads/?mount={digest}&from={"dotnet/sdk" /* TODO */}"), content: null);
+            }
+            catch { }
+        }
+
+        HttpResponseMessage configResponse = await client.PostAsync(new Uri(BaseUri, $"/v2/{name}/blobs/uploads/?mount={x.manifest["config"]["digest"]}&from={"dotnet/sdk" /* TODO */}"), content: null);
 
         HttpContent manifestUploadContent = new StringContent(x.manifest.ToJsonString());
         manifestUploadContent.Headers.ContentType = new MediaTypeHeaderValue(DockerManifestV2);
