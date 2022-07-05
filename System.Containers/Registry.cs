@@ -128,7 +128,7 @@ public record struct Registry(Uri BaseUri)
         HttpContent manifestUploadContent = new StringContent(x.manifest.ToJsonString());
         manifestUploadContent.Headers.ContentType = new MediaTypeHeaderValue(DockerManifestV2);
 
-        var putResponse = await client.PutAsync(new Uri(BaseUri, $"/v2/{name}/manifests/{x.GetSha()}"), manifestUploadContent);
+        var putResponse = await client.PutAsync(new Uri(BaseUri, $"/v2/{name}/manifests/{x.GetSha(x.manifest)}"), manifestUploadContent);
 
         string putresponsestr = await putResponse.Content.ReadAsStringAsync();
 

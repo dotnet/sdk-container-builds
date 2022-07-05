@@ -16,7 +16,7 @@ public class EndToEnd
 
         await registry.Push(l, "foo/bar");
 
-        //x.AddLayer(l);
+        x.AddLayer(l);
 
         await registry.Push(x, "foo/bar");
     }
