@@ -15,7 +15,7 @@
         <!-- TargetPath is defined as $(TargetDir)$(TargetFileName) -->
         <ContainerEntrypoint Condition="'$(ContainerEntrypoint)' == '' and '$(SelfContained)' != 'true'">dotnet $(TargetPath)</ContainerEntrypoint>
         <!-- https://gist.github.com/BenVillalobos/e5336491e683b87e7ec2a5322f58dfbe -->
-        <ContainerEntrypoint Condition="'$(ContainerEntrypoint)' == '' and '$(SelfContained)' == 'true'">dotnet $(ContainerWorkingDirectory)/$(TargetDir)$(AssemblyName)$(_NativeExecutableExtension)</ContainerEntrypoint>
+        <ContainerEntrypoint Condition="'$(ContainerEntrypoint)' == '' and '$(SelfContained)' == 'true'">$(ContainerWorkingDirectory)/$(TargetDir)$(AssemblyName)$(_NativeExecutableExtension)</ContainerEntrypoint>
         <!-- The arguments to pass alongside `ContainerEntrypoint` -->
         <ContainerCommand Condition="'$(ContainerCommand)' == ''"></ContainerCommand>
     </PropertyGroup>
