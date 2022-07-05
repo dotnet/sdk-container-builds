@@ -132,6 +132,8 @@ public record struct Registry(Uri BaseUri)
 
         string putresponsestr = await putResponse.Content.ReadAsStringAsync();
 
+        var putResponse2 = await client.PutAsync(new Uri(BaseUri, $"/v2/{name}/manifests/latest"), manifestUploadContent);
+
         Debug.Assert(putResponse.IsSuccessStatusCode);
     }
 }
