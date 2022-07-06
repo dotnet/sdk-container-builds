@@ -104,7 +104,7 @@ public record struct Registry(Uri BaseUri)
 
         string resp = await putResponse.Content.ReadAsStringAsync();
 
-        Debug.Assert(putResponse.IsSuccessStatusCode);
+        putResponse.EnsureSuccessStatusCode();
     }
 
     public async Task Push(Image x, string name)
@@ -145,8 +145,10 @@ public record struct Registry(Uri BaseUri)
 
         string putresponsestr = await putResponse.Content.ReadAsStringAsync();
 
+        putResponse.EnsureSuccessStatusCode();
+
         var putResponse2 = await client.PutAsync(new Uri(BaseUri, $"/v2/{name}/manifests/latest"), manifestUploadContent);
 
-        Debug.Assert(putResponse.IsSuccessStatusCode);
+        putResponse2.EnsureSuccessStatusCode();
     }
 }
