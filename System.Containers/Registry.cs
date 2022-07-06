@@ -62,7 +62,7 @@ public record struct Registry(Uri BaseUri)
         }
     }
 
-    private readonly async Task UploadBlob(string name, string digest, FileStream contents)
+    private readonly async Task UploadBlob(string name, string digest, Stream contents)
     {
         HttpClient client = new(new HttpClientHandler() { UseDefaultCredentials = true });
 
