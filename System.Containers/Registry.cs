@@ -54,7 +54,17 @@ public record struct Registry(Uri BaseUri)
 
     public async Task Push(Layer layer, string name)
     {
-        using HttpClient client = new(new HttpClientHandler() { UseDefaultCredentials = true });
+        string digest = layer.Descriptor.Digest;
+
+        using (FileStream contents = File.OpenRead(layer.BackingFile))
+        {
+            await UploadBlob(name, digest, contents);
+        }
+    }
+
+    private readonly async Task UploadBlob(string name, string digest, FileStream contents)
+    {
+        HttpClient client = new(new HttpClientHandler() { UseDefaultCredentials = true });
 
         client.DefaultRequestHeaders.Accept.Clear();
         client.DefaultRequestHeaders.Accept.Add(
@@ -66,7 +76,7 @@ public record struct Registry(Uri BaseUri)
 
         client.DefaultRequestHeaders.Add("User-Agent", ".NET Container Library");
 
-        HttpResponseMessage response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Head, new Uri(BaseUri, $"/v2/{name}/blobs/{layer.Descriptor.Digest}")));
+        HttpResponseMessage response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Head, new Uri(BaseUri, $"/v2/{name}/blobs/{digest}")));
 
         if (response.StatusCode == Net.HttpStatusCode.OK)
         {
@@ -74,7 +84,7 @@ public record struct Registry(Uri BaseUri)
             return;
         }
 
-        HttpResponseMessage pushResponse = await client.PostAsync(new Uri(BaseUri,$"/v2/{name}/blobs/uploads/"), content: null);
+        HttpResponseMessage pushResponse = await client.PostAsync(new Uri(BaseUri, $"/v2/{name}/blobs/uploads/"), content: null);
 
         Debug.Assert(pushResponse.StatusCode == Net.HttpStatusCode.Accepted);
 
@@ -83,20 +93,17 @@ public record struct Registry(Uri BaseUri)
 
         var x = new UriBuilder(pushResponse.Headers.Location);
 
-        x.Query += $"&digest={Uri.EscapeDataString(layer.Descriptor.Digest)}";
+        x.Query += $"&digest={Uri.EscapeDataString(digest)}";
 
-        using (FileStream contents = File.OpenRead(layer.BackingFile))
-        {
-            // TODO: consider chunking
-            StreamContent content = new StreamContent(contents);
-            content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-            content.Headers.ContentLength = contents.Length;
-            HttpResponseMessage putResponse = await client.PutAsync(x.Uri, content);
+        // TODO: consider chunking
+        StreamContent content = new StreamContent(contents);
+        content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+        content.Headers.ContentLength = contents.Length;
+        HttpResponseMessage putResponse = await client.PutAsync(x.Uri, content);
 
-            putResponse.Content.ToString();
+        putResponse.Content.ToString();
 
-            Debug.Assert(putResponse.IsSuccessStatusCode);
-        }
+        Debug.Assert(putResponse.IsSuccessStatusCode);
     }
 
     public async Task Push(Image x, string name)
