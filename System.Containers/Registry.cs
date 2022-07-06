@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Xml.Linq;
@@ -101,7 +102,7 @@ public record struct Registry(Uri BaseUri)
         content.Headers.ContentLength = contents.Length;
         HttpResponseMessage putResponse = await client.PutAsync(x.Uri, content);
 
-        putResponse.Content.ToString();
+        string resp = await putResponse.Content.ReadAsStringAsync();
 
         Debug.Assert(putResponse.IsSuccessStatusCode);
     }
@@ -131,6 +132,11 @@ public record struct Registry(Uri BaseUri)
         }
 
         HttpResponseMessage configResponse = await client.PostAsync(new Uri(BaseUri, $"/v2/{name}/blobs/uploads/?mount={x.manifest["config"]["digest"]}&from={"dotnet/sdk" /* TODO */}"), content: null);
+
+        using (MemoryStream stringStream = new MemoryStream(Encoding.UTF8.GetBytes(x.config.ToJsonString())))
+        {
+            await UploadBlob(name, x.GetSha(x.config), stringStream);
+        }
 
         HttpContent manifestUploadContent = new StringContent(x.manifest.ToJsonString());
         manifestUploadContent.Headers.ContentType = new MediaTypeHeaderValue(DockerManifestV2);
