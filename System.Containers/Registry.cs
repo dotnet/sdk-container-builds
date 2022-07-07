@@ -59,9 +59,7 @@ public record struct Registry(Uri BaseUri)
     {
         using HttpClient client = GetClient();
 
-        HttpResponseMessage response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Head, new Uri(BaseUri, $"/v2/{name}/blobs/{digest}")));
-
-        if (response.StatusCode == Net.HttpStatusCode.OK)
+        if (await BlobAlreadyUploaded(name, digest, client))
         {
             // Already there!
             return;
@@ -87,6 +85,18 @@ public record struct Registry(Uri BaseUri)
         string resp = await putResponse.Content.ReadAsStringAsync();
 
         putResponse.EnsureSuccessStatusCode();
+    }
+
+    private readonly async Task<bool> BlobAlreadyUploaded(string name, string digest, HttpClient client)
+    {
+        HttpResponseMessage response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Head, new Uri(BaseUri, $"/v2/{name}/blobs/{digest}")));
+
+        if (response.StatusCode == Net.HttpStatusCode.OK)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private static HttpClient GetClient()
