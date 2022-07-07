@@ -14,8 +14,6 @@ public class EndToEnd
 
         Layer l = Layer.FromDirectory(@"S:\play\helloworld6\bin\Debug\net6.0\linux-x64\publish\", "/app");
 
-        await registry.Push(l, "foo/bar");
-
         x.AddLayer(l);
 
         await registry.Push(x, "foo/bar");
