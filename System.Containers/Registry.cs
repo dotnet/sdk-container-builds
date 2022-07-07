@@ -18,15 +18,7 @@ public record struct Registry(Uri BaseUri)
 
     public async Task<Image> GetImageManifest(string name, string reference)
     {
-        using HttpClient client = new(new HttpClientHandler() { UseDefaultCredentials = true });
-        
-        client.DefaultRequestHeaders.Accept.Clear();
-        client.DefaultRequestHeaders.Accept.Add(
-            new MediaTypeWithQualityHeaderValue(DockerManifestV2));
-        client.DefaultRequestHeaders.Accept.Add(
-            new MediaTypeWithQualityHeaderValue(DockerContainerV1));
-
-        client.DefaultRequestHeaders.Add("User-Agent", ".NET Container Library");
+        using HttpClient client = GetClient();
 
         var response = await client.GetAsync(new Uri(BaseUri, $"/v2/{name}/manifests/{reference}"));
 
@@ -65,17 +57,7 @@ public record struct Registry(Uri BaseUri)
 
     private readonly async Task UploadBlob(string name, string digest, Stream contents)
     {
-        HttpClient client = new(new HttpClientHandler() { UseDefaultCredentials = true });
-
-        client.DefaultRequestHeaders.Accept.Clear();
-        client.DefaultRequestHeaders.Accept.Add(
-            new MediaTypeWithQualityHeaderValue("application/json"));
-        client.DefaultRequestHeaders.Accept.Add(
-            new MediaTypeWithQualityHeaderValue(DockerManifestV2));
-        client.DefaultRequestHeaders.Accept.Add(
-            new MediaTypeWithQualityHeaderValue(DockerContainerV1));
-
-        client.DefaultRequestHeaders.Add("User-Agent", ".NET Container Library");
+        using HttpClient client = GetClient();
 
         HttpResponseMessage response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Head, new Uri(BaseUri, $"/v2/{name}/blobs/{digest}")));
 
@@ -107,9 +89,9 @@ public record struct Registry(Uri BaseUri)
         putResponse.EnsureSuccessStatusCode();
     }
 
-    public async Task Push(Image x, string name)
+    private static HttpClient GetClient()
     {
-        using HttpClient client = new(new HttpClientHandler() { UseDefaultCredentials = true });
+        HttpClient client = new(new HttpClientHandler() { UseDefaultCredentials = true });
 
         client.DefaultRequestHeaders.Accept.Clear();
         client.DefaultRequestHeaders.Accept.Add(
@@ -120,6 +102,13 @@ public record struct Registry(Uri BaseUri)
             new MediaTypeWithQualityHeaderValue(DockerContainerV1));
 
         client.DefaultRequestHeaders.Add("User-Agent", ".NET Container Library");
+
+        return client;
+    }
+
+    public async Task Push(Image x, string name)
+    {
+        using HttpClient client = GetClient();
 
         foreach (var layerJson in x.manifest["layers"].AsArray())
         {
