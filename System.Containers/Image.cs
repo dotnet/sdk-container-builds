@@ -1,4 +1,4 @@
-﻿using System.Security.Cryptography;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -10,7 +10,7 @@ public class Image
     internal JsonNode manifest;
     internal JsonNode config;
 
-    private List<Layer> newLayers = new();
+    internal List<Layer> newLayers = new();
 
     public Image(JsonNode manifest, JsonNode config)
     {
