@@ -16,6 +16,8 @@ public class EndToEnd
 
         x.AddLayer(l);
 
+        x.SetEntrypoint("/app/helloworld6");
+
         await registry.Push(x, "foo/bar");
     }
 }

@@ -26,6 +26,29 @@ public class Image
         manifest["config"]["digest"] = GetSha(config);
     }
 
+    public void SetEntrypoint(string executable, string[]? args = null)
+    {
+        JsonObject? configObject = config["config"].AsObject();
+
+        if (configObject is null)
+        {
+            throw new NotImplementedException("Expected base image to have a config node");
+        }
+
+        configObject["Entrypoint"] = executable;
+
+        if (args is null)
+        {
+            configObject.Remove("Cmd");
+        }
+        else
+        {
+            configObject["Cmd"] = new JsonArray(args.Select(s =>(JsonObject)s).ToArray());
+        }
+
+        manifest["config"]["digest"] = GetSha(config);
+    }
+
     public string GetSha(JsonNode json)
     {
         using SHA256 mySHA256 = SHA256.Create();
