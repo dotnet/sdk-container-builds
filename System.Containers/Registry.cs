@@ -126,6 +126,13 @@ public record struct Registry(Uri BaseUri)
 
             JsonNode? digestNode = layerValue["digest"];
             string digest = digestNode.ToString();
+
+            if (await BlobAlreadyUploaded(name, digest, client))
+            {
+                continue;
+            }
+
+            // Blob wasn't there; can we tell the server to get it from the base image?
             HttpResponseMessage pushResponse = await client.PostAsync(new Uri(BaseUri, $"/v2/{name}/blobs/uploads/?mount={digest}&from={"dotnet/sdk" /* TODO */}"), content: null);
         }
 
