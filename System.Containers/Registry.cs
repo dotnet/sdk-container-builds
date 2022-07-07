@@ -154,8 +154,6 @@ public record struct Registry(Uri BaseUri)
             }
         }
 
-        HttpResponseMessage configResponse = await client.PostAsync(new Uri(BaseUri, $"/v2/{name}/blobs/uploads/?mount={x.manifest["config"]["digest"]}&from={"dotnet/sdk" /* TODO */}"), content: null);
-
         using (MemoryStream stringStream = new MemoryStream(Encoding.UTF8.GetBytes(x.config.ToJsonString())))
         {
             await UploadBlob(name, x.GetSha(x.config), stringStream);
