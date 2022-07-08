@@ -13,7 +13,7 @@ public class RegistryTests
     [TestMethod]
     public async Task GetFromRegistry()
     {
-        Registry registry = new Registry(new Uri("http://localhost:5000"));
+        Registry registry = new Registry(new Uri($"http://{DockerRegistryManager.LocalRegistry}"));
 
         Image downloadedImage = await registry.GetImageManifest("dotnet/sdk", "6.0");
 
