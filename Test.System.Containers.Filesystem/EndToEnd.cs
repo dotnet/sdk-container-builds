@@ -87,11 +87,16 @@ public class EndToEnd
             ProcessStartInfo runInfo = new("docker", $"run --tty localhost:5000/{NewImageName}:latest")
             {
                 RedirectStandardOutput = true,
+                RedirectStandardError = true,
             };
             Process? run = Process.Start(runInfo);
             Assert.IsNotNull(run);
             string? stdout = await run.StandardOutput.ReadToEndAsync();
             await run.WaitForExitAsync();
+
+            Console.WriteLine("stdout: " + stdout);
+            Console.WriteLine("stderr: " + await run.StandardError.ReadToEndAsync());
+
             Assert.AreEqual(0, run.ExitCode);
 
             Assert.IsTrue(stdout.Contains("Hello, World!"));
