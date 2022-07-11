@@ -13,11 +13,13 @@ namespace System.Containers.Tasks
     internal class CreateNewImage : Microsoft.Build.Utilities.Task
     {
         /// <summary>
-        /// Base image for the container, constructed as: $(ContainerBaseImageName):$(ContainerBaseImageTag)
-        /// unless overridden.
+        /// Base image name.
         /// </summary>
         [Required]
-        public string BaseImage { get; set; }
+        public string BaseImageName { get; set; }
+
+        [Required]
+        public string BaseImageTag { get; set; }
 
         [Required]
         public string InputRegistryURL { get; set; }
@@ -25,11 +27,17 @@ namespace System.Containers.Tasks
         [Required]
         public ITaskItem[] Files { get; set; }
 
+        /// <summary>
+        /// $(ContainerWorkingDirectory)
+        /// </summary>
+        [Required]
+        public string WorkingDirectory { get; set; }
+
         [Required]
         public string OutputRegistryURL { get; set; }
 
         [Required]
-        public string NewBaseImage { get; set; }
+        public string NewImageName { get; set; }
 
         [Required]
         public string Entrypoint { get; set; }
@@ -43,9 +51,23 @@ namespace System.Containers.Tasks
         /// <returns></returns>
         public override bool Execute()
         {
-            Log.LogError("GetBaseImage not implemented yet!");
+            // Registry reg = new Registry(new Uri(InputRegistryURL));
 
-            return false;
+            // Image image = reg.GetImageManifest(BaseImageName, BaseImageTag);
+
+            // Layer newLayer = Layer.FromDirectory(x,y); x: directory of outputs, y: WorkingDirectory
+
+            string[] filePaths = Files.Select((f) => f.ItemSpec).ToArray();
+
+            // Layer newLayer = Layer.FromFiles(filePaths, WorkingDirectory);
+
+            // image.AddLayer(newLayer);
+
+            // image.SetEntrypoint(Entrypoint);
+
+            // registry.Push(image, NewImageName);
+
+            return true;
         }
     }
 }
