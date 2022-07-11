@@ -1,6 +1,6 @@
 <Project>
-
-
+    <!-- <UsingTask TaskName="CreateNewImage" AssemblyName="System.Containers.Tasks" /> -->
+    
     <!-- Container Defaults for REQUIRED properties -->
     <PropertyGroup>
     <TargetFrameworkVersion>6.0</TargetFrameworkVersion>
@@ -19,8 +19,6 @@
         <!-- The arguments to pass alongside `ContainerEntrypoint` -->
         <ContainerCommand Condition="'$(ContainerCommand)' == ''"></ContainerCommand>
     </PropertyGroup>
-
-
 
     <!-- Required targets dependencies -->
     <PropertyGroup>
@@ -48,12 +46,17 @@
         <ItemGroup>
             <_ResolvedContainerConfig Include="@(_ContainerConfiguration)"/>
         </ItemGroup>
-
     </Target>
 
-    <!-- Q: Does this need inputs/outputs? -->
     <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)" BeforeTargets="Publish">
-        <!-- Todo: create the `PublishContainer` task that does the publishing. -->
-        <!-- <PublishContainer ContainerItem="@(_ResolvedContainerConfig)" /> -->
+        <CreateNewImage InputRegistryURL="$(ContainerBaseImageURL)"
+                        BaseImageName="$(ContainerBaseImageName)"
+                        BaseImageTag="$(ContainerBaseImageTag)"
+                        Files="@(ContainerOutputFiles)"
+                        WorkingDirectory="$(ContainerWorkingDirectory)"
+                        OutputRegistryURL="$(ContainerOutputImageURL)"
+                        NewImageName="$(AssemblyName)"
+                        Entrypoint="$(ContainerEntrypoint)"
+                        />
     </Target>
 </Project>
