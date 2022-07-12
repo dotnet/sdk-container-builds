@@ -1,7 +1,7 @@
 <Project>
     <!-- <UsingTask TaskName="CreateNewImage" AssemblyName="System.Containers.Tasks" /> -->
     
-    <!-- Container Defaults for REQUIRED properties -->
+    <!-- Container Defaults -->
     <PropertyGroup>
     <TargetFrameworkVersion>6.0</TargetFrameworkVersion>
     <AssemblyName>Foo</AssemblyName>
@@ -28,21 +28,13 @@
         </PublishContainerDependsOn>
     </PropertyGroup>
 
-    <!--
-        This target should:
-            1. Gather up all project properties that affect the container to be published
-            2. Store that into a nice item for consumers
-    -->
-    <Target Name="ComputeContainerConfig" Returns="@(_ResolvedContainerConfig)" DependsOnTargets="Build" BeforeTargets="PublishContainer">
-        <!-- Step 1: Grab all the info -->
+    <Target Name="ComputeContainerConfig" Returns="@(_ResolvedContainerConfig)" AfterTargets="Build">
         <ItemGroup>
             <_ContainerConfiguration Include="@(ContainerConfiguration)"/>
+            <BuildOutputs Include="@(TargetPathWithTargetPlatformMoniker)"/>
         </ItemGroup>
 
-        <!-- Step 2: Modify our private item as we need -->
-        <!-- Q: Will we call a task on this? If not, this is a simple process of setting tons of metadata on our item -->
-
-        <!-- Step 3: Output the canonical item for consumers to use -->
+        <!-- Output the canonical item for consumers to use -->
         <ItemGroup>
             <_ResolvedContainerConfig Include="@(_ContainerConfiguration)"/>
         </ItemGroup>
@@ -52,11 +44,10 @@
         <CreateNewImage InputRegistryURL="$(ContainerBaseImageURL)"
                         BaseImageName="$(ContainerBaseImageName)"
                         BaseImageTag="$(ContainerBaseImageTag)"
-                        Files="@(ContainerOutputFiles)"
+                        Files="@(BuildOutputs)"
                         WorkingDirectory="$(ContainerWorkingDirectory)"
                         OutputRegistryURL="$(ContainerOutputImageURL)"
                         NewImageName="$(AssemblyName)"
-                        Entrypoint="$(ContainerEntrypoint)"
-                        />
+                        Entrypoint="$(ContainerEntrypoint)"/>
     </Target>
 </Project>
