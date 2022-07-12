@@ -5,7 +5,7 @@ namespace Test.System.Containers.Filesystem;
 [TestClass]
 public class DockerRegistryManager
 {
-    public const string BaseImage = "dotnet/sdk";
+    public const string BaseImage = "dotnet/runtime";
     public const string BaseImageSource = "mcr.microsoft.com/";
     public const string BaseImageTag = "6.0";
     public const string LocalRegistry = "localhost:5000";

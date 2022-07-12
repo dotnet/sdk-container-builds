@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Containers;
 using System.Linq;
@@ -15,7 +15,7 @@ public class RegistryTests
     {
         Registry registry = new Registry(new Uri($"http://{DockerRegistryManager.LocalRegistry}"));
 
-        Image downloadedImage = await registry.GetImageManifest("dotnet/sdk", "6.0");
+        Image downloadedImage = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag);
 
         Assert.IsNotNull(downloadedImage);
     }
