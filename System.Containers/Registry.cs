@@ -117,7 +117,7 @@ public record struct Registry(Uri BaseUri)
         return client;
     }
 
-    public async Task Push(Image x, string name)
+    public async Task Push(Image x, string name, string baseName)
     {
         using HttpClient client = GetClient();
 
@@ -134,7 +134,7 @@ public record struct Registry(Uri BaseUri)
             }
 
             // Blob wasn't there; can we tell the server to get it from the base image?
-            HttpResponseMessage pushResponse = await client.PostAsync(new Uri(BaseUri, $"/v2/{name}/blobs/uploads/?mount={digest}&from={"dotnet/sdk" /* TODO */}"), content: null);
+            HttpResponseMessage pushResponse = await client.PostAsync(new Uri(BaseUri, $"/v2/{name}/blobs/uploads/?mount={digest}&from={baseName}"), content: null);
 
             if (pushResponse.StatusCode != HttpStatusCode.Created)
             {

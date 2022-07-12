@@ -45,7 +45,7 @@ public class EndToEnd
 
         // Push the image back to the local registry
 
-        await registry.Push(x, NewImageName);
+        await registry.Push(x, NewImageName, DockerRegistryManager.BaseImage);
 
         // pull it back locally
 
