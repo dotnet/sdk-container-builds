@@ -6,7 +6,7 @@ namespace Test.System.Containers.Filesystem;
 [TestClass]
 public class EndToEnd
 {
-    private const string NewImageName = "foo/bar";
+    private const string NewImageName = "dotnetcontainers/testimage";
 
     [TestMethod]
     public async Task ManuallyPackDotnetApplication()
