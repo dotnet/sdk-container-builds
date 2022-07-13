@@ -16,4 +16,8 @@
     <PackageReference Include="GitHubActionsTestLogger" PrivateAssets="all" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\System.Containers\System.Containers.csproj" />
+  </ItemGroup>
+
 </Project>
