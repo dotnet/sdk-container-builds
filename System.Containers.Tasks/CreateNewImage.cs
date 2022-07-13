@@ -45,27 +45,33 @@ namespace System.Containers.Tasks
         /// <summary>
         /// CreateNewImage needs to:
         /// 1. Pull a base image (needs parameters: URL, BaseImage, BaseImageTag)
-        /// 2. Add output of build as a new layer (Needs parameters: ITaskItem[] files || directory to glob)
+        /// 2. Add output of build as a new layer
         /// 3. Push image back to some registry (needs parameters: OutputURL, NewName, EntryPoint)
         /// </summary>
         /// <returns></returns>
         public override bool Execute()
         {
-            // Registry reg = new Registry(new Uri(InputRegistryURL));
+            if (Files.Length == 0)
+            {
+                Console.WriteLine("Files is empty, aborting.");
+                return false;
+            }
 
-            // Image image = reg.GetImageManifest(BaseImageName, BaseImageTag);
+            Registry reg = new Registry(new Uri(InputRegistryURL));
 
-            // Layer newLayer = Layer.FromDirectory(x,y); x: directory of outputs, y: WorkingDirectory
+            Image image = reg.GetImageManifest(BaseImageName, BaseImageTag).Result;
 
+            // Turn the build output (as items) into an array of filepaths
             string[] filePaths = Files.Select((f) => f.ItemSpec).ToArray();
 
-            // Layer newLayer = Layer.FromFiles(filePaths, WorkingDirectory);
+            Layer newLayer = Layer.FromDirectory(Path.GetDirectoryName(filePaths[0]), WorkingDirectory);
 
-            // image.AddLayer(newLayer);
+            image.AddLayer(newLayer);
+            image.SetEntrypoint(Entrypoint);
 
-            // image.SetEntrypoint(Entrypoint);
+            Registry outputReg = new Registry(new Uri(OutputRegistryURL));
 
-            // registry.Push(image, NewImageName);
+            outputReg.Push(image, NewImageName).Wait();
 
             return true;
         }
