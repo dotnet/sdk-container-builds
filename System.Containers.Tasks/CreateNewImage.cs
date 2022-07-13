@@ -10,7 +10,7 @@ using Microsoft.Build.Utilities;
 
 namespace System.Containers.Tasks
 {
-    internal class CreateNewImage : Microsoft.Build.Utilities.Task
+    public class CreateNewImage : Microsoft.Build.Utilities.Task
     {
         /// <summary>
         /// Base image name.
@@ -25,6 +25,9 @@ namespace System.Containers.Tasks
         public string InputRegistryURL { get; set; }
 
         [Required]
+        public string OutputRegistryURL { get; set; }
+
+        [Required]
         public ITaskItem[] Files { get; set; }
 
         /// <summary>
@@ -32,9 +35,6 @@ namespace System.Containers.Tasks
         /// </summary>
         [Required]
         public string WorkingDirectory { get; set; }
-
-        [Required]
-        public string OutputRegistryURL { get; set; }
 
         [Required]
         public string NewImageName { get; set; }
@@ -59,7 +59,16 @@ namespace System.Containers.Tasks
 
             Registry reg = new Registry(new Uri(InputRegistryURL));
 
-            Image image = reg.GetImageManifest(BaseImageName, BaseImageTag).Result;
+            Image image;
+            try
+            {
+                image = reg.GetImageManifest(BaseImageName, BaseImageTag).Result;
+            }
+            catch
+            {
+                Console.WriteLine("GetImageManifest failed");
+                return false;
+            }
 
             // Turn the build output (as items) into an array of filepaths
             string[] filePaths = Files.Select((f) => f.ItemSpec).ToArray();
@@ -71,7 +80,15 @@ namespace System.Containers.Tasks
 
             Registry outputReg = new Registry(new Uri(OutputRegistryURL));
 
-            outputReg.Push(image, NewImageName).Wait();
+            try
+            {
+                outputReg.Push(image, NewImageName).Wait();
+            }
+            catch
+            {
+                Console.WriteLine("Registry.Push failed");
+                return false;
+            }
 
             return true;
         }
