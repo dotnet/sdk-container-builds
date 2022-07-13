@@ -1,5 +1,5 @@
 <Project>
-    <!-- <UsingTask TaskName="CreateNewImage" AssemblyName="System.Containers.Tasks" /> -->
+    <UsingTask TaskName="CreateNewImage" AssemblyFile="../System.Containers.Tasks/bin/Debug/net7.0/System.Containers.Tasks.dll" />
     
     <!-- Container Defaults -->
     <PropertyGroup>
@@ -8,6 +8,8 @@
         <ContainerBaseImageName Condition="'$(ContainerBaseImageName)' == ''">TODO</ContainerBaseImageName>
         <ContainerBaseImageTag Condition="'$(ContainerBaseImageTag)' == '' and $([MSBuild]::VersionGreaterThanOrEquals('$(TargetFrameworkVersion)', 6.0))">6.0</ContainerBaseImageTag>
         <ContainerBaseImage Condition="'$(ContainerBaseImage)' == ''">$(ContainerBaseImageName):$(ContainerBaseImageTag)</ContainerBaseImage>
+        <ContainerInputRegistryURL Condition="'$(ContainerInputRegistryURL)' == ''">https://localhost:5000</ContainerInputRegistryURL>
+        <ContainerOutputRegistryURL Condition="'$(ContainerOutputRegistryURL)' == ''">https://localhost:5000</ContainerOutputRegistryURL>
         <ContainerImageName Condition="'$(ContainerImageName)' == ''">$(AssemblyName.ToLower())</ContainerImageName>
         <ContainerImageTag Condition="'$(ContainerImageTag)' == ''">$(Version)</ContainerImageTag>
         <ContainerWorkingDirectory Condition="'$(ContainerWorkingDirectory)' == ''">/app</ContainerWorkingDirectory>
@@ -41,12 +43,12 @@
     </Target>
 
     <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)" BeforeTargets="Publish">
-        <CreateNewImage InputRegistryURL="$(ContainerBaseImageURL)"
+        <CreateNewImage InputRegistryURL="$(ContainerInputRegistryURL)"
+                        OutputRegistryURL="$(ContainerOutputRegistryURL)"
                         BaseImageName="$(ContainerBaseImageName)"
                         BaseImageTag="$(ContainerBaseImageTag)"
                         Files="@(BuildOutputs)"
                         WorkingDirectory="$(ContainerWorkingDirectory)"
-                        OutputRegistryURL="$(ContainerOutputImageURL)"
                         NewImageName="$(AssemblyName)"
                         Entrypoint="$(ContainerEntrypoint)"/>
     </Target>
