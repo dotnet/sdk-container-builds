@@ -23,12 +23,18 @@ public record struct Registry(Uri BaseUri)
 
         var response = await client.GetAsync(new Uri(BaseUri, $"/v2/{name}/manifests/{reference}"));
 
+        response.EnsureSuccessStatusCode();
+
         var s = await response.Content.ReadAsStringAsync();
 
         var manifest = JsonNode.Parse(s);
 
-        Debug.Assert(manifest is not null);
-        Debug.Assert(((string?)manifest["mediaType"]) == DockerManifestV2);
+        if (manifest is null) throw new NotImplementedException("Got a manifest but it was null");
+
+        if ((string?)manifest["mediaType"] != DockerManifestV2)
+        {
+            throw new NotImplementedException($"Do not understand the mediaType {manifest["mediaType"]}");
+        }
 
         JsonNode? config = manifest["config"];
         Debug.Assert(config is not null);
