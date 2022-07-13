@@ -49,6 +49,11 @@ public class EndToEnd
 
         // pull it back locally
 
+        Process pull = Process.Start("docker", $"pull localhost:5000/{NewImageName}:latest");
+        Assert.IsNotNull(pull);
+        await pull.WaitForExitAsync();
+        Assert.AreEqual(0, pull.ExitCode);
+
         // Run the image
 
         ProcessStartInfo runInfo = new("docker", $"run --tty localhost:5000/{NewImageName}:latest")
