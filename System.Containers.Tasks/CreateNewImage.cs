@@ -89,7 +89,7 @@ namespace System.Containers.Tasks
 
             try
             {
-                outputReg.Push(image, NewImageName).Wait();
+                outputReg.Push(image, NewImageName, BaseImageName).Wait();
             }
             catch
             {
