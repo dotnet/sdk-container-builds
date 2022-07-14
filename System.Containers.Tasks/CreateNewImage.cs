@@ -43,6 +43,11 @@ namespace System.Containers.Tasks
         public string Entrypoint { get; set; }
 
         /// <summary>
+        /// Arguments to pass alongside Entrypoint.
+        /// </summary>
+        public string EntrypointArgs { get; set; }
+
+        /// <summary>
         /// CreateNewImage needs to:
         /// 1. Pull a base image (needs parameters: URL, BaseImage, BaseImageTag)
         /// 2. Add output of build as a new layer
@@ -76,7 +81,7 @@ namespace System.Containers.Tasks
             Layer newLayer = Layer.FromDirectory(Path.GetDirectoryName(filePaths[0]), WorkingDirectory);
 
             image.AddLayer(newLayer);
-            image.SetEntrypoint(Entrypoint);
+            image.SetEntrypoint(Entrypoint, EntrypointArgs?.Split(' ').ToArray());
 
             Registry outputReg = new Registry(new Uri(OutputRegistryURL));
 
