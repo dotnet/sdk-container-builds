@@ -47,6 +47,8 @@ namespace System.Containers.Tasks
         /// </summary>
         public string EntrypointArgs { get; set; }
 
+        public string PublishDirectory { get; set; }
+
         /// <summary>
         /// CreateNewImage needs to:
         /// 1. Pull a base image (needs parameters: URL, BaseImage, BaseImageTag)
