@@ -46,6 +46,8 @@ namespace System.Containers.Tasks
         /// Arguments to pass alongside Entrypoint.
         /// </summary>
         public string EntrypointArgs { get; set; }
+        
+        public string PublishDirectory { get; set; }
 
         /// <summary>
         /// CreateNewImage needs to:
