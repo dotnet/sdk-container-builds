@@ -1,0 +1,9 @@
+<Project>
+    <PropertyGroup>
+        <_RegistryPort>5010</_RegistryPort>
+    </PropertyGroup>
+    
+    <Target Name="StartDockerRegistry">
+        <Exec Command="docker run -d -p $(_RegistryPort):5000 --restart=always --name registry registry:2"/>
+    </Target>
+</Project>

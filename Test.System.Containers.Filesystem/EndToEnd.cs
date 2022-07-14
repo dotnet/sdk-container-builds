@@ -33,7 +33,7 @@ public class EndToEnd
 
         // Build the image
 
-        Registry registry = new Registry(new Uri("http://localhost:5000"));
+        Registry registry = new Registry(new Uri("http://localhost:5010"));
 
         Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag);
 

@@ -21,6 +21,8 @@ public record struct Registry(Uri BaseUri)
     {
         using HttpClient client = GetClient();
 
+        Console.WriteLine($"Reading manifest for {name}:{reference}");
+
         var response = await client.GetAsync(new Uri(BaseUri, $"/v2/{name}/manifests/{reference}"));
 
         response.EnsureSuccessStatusCode();
@@ -36,6 +38,8 @@ public record struct Registry(Uri BaseUri)
             throw new NotImplementedException($"Do not understand the mediaType {manifest["mediaType"]}");
         }
 
+        Console.WriteLine("Got manifest");
+        Console.WriteLine(s);
         JsonNode? config = manifest["config"];
         Debug.Assert(config is not null);
         Debug.Assert(((string?)config["mediaType"]) == DockerContainerV1);

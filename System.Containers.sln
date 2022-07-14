@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.System.Containers.File
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "containerize", "containerize\containerize.csproj", "{151F7937-D2AF-4242-9B6D-81FD5228D132}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "containerize", "containerize\containerize.csproj", "{092C78D2-3A0A-453B-BF5C-962F2B370136}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
