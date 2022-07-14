@@ -1,23 +1,10 @@
 <Project>
-    <!-- <UsingTask TaskName="CreateNewImage" AssemblyName="System.Containers.Tasks" /> -->
-    
+    <UsingTask TaskName="CreateNewImage" AssemblyFile="../System.Containers.Tasks/bin/Debug/net7.0/System.Containers.Tasks.dll" />
+
     <!-- Container Defaults -->
     <PropertyGroup>
-    <TargetFrameworkVersion>6.0</TargetFrameworkVersion>
-    <AssemblyName>Foo</AssemblyName>
-        <ContainerBaseImageName Condition="'$(ContainerBaseImageName)' == ''">TODO</ContainerBaseImageName>
-        <ContainerBaseImageTag Condition="'$(ContainerBaseImageTag)' == '' and $([MSBuild]::VersionGreaterThanOrEquals('$(TargetFrameworkVersion)', 6.0))">6.0</ContainerBaseImageTag>
-        <ContainerBaseImage Condition="'$(ContainerBaseImage)' == ''">$(ContainerBaseImageName):$(ContainerBaseImageTag)</ContainerBaseImage>
-        <ContainerImageName Condition="'$(ContainerImageName)' == ''">$(AssemblyName.ToLower())</ContainerImageName>
-        <ContainerImageTag Condition="'$(ContainerImageTag)' == ''">$(Version)</ContainerImageTag>
-        <ContainerWorkingDirectory Condition="'$(ContainerWorkingDirectory)' == ''">/app</ContainerWorkingDirectory>
-        <!-- The baseline command to run first. eg. `dotnet foo.dll` -->
-        <!-- TargetPath is defined as $(TargetDir)$(TargetFileName) -->
-        <ContainerEntrypoint Condition="'$(ContainerEntrypoint)' == '' and '$(SelfContained)' != 'true'">dotnet $(TargetPath)</ContainerEntrypoint>
-        <!-- https://gist.github.com/BenVillalobos/e5336491e683b87e7ec2a5322f58dfbe -->
-        <ContainerEntrypoint Condition="'$(ContainerEntrypoint)' == '' and '$(SelfContained)' == 'true'">$(ContainerWorkingDirectory)/$(TargetDir)$(AssemblyName)$(_NativeExecutableExtension)</ContainerEntrypoint>
-        <!-- The arguments to pass alongside `ContainerEntrypoint` -->
-        <ContainerCommand Condition="'$(ContainerCommand)' == ''"></ContainerCommand>
+        <TargetFrameworkVersion>6.0</TargetFrameworkVersion>
+        <AssemblyName>Foo</AssemblyName>
     </PropertyGroup>
 
     <!-- Required targets dependencies -->
@@ -34,6 +21,23 @@
             <BuildOutputs Include="@(TargetPathWithTargetPlatformMoniker)"/>
         </ItemGroup>
 
+        <!-- Container Defaults -->
+        <PropertyGroup>
+            <ContainerBaseImageName Condition="'$(ContainerBaseImageName)' == ''">TODO</ContainerBaseImageName>
+            <ContainerBaseImageTag Condition="'$(ContainerBaseImageTag)' == '' and $([MSBuild]::VersionGreaterThanOrEquals('$(TargetFrameworkVersion)', 6.0))">6.0</ContainerBaseImageTag>
+            <ContainerBaseImage Condition="'$(ContainerBaseImage)' == ''">$(ContainerBaseImageName):$(ContainerBaseImageTag)</ContainerBaseImage>
+            <ContainerInputRegistryURL Condition="'$(ContainerInputRegistryURL)' == ''">https://localhost:5000</ContainerInputRegistryURL>
+            <ContainerOutputRegistryURL Condition="'$(ContainerOutputRegistryURL)' == ''">https://localhost:5000</ContainerOutputRegistryURL>
+            <ContainerImageName Condition="'$(ContainerImageName)' == ''">$(AssemblyName.ToLower())</ContainerImageName>
+            <ContainerImageTag Condition="'$(ContainerImageTag)' == ''">$(Version)</ContainerImageTag>
+            <ContainerWorkingDirectory Condition="'$(ContainerWorkingDirectory)' == ''">/app</ContainerWorkingDirectory>
+            <ContainerEntrypoint Condition="'$(ContainerEntrypoint)' == '' and '$(SelfContained)' != 'true'">dotnet $(TargetFileName)</ContainerEntrypoint>
+            <!-- https://gist.github.com/BenVillalobos/e5336491e683b87e7ec2a5322f58dfbe -->
+            <ContainerEntrypoint Condition="'$(ContainerEntrypoint)' == '' and '$(SelfContained)' == 'true'">$(ContainerWorkingDirectory)/$(AssemblyName)$(_NativeExecutableExtension)</ContainerEntrypoint>
+            <!-- The arguments to pass alongside `ContainerEntrypoint` -->
+            <ContainerEntrypointArgs Condition="'$(ContainerEntrypointArgs)' == ''">--test /bl /foo</ContainerEntrypointArgs>
+        </PropertyGroup>
+
         <!-- Output the canonical item for consumers to use -->
         <ItemGroup>
             <_ResolvedContainerConfig Include="@(_ContainerConfiguration)"/>
@@ -41,13 +45,14 @@
     </Target>
 
     <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)" BeforeTargets="Publish">
-        <CreateNewImage InputRegistryURL="$(ContainerBaseImageURL)"
+        <CreateNewImage InputRegistryURL="$(ContainerInputRegistryURL)"
+                        OutputRegistryURL="$(ContainerOutputRegistryURL)"
                         BaseImageName="$(ContainerBaseImageName)"
                         BaseImageTag="$(ContainerBaseImageTag)"
                         Files="@(BuildOutputs)"
                         WorkingDirectory="$(ContainerWorkingDirectory)"
-                        OutputRegistryURL="$(ContainerOutputImageURL)"
-                        NewImageName="$(AssemblyName)"
-                        Entrypoint="$(ContainerEntrypoint)"/>
+                        NewImageName="$(ContainerImageName)"
+                        Entrypoint="$(ContainerEntrypoint)"
+                        EntrypointArgs="$(ContainerEntrypointArgs)"/>
     </Target>
-</Project>
+</Project> 
