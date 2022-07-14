@@ -11,10 +11,6 @@ public record struct Layer
 
     public static Layer FromDirectory(string directory, string containerPath)
     {
-        // Docker treats a COPY instruction that copies to a path like `/app` by
-        // including `app/` as a directory, with no leading slash. Emulate that here.
-        containerPath = containerPath.TrimStart(new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar });
-
         DirectoryInfo di = new(directory);
 
         IEnumerable<(string path, string containerPath)> fileList = 
@@ -49,7 +45,11 @@ public record struct Layer
             {
                 foreach (var item in fileList)
                 {
-                    writer.WriteEntry(item.path, item.containerPath);
+                    // Docker treats a COPY instruction that copies to a path like `/app` by
+                    // including `app/` as a directory, with no leading slash. Emulate that here.
+                    string containerPath = item.containerPath.TrimStart(PathSeparators);
+
+                    writer.WriteEntry(item.path, containerPath);
                 }
             }
 
@@ -82,4 +82,7 @@ public record struct Layer
 
         return l;
     }
+
+    private readonly static char[] PathSeparators = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+
 }
