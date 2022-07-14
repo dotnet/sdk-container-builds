@@ -53,7 +53,7 @@
                         BaseImageTag="$(ContainerBaseImageTag)"
                         Files="@(BuildOutputs)"
                         WorkingDirectory="$(ContainerWorkingDirectory)"
-                        NewImageName="$(AssemblyName)"
+                        NewImageName="$(ContainerImageName)"
                         Entrypoint="$(ContainerEntrypoint)"/>
     </Target>
 </Project>
