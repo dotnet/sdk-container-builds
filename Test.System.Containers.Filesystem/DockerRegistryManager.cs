@@ -17,7 +17,7 @@ public class DockerRegistryManager
     {
         Console.WriteLine(nameof(StartAndPopulateDockerRegistry));
 
-        ProcessStartInfo startRegistry = new("docker", "run --publish 5000:5000 --detach registry:2")
+        ProcessStartInfo startRegistry = new("docker", "run --rm --publish 5000:5000 --detach registry:2")
         {
             RedirectStandardOutput = true,
         };
