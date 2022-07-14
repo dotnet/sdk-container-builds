@@ -15,7 +15,7 @@
         <ContainerWorkingDirectory Condition="'$(ContainerWorkingDirectory)' == ''">/app</ContainerWorkingDirectory>
         <!-- The baseline command to run first. eg. `dotnet foo.dll` -->
         <!-- TargetPath is defined as $(TargetDir)$(TargetFileName) -->
-        <ContainerEntrypoint Condition="'$(ContainerEntrypoint)' == '' and '$(SelfContained)' != 'true'">dotnet $(TargetPath)</ContainerEntrypoint>
+        <ContainerEntrypoint Condition="'$(ContainerEntrypoint)' == '' and '$(SelfContained)' != 'true'">dotnet $(TargetFileName)</ContainerEntrypoint>
         <!-- https://gist.github.com/BenVillalobos/e5336491e683b87e7ec2a5322f58dfbe -->
         <ContainerEntrypoint Condition="'$(ContainerEntrypoint)' == '' and '$(SelfContained)' == 'true'">$(ContainerWorkingDirectory)/$(TargetDir)$(AssemblyName)$(_NativeExecutableExtension)</ContainerEntrypoint>
         <!-- The arguments to pass alongside `ContainerEntrypoint` -->
