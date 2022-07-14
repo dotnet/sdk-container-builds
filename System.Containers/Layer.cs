@@ -53,13 +53,13 @@ public record struct Layer
 
         Directory.CreateDirectory(Configuration.ContentRoot);
 
-        File.Move(tempTarballPath, storedContent);
+        File.Move(tempTarballPath, storedContent, overwrite: true);
 
         Layer l = new()
         {
             Descriptor = new()
             {
-                MediaType = "application/vnd.oci.image.layer.v1.tar", // TODO: configurable? gzip always?
+                MediaType = "application/vnd.docker.image.rootfs.diff.tar", // TODO: configurable? gzip always?
                 Size = fileSize,
                 Digest = $"sha256:{contentHash}"
             },
