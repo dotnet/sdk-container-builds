@@ -38,8 +38,6 @@ public record struct Registry(Uri BaseUri)
             throw new NotImplementedException($"Do not understand the mediaType {manifest["mediaType"]}");
         }
 
-        Console.WriteLine("Got manifest");
-        Console.WriteLine(s);
         JsonNode? config = manifest["config"];
         Debug.Assert(config is not null);
         Debug.Assert(((string?)config["mediaType"]) == DockerContainerV1);

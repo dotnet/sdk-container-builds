@@ -1,5 +1,4 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.32710.52
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -10,8 +9,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.System.Containers.Filesystem", "Test.System.Containers.Filesystem\Test.System.Containers.Filesystem.csproj", "{CC249FAD-C24D-4B37-AF8F-FA05D0FD5620}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "containerize", "containerize\containerize.csproj", "{151F7937-D2AF-4242-9B6D-81FD5228D132}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "containerize", "containerize\containerize.csproj", "{092C78D2-3A0A-453B-BF5C-962F2B370136}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
