@@ -11,14 +11,16 @@
     <PropertyGroup>
         <PublishContainerDependsOn>
             Build;
-            ComputeContainerConfig
+            ComputeContainerConfig;
+            PublishItemsOutputGroup
         </PublishContainerDependsOn>
     </PropertyGroup>
 
-    <Target Name="ComputeContainerConfig" Returns="@(_ResolvedContainerConfig)" AfterTargets="Build">
+    <Target Name="ComputeContainerConfig" AfterTargets="Build;PublishItemsOutputGroup">
+        <!-- Find everything in the publish directory -->
         <ItemGroup>
-            <_ContainerConfiguration Include="@(ContainerConfiguration)"/>
-            <BuildOutputs Include="@(TargetPathWithTargetPlatformMoniker)"/>
+            <_BuildOutputsNonRelative Include="$(PublishDir)**\*.*"/>
+            <BuildOutputs Include="$([MSBuild]::MakeRelative('$(PublishDir)', '%(_BuildOutputsNonRelative.Identity)'))"/>
         </ItemGroup>
 
         <!-- Container Defaults -->
@@ -37,11 +39,6 @@
             <!-- The arguments to pass alongside `ContainerEntrypoint` -->
             <ContainerEntrypointArgs Condition="'$(ContainerEntrypointArgs)' == ''">--test /bl /foo</ContainerEntrypointArgs>
         </PropertyGroup>
-
-        <!-- Output the canonical item for consumers to use -->
-        <ItemGroup>
-            <_ResolvedContainerConfig Include="@(_ContainerConfiguration)"/>
-        </ItemGroup>
     </Target>
 
     <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)" BeforeTargets="Publish">
