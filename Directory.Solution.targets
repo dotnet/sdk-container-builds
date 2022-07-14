@@ -1,0 +1,40 @@
+<Project>
+    <PropertyGroup>
+        <_RegistryPort>5010</_RegistryPort>
+    </PropertyGroup>
+
+    <Target Name="StartDockerRegistry">
+        <Exec Command="docker run -d -p $(_RegistryPort):5000 --restart=always --name registry registry:2" />
+    </Target>
+
+    <Target Name="PreloadBaseImages">
+        <PropertyGroup>
+            <_MCR>mcr.microsoft.com</_MCR>
+            <_LocalRegistry>localhost:5010</_LocalRegistry>
+        </PropertyGroup>
+        <Exec Command="docker pull $(_MCR)/dotnet/runtime:6.0" />
+        <Exec Command="docker tag $(_MCR)/dotnet/runtime:6.0 $(_LocalRegistry)/dotnet/runtime:6.0" />
+        <Exec Command="docker push $(_LocalRegistry)/dotnet/runtime:6.0" />
+
+        <Exec Command="docker pull $(_MCR)/dotnet/runtime:7.0" />
+        <Exec Command="docker tag $(_MCR)/dotnet/runtime:7.0 $(_LocalRegistry)/dotnet/runtime:7.0" />
+        <Exec Command="docker push $(_LocalRegistry)/dotnet/runtime:7.0" />
+
+        <Exec Command="docker pull $(_MCR)/dotnet/sdk:6.0" />
+        <Exec Command="docker tag $(_MCR)/dotnet/sdk:6.0 $(_LocalRegistry)/dotnet/sdk:6.0" />
+        <Exec Command="docker push $(_LocalRegistry)/dotnet/sdk:6.0" />
+
+        <Exec Command="docker pull $(_MCR)/dotnet/sdk:7.0" />
+        <Exec Command="docker tag $(_MCR)/dotnet/sdk:7.0 $(_LocalRegistry)/dotnet/sdk:7.0" />
+        <Exec Command="docker push $(_LocalRegistry)/dotnet/sdk:7.0" />
+
+        <Exec Command="docker pull $(_MCR)/dotnet/aspnet:6.0" />
+        <Exec Command="docker tag $(_MCR)/dotnet/aspnet:6.0 $(_LocalRegistry)/dotnet/aspnet:6.0" />
+        <Exec Command="docker push $(_LocalRegistry)/dotnet/aspnet:6.0" />
+
+        <Exec Command="docker pull $(_MCR)/dotnet/aspnet:7.0" />
+        <Exec Command="docker tag $(_MCR)/dotnet/aspnet:7.0 $(_LocalRegistry)/dotnet/aspnet:7.0" />
+        <Exec Command="docker push $(_LocalRegistry)/dotnet/aspnet:7.0" />
+    </Target>
+
+</Project>
