@@ -77,10 +77,21 @@ namespace System.Containers.Tasks
                 return false;
             }
 
-            // Turn the build output (as items) into an array of filepaths
+            // Turn the build output from items into an array of filepaths
             string[] filePaths = Files.Select((f) => f.ItemSpec).ToArray();
 
-            Layer newLayer = Layer.FromDirectory(Path.GetDirectoryName(filePaths[0]), WorkingDirectory);
+            // preserve the folder structure of items published
+            string[] relativeFilePaths = filePaths.Select((x) => Path.GetRelativePath(PublishDirectory, x)).ToArray<string>();
+
+            List<(string file, string relativePath)> filesWithPaths = new List<(string file, string relativePath)>();
+
+            for(int i = 0; i < filePaths.Length; i++)
+            {
+                Log.LogMessage("File {0} has relative path of {1}", filePaths[i], relativeFilePaths[i]);
+                filesWithPaths.Add((filePaths[i], relativeFilePaths[i]));
+            }
+
+            Layer newLayer = Layer.FromFiles(filesWithPaths.AsEnumerable());
 
             image.AddLayer(newLayer);
             image.SetEntrypoint(Entrypoint, EntrypointArgs?.Split(' ').ToArray());
