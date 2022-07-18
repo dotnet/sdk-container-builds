@@ -56,7 +56,7 @@ public class EndToEnd
 
         // Run the image
 
-        ProcessStartInfo runInfo = new("docker", $"run --tty localhost:5010/{NewImageName}:latest")
+        ProcessStartInfo runInfo = new("docker", $"run --rm --tty localhost:5000/{NewImageName}:latest")
         {
             RedirectStandardOutput = true,
             RedirectStandardError = true,

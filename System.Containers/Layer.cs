@@ -11,12 +11,25 @@ public record struct Layer
 
     public static Layer FromDirectory(string directory, string containerPath)
     {
-        // Docker treats a COPY instruction that copies to a path like `/app` by
-        // including `app/` as a directory, with no leading slash. Emulate that here.
-        containerPath = containerPath.TrimStart(new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar });
-
         DirectoryInfo di = new(directory);
 
+        IEnumerable<(string path, string containerPath)> fileList = 
+            di.GetFileSystemInfos()
+                .Where(fsi => fsi is FileInfo).Select(
+                fsi =>
+                {
+                    string destinationPath =
+                        Path.Join(containerPath,
+                            Path.GetRelativePath(directory, fsi.FullName))
+                        .Replace(Path.DirectorySeparatorChar, '/');
+                    return (fsi.FullName, destinationPath);
+                });
+
+        return FromFiles(fileList);
+    }
+
+    public static Layer FromFiles(IEnumerable<(string path, string containerPath)> fileList)
+    {
         string tempPath = Path.Join(Configuration.ArtifactRoot, "Temp");
 
         Directory.CreateDirectory(tempPath);
@@ -30,12 +43,13 @@ public record struct Layer
             // using (GZipStream gz = new(fs, CompressionMode.Compress)) // TODO: https://github.com/rainersigwald/containers/issues/29
             using (TarWriter writer = new(fs, TarEntryFormat.Gnu, leaveOpen: true))
             {
-                foreach (var item in di.GetFileSystemInfos())
+                foreach (var item in fileList)
                 {
-                    if (item is FileInfo fi)
-                    {
-                        writer.WriteEntry(fi.FullName, Path.Combine(containerPath, fi.Name).Replace(Path.DirectorySeparatorChar, '/'));
-                    }
+                    // Docker treats a COPY instruction that copies to a path like `/app` by
+                    // including `app/` as a directory, with no leading slash. Emulate that here.
+                    string containerPath = item.containerPath.TrimStart(PathSeparators);
+
+                    writer.WriteEntry(item.path, containerPath);
                 }
             }
 
@@ -68,4 +82,7 @@ public record struct Layer
 
         return l;
     }
+
+    private readonly static char[] PathSeparators = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+
 }
