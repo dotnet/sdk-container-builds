@@ -8,7 +8,7 @@ public class DockerRegistryManager
     public const string BaseImage = "dotnet/runtime";
     public const string BaseImageSource = "mcr.microsoft.com/";
     public const string BaseImageTag = "6.0";
-    public const string LocalRegistry = "localhost:5000";
+    public const string LocalRegistry = "localhost:5010";
 
     private static string? s_registryContainerId;
 
@@ -17,7 +17,7 @@ public class DockerRegistryManager
     {
         Console.WriteLine(nameof(StartAndPopulateDockerRegistry));
 
-        ProcessStartInfo startRegistry = new("docker", "run --rm --publish 5000:5000 --detach registry:2")
+        ProcessStartInfo startRegistry = new("docker", "run --rm --publish 5010:5000 --detach registry:2")
         {
             RedirectStandardOutput = true,
         };

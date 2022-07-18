@@ -33,7 +33,7 @@ public class EndToEnd
 
         // Build the image
 
-        Registry registry = new Registry(new Uri("http://localhost:5000"));
+        Registry registry = new Registry(new Uri($"http://{DockerRegistryManager.LocalRegistry}"));
 
         Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag);
 
@@ -49,14 +49,14 @@ public class EndToEnd
 
         // pull it back locally
 
-        Process pull = Process.Start("docker", $"pull localhost:5000/{NewImageName}:latest");
+        Process pull = Process.Start("docker", $"pull {DockerRegistryManager.LocalRegistry}/{NewImageName}:latest");
         Assert.IsNotNull(pull);
         await pull.WaitForExitAsync();
         Assert.AreEqual(0, pull.ExitCode);
 
         // Run the image
 
-        ProcessStartInfo runInfo = new("docker", $"run --rm --tty localhost:5000/{NewImageName}:latest")
+        ProcessStartInfo runInfo = new("docker", $"run --rm --tty {DockerRegistryManager.LocalRegistry}/{NewImageName}:latest")
         {
             RedirectStandardOutput = true,
             RedirectStandardError = true,

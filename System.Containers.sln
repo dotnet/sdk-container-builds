@@ -1,21 +1,19 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30114.105
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.32710.52
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "System.Containers", "System.Containers\System.Containers.csproj", "{A85F5917-A1F5-43D2-BDDC-CAE179B15DDE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "System.Containers", "System.Containers\System.Containers.csproj", "{A85F5917-A1F5-43D2-BDDC-CAE179B15DDE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.System.Containers", "Test.System.Containers\Test.System.Containers.csproj", "{E6EE341A-E10A-423C-B3D8-FEEA0942CFA8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.System.Containers", "Test.System.Containers\Test.System.Containers.csproj", "{E6EE341A-E10A-423C-B3D8-FEEA0942CFA8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.System.Containers.Filesystem", "Test.System.Containers.Filesystem\Test.System.Containers.Filesystem.csproj", "{CC249FAD-C24D-4B37-AF8F-FA05D0FD5620}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.System.Containers.Filesystem", "Test.System.Containers.Filesystem\Test.System.Containers.Filesystem.csproj", "{CC249FAD-C24D-4B37-AF8F-FA05D0FD5620}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "containerize", "containerize\containerize.csproj", "{151F7937-D2AF-4242-9B6D-81FD5228D132}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{A85F5917-A1F5-43D2-BDDC-CAE179B15DDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -30,5 +28,15 @@ Global
 		{CC249FAD-C24D-4B37-AF8F-FA05D0FD5620}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC249FAD-C24D-4B37-AF8F-FA05D0FD5620}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CC249FAD-C24D-4B37-AF8F-FA05D0FD5620}.Release|Any CPU.Build.0 = Release|Any CPU
+		{151F7937-D2AF-4242-9B6D-81FD5228D132}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{151F7937-D2AF-4242-9B6D-81FD5228D132}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{151F7937-D2AF-4242-9B6D-81FD5228D132}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{151F7937-D2AF-4242-9B6D-81FD5228D132}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D68F4804-C298-48F6-9993-8CB75A141BD3}
 	EndGlobalSection
 EndGlobal
