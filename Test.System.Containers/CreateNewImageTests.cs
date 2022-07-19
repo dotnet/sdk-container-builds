@@ -63,6 +63,7 @@ namespace Test.System.Containers
             if (nupkg == null)
             {
                 // Build System.Containers.Tasks.csproj & wait.
+                Assert.Fail();
             }
 
             ProcessStartInfo info = new ProcessStartInfo
