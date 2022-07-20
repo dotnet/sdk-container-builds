@@ -21,14 +21,18 @@ public class Image
     public void AddLayer(Layer l)
     {
         newLayers.Add(l);
-        manifest["layers"].AsArray().Add(l.Descriptor);
-        config["rootfs"]["diff_ids"].AsArray().Add(l.Descriptor.Digest); // TODO: this should be the descriptor of the UNCOMPRESSED tarball (once we turn on compression)
-        manifest["config"]["digest"] = GetSha(config);
+        manifest["layers"]!.AsArray().Add(l.Descriptor);
+        config["rootfs"]!["diff_ids"]!.AsArray().Add(l.Descriptor.Digest); // TODO: this should be the descriptor of the UNCOMPRESSED tarball (once we turn on compression)
+        RecalculateDigest();
+    }
+
+    private void RecalculateDigest() {
+        manifest["config"]!["digest"] = GetSha(config);
     }
 
     public void SetEntrypoint(string executable, string[]? args = null)
     {
-        JsonObject? configObject = config["config"].AsObject();
+        JsonObject? configObject = config["config"]!.AsObject();
 
         if (configObject is null)
         {
@@ -46,7 +50,15 @@ public class Image
             configObject["Cmd"] = new JsonArray(args.Select(s =>(JsonObject)s).ToArray());
         }
 
-        manifest["config"]["digest"] = GetSha(config);
+        RecalculateDigest();
+    }
+
+    public string WorkingDirectory {
+        get => (string?)manifest["config"]!["WorkingDir"] ?? "";
+        set {
+            config["config"]!["WorkingDir"] = value;
+            RecalculateDigest();
+        }
     }
 
     public string GetSha(JsonNode json)

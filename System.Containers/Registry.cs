@@ -21,8 +21,6 @@ public record struct Registry(Uri BaseUri)
     {
         using HttpClient client = GetClient();
 
-        Console.WriteLine($"Reading manifest for {name}:{reference}");
-
         var response = await client.GetAsync(new Uri(BaseUri, $"/v2/{name}/manifests/{reference}"));
 
         response.EnsureSuccessStatusCode();
