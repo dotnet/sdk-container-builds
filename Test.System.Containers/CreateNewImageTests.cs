@@ -42,6 +42,8 @@ namespace Test.System.Containers
         {
             DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "CreateNewImageTest"));
             DirectoryInfo pathForLocalNugetSource = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "NuGetSource"));
+            //string previousNugetPath = Environment.GetEnvironmentVariable("NUGET_PACKAGES", );
+            //Environment.SetEnvironmentVariable("NUGET_PACKAGES", pathForLocalNugetSource.FullName);
 
             if (newProjectDir.Exists)
             {
@@ -59,8 +61,8 @@ namespace Test.System.Containers
             // 🤢
             DirectoryInfo nupkgPath = new DirectoryInfo(Assembly.GetAssembly(this.GetType()).Location).Parent.Parent.Parent.Parent;
             nupkgPath = nupkgPath.GetDirectories("package")[0];
-            FileInfo nupkg = nupkgPath.GetFiles("*.nupkg")[0];
-            if (nupkg == null)
+            FileInfo[] nupkgs = nupkgPath.GetFiles("*.nupkg");
+            if (nupkgs == null || nupkgs.Length == 0)
             {
                 // Build System.Containers.Tasks.csproj & wait.
                 Assert.Fail();
@@ -70,7 +72,7 @@ namespace Test.System.Containers
             {
                 WorkingDirectory = newProjectDir.FullName,
                 FileName = "dotnet",
-                Arguments = "new console -f net7.0"
+                Arguments = "new webapi -f net7.0"
             };
 
             // Create the project to pack
@@ -94,26 +96,29 @@ namespace Test.System.Containers
             await dotnetNugetAddSource.WaitForExitAsync();
             Assert.AreEqual(0, dotnetNugetAddSource.ExitCode);
 
-            // Push local nupkg to "nuget feed"
-            info.Arguments = $"nuget push {nupkg.FullName} --source {pathForLocalNugetSource.FullName}";
-            Process dotnetNugetPush = Process.Start(info);
-            Assert.IsNotNull(dotnetNugetPush);
-            await dotnetNugetPush.WaitForExitAsync();
-            Assert.AreEqual(0, dotnetNugetPush.ExitCode);
+            for (int i = 0; i < nupkgs.Length; i++)
+            {
+                // Push local nupkg to "nuget feed"
+                info.Arguments = $"nuget push {nupkgs[i].FullName} --source local-temp";
+                Process dotnetNugetPush = Process.Start(info);
+                Assert.IsNotNull(dotnetNugetPush);
+                await dotnetNugetPush.WaitForExitAsync();
+                Assert.AreEqual(0, dotnetNugetPush.ExitCode);
+            }
 
             // Add package to the project
-            info.Arguments = $"add package System.Containers.Tasks --source \"{pathForLocalNugetSource.FullName};https://api.nuget.org/v3/index.json\"";
+            info.Arguments = $"add package System.Containers.Tasks --source local-temp -v 1.0.0";
             Process dotnetPackageAdd = Process.Start(info);
             Assert.IsNotNull(dotnetPackageAdd);
             await dotnetPackageAdd.WaitForExitAsync();
             Assert.AreEqual(0, dotnetPackageAdd.ExitCode);
 
-            // info.Arguments = "publish /p:publishprofile=defaultcontainer /p:runtimeidentifier=win-x64";
-            // // Build & publish the project
-            // Process publish = Process.Start(info);
-            // Assert.IsNotNull(publish);
-            // await publish.WaitForExitAsync();
-            // Assert.AreEqual(0, publish.ExitCode);
+            info.Arguments = "publish /p:publishprofile=defaultcontainer /p:runtimeidentifier=win-x64 /bl";
+            // Build & publish the project
+            Process publish = Process.Start(info);
+            Assert.IsNotNull(publish);
+            await publish.WaitForExitAsync();
+            Assert.AreEqual(0, publish.ExitCode);
 
             Console.WriteLine(publish.StandardOutput.ReadToEndAsync());
 

@@ -4,6 +4,13 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
+
+  <!-- Hacky workaround for the fact that we don't publish the package yet. -->
+  <Target Name="CopyNupkgToCustomFolder" AfterTargets="Pack">
+    <Copy SourceFiles="$(OutDir)..\System.Containers.1.0.0.nupkg"
+      DestinationFiles="..\Test.System.Containers\package\System.Containers.1.0.0.nupkg" />
+  </Target>
 
 </Project>
