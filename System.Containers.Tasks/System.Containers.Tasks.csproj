@@ -5,17 +5,20 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+    <IsPackable>true</IsPackable>
     
     <TargetsForTfmSpecificBuildOutput>
       $(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage
     </TargetsForTfmSpecificBuildOutput>
+
     <BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>
 
     <!-- Tell the SDK to generate a deps.json file -->
     <GenerateDependencyFile>true</GenerateDependencyFile>
 
-    <!-- MSBuild tasks shouldn't be referenced. THis is by design. -->
-    <NoWarn>NU5100</NoWarn>
+    <!-- MSBuild tasks shouldn't be referenced. This is by design. -->
+    <NoWarn>NU5100;NU5128</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

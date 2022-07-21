@@ -1,7 +1,6 @@
 <Project>
  <PropertyGroup>
- 	<!--default directory where the .dll was publich inside a nuget package-->
- 	<taskForldername>lib</taskForldername>
+ 	<taskForldername>tasks</taskForldername>
  	<taskFramework>net7.0</taskFramework>
  	<!--The folder where the custom task will be present. It points to inside the nuget package. -->
  	<CustomTasksFolder>$(MSBuildThisFileDirectory)..\$(taskForldername)\$(taskFramework)</CustomTasksFolder>

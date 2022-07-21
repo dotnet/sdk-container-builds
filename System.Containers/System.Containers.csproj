@@ -8,9 +8,9 @@
   </PropertyGroup>
 
   <!-- Hacky workaround for the fact that we don't publish the package yet. -->
-  <Target Name="CopyNupkgToCustomFolder" AfterTargets="Pack">
+  <!-- <Target Name="CopyNupkgToCustomFolder" AfterTargets="Pack">
     <Copy SourceFiles="$(OutDir)..\System.Containers.1.0.0.nupkg"
       DestinationFiles="..\Test.System.Containers\package\System.Containers.1.0.0.nupkg" />
-  </Target>
+  </Target> -->
 
 </Project>
