@@ -1,9 +1,6 @@
 <Project>
-    <UsingTask TaskName="CreateNewImage" AssemblyFile="../bin/Debug/net7.0/System.Containers.Tasks.dll" />
-
     <PropertyGroup>
         <TargetFrameworkVersion>6.0</TargetFrameworkVersion>
-        <AssemblyName>Foo</AssemblyName>
     </PropertyGroup>
 
     <!-- Required targets dependencies -->
