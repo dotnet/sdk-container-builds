@@ -88,7 +88,7 @@ namespace Test.System.Containers
             await dotnetNewNugetConfig.WaitForExitAsync();
             Assert.AreEqual(0, dotnetNewNugetConfig.ExitCode);
 
-            info.Arguments = $"nuget add source --name local-temp {pathForLocalNugetSource.FullName}";
+            info.Arguments = $"nuget add source {pathForLocalNugetSource.FullName} --name local-temp";
 
             // Set up temp folder as "nuget feed"
             Process dotnetNugetAddSource = Process.Start(info);
@@ -107,7 +107,7 @@ namespace Test.System.Containers
             }
 
             // Add package to the project
-            info.Arguments = $"add package System.Containers.Tasks --source local-temp -v 1.0.0";
+            info.Arguments = $"add package System.Containers.Tasks -v 1.0.0";
             Process dotnetPackageAdd = Process.Start(info);
             Assert.IsNotNull(dotnetPackageAdd);
             await dotnetPackageAdd.WaitForExitAsync();
