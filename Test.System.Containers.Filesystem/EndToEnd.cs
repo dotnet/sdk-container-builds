@@ -1,7 +1,10 @@
 ﻿using System.Containers;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace Test.System.Containers.Filesystem;
+
+#nullable disable
 
 [TestClass]
 public class EndToEnd
@@ -72,5 +75,98 @@ public class EndToEnd
         Assert.AreEqual(0, run.ExitCode);
 
         Assert.IsTrue(stdout.Contains("Hello, World!"));
+    }
+
+    [TestMethod]
+    public async Task EndToEnd_Test()
+    {
+        DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "CreateNewImageTest"));
+        DirectoryInfo pathForLocalNugetSource = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "NuGetSource"));
+        //string previousNugetPath = Environment.GetEnvironmentVariable("NUGET_PACKAGES", );
+        //Environment.SetEnvironmentVariable("NUGET_PACKAGES", pathForLocalNugetSource.FullName);
+
+        if (newProjectDir.Exists)
+        {
+            newProjectDir.Delete(recursive: true);
+        }
+
+        if (pathForLocalNugetSource.Exists)
+        {
+            pathForLocalNugetSource.Delete(recursive: true);
+        }
+
+        newProjectDir.Create();
+        pathForLocalNugetSource.Create();
+
+        // 🤢
+        DirectoryInfo nupkgPath = new DirectoryInfo(Assembly.GetAssembly(this.GetType()).Location).Parent.Parent.Parent.Parent;
+        nupkgPath = nupkgPath.GetDirectories("package")[0];
+        FileInfo[] nupkgs = nupkgPath.GetFiles("*.nupkg");
+        if (nupkgs == null || nupkgs.Length == 0)
+        {
+            // Build System.Containers.Tasks.csproj & wait.
+            // for now, fail.
+            Assert.Fail("No nupkg found in expected package folder. You may need to rerun the build");
+        }
+
+        ProcessStartInfo info = new ProcessStartInfo
+        {
+            WorkingDirectory = newProjectDir.FullName,
+            FileName = "dotnet",
+            Arguments = "new webapi -f net7.0",
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+        };
+
+        // Create the project to pack
+        Process dotnetNew = Process.Start(info);
+        Assert.IsNotNull(dotnetNew);
+        await dotnetNew.WaitForExitAsync();
+        Assert.AreEqual(0, dotnetNew.ExitCode);
+
+        // Give it a unique nugetconfig
+        info.Arguments = "new nugetconfig";
+        Process dotnetNewNugetConfig = Process.Start(info);
+        Assert.IsNotNull(dotnetNewNugetConfig);
+        await dotnetNewNugetConfig.WaitForExitAsync();
+        Assert.AreEqual(0, dotnetNewNugetConfig.ExitCode);
+
+        info.Arguments = $"nuget add source {pathForLocalNugetSource.FullName} --name local-temp";
+
+        // Set up temp folder as "nuget feed"
+        Process dotnetNugetAddSource = Process.Start(info);
+        Assert.IsNotNull(dotnetNugetAddSource);
+        await dotnetNugetAddSource.WaitForExitAsync();
+        Assert.AreEqual(0, dotnetNugetAddSource.ExitCode);
+
+        for (int i = 0; i < nupkgs.Length; i++)
+        {
+            // Push local nupkg to "nuget feed"
+            info.Arguments = $"nuget push {nupkgs[i].FullName} --source local-temp";
+            Process dotnetNugetPush = Process.Start(info);
+            Assert.IsNotNull(dotnetNugetPush);
+            await dotnetNugetPush.WaitForExitAsync();
+            Assert.AreEqual(0, dotnetNugetPush.ExitCode);
+        }
+
+        // Add package to the project
+        info.Arguments = $"add package System.Containers.Tasks -v 1.0.0";
+        Process dotnetPackageAdd = Process.Start(info);
+        Assert.IsNotNull(dotnetPackageAdd);
+        await dotnetPackageAdd.WaitForExitAsync();
+        Assert.AreEqual(0, dotnetPackageAdd.ExitCode);
+
+        info.Arguments = $"publish /p:publishprofile=defaultcontainer /p:runtimeidentifier=win-x64 /bl" +
+                          " /p:Version=1.0";
+        // info.EnvironmentVariables.Add("MSBUILDDEBUGONSTART", "1");
+        // Build & publish the project
+        Process publish = Process.Start(info);
+        Assert.IsNotNull(publish);
+        await publish.WaitForExitAsync();
+        Assert.AreEqual(0, publish.ExitCode);
+
+        Console.WriteLine(publish.StandardOutput.ReadToEndAsync());
+
+        newProjectDir.Delete(true);
     }
 }
