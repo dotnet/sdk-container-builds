@@ -61,7 +61,7 @@ namespace System.Containers.Tasks
         {
             if (Files.Length == 0)
             {
-                Console.WriteLine("Files is empty, aborting.");
+                Log.LogError("No files to publish, aborting");
                 return false;
             }
 
@@ -103,9 +103,9 @@ namespace System.Containers.Tasks
             {
                 outputReg.Push(image, NewImageName, BaseImageName).Wait();
             }
-            catch
+            catch (Exception e)
             {
-                Console.WriteLine("Registry.Push failed");
+                Log.LogError("Failed to push to the output registry: {0}\n{1}", e.Message, e.InnerException);
                 return false;
             }
 
