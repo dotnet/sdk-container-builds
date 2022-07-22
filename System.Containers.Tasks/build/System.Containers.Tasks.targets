@@ -1,0 +1,50 @@
+<Project>
+    <PropertyGroup>
+        <TargetFrameworkVersion>6.0</TargetFrameworkVersion>
+    </PropertyGroup>
+
+    <!-- Required targets dependencies -->
+    <PropertyGroup>
+        <PublishContainerDependsOn>
+            Build;
+            ComputeContainerConfig
+        </PublishContainerDependsOn>
+    </PropertyGroup>
+
+    <Target Name="ComputeContainerConfig" AfterTargets="Build;_CopyResolvedFilesToPublishPreserveNewest">
+        <!-- Find everything in the publish directory -->
+        <ItemGroup>
+            <_BuildOutputsNonRelative Include="$(PublishDir)**\*.*"/>
+            <BuildOutputs Include="%(_BuildOutputsNonRelative.FullPath)"/>
+        </ItemGroup>
+
+        <!-- Container Defaults -->
+        <PropertyGroup>
+            <ContainerBaseImageName Condition="'$(ContainerBaseImageName)' == ''"></ContainerBaseImageName>
+            <ContainerBaseImageTag Condition="'$(ContainerBaseImageTag)' == '' and $([MSBuild]::VersionGreaterThanOrEquals('$(TargetFrameworkVersion)', 6.0))">6.0</ContainerBaseImageTag>
+            <ContainerBaseImage Condition="'$(ContainerBaseImage)' == ''">$(ContainerBaseImageName):$(ContainerBaseImageTag)</ContainerBaseImage>
+            <ContainerInputRegistryURL Condition="'$(ContainerInputRegistryURL)' == ''">http://localhost:5010</ContainerInputRegistryURL>
+            <ContainerOutputRegistryURL Condition="'$(ContainerOutputRegistryURL)' == ''">http://localhost:5010</ContainerOutputRegistryURL>
+            <ContainerImageName Condition="'$(ContainerImageName)' == ''">$(AssemblyName.ToLower())</ContainerImageName>
+            <ContainerImageTag Condition="'$(ContainerImageTag)' == ''">$(Version)</ContainerImageTag>
+            <ContainerWorkingDirectory Condition="'$(ContainerWorkingDirectory)' == ''">/app</ContainerWorkingDirectory>
+            <ContainerEntrypoint Condition="'$(ContainerEntrypoint)' == '' and '$(SelfContained)' != 'true'">dotnet $(TargetFileName)</ContainerEntrypoint>
+            <!-- https://gist.github.com/BenVillalobos/e5336491e683b87e7ec2a5322f58dfbe -->
+            <ContainerEntrypoint Condition="'$(ContainerEntrypoint)' == '' and '$(SelfContained)' == 'true'">$(ContainerWorkingDirectory)/$(AssemblyName)$(_NativeExecutableExtension)</ContainerEntrypoint>
+            <ContainerEntrypointArgs Condition="'$(ContainerEntrypointArgs)' == ''"></ContainerEntrypointArgs>
+        </PropertyGroup>
+    </Target>
+
+    <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)" BeforeTargets="Publish">
+        <CreateNewImage InputRegistryURL="$(ContainerInputRegistryURL)"
+                        OutputRegistryURL="$(ContainerOutputRegistryURL)"
+                        BaseImageName="$(ContainerBaseImageName)"
+                        BaseImageTag="$(ContainerBaseImageTag)"
+                        Files="@(BuildOutputs)"
+                        WorkingDirectory="$(ContainerWorkingDirectory)"
+                        NewImageName="$(ContainerImageName)"
+                        Entrypoint="$(ContainerEntrypoint)"
+                        EntrypointArgs="$(ContainerEntrypointArgs)"
+                        PublishDirectory="$(MSBuildProjectDirectory)\$(PublishDir)"/>
+    </Target>
+</Project>

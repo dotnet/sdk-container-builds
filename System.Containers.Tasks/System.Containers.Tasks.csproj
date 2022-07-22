@@ -4,14 +4,57 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+    <IsPackable>true</IsPackable>
+
+    <TargetsForTfmSpecificBuildOutput>
+      $(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage
+    </TargetsForTfmSpecificBuildOutput>
+
+    <BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>
+
+    <!-- Tell the SDK to generate a deps.json file -->
+    <GenerateDependencyFile>true</GenerateDependencyFile>
+
+    <!-- MSBuild tasks shouldn't be referenced. This is by design. -->
+    <NoWarn>NU5100;NU5128</NoWarn>
   </PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Microsoft.Build.Utilities.Core" />
-	</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Utilities.Core" PrivateAssets="all" ExcludeAssets="runtime" />
+  </ItemGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\System.Containers\System.Containers.csproj" />
-	</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\System.Containers\System.Containers.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="build\System.Containers.Tasks.props" Pack="true" PackagePath="build\" />
+    <Content Include="build\System.Containers.Tasks.targets" Pack="true" PackagePath="build\" />
+  </ItemGroup>
+
+  <!-- This target adds all of our PackageReference and ProjectReference's runtime assets to our package output. -->
+  <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths)"
+        TargetPath="%(ReferenceCopyLocalPaths.DestinationSubPath)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- This target adds the generated deps.json file to our package output -->
+  <Target Name="AddBuildDependencyFileToBuiltProjectOutputGroupOutput" BeforeTargets="BuiltProjectOutputGroup"
+    Condition=" '$(GenerateDependencyFile)' == 'true'">
+    <ItemGroup>
+      <BuiltProjectOutputGroupOutput Include="$(ProjectDepsFilePath)" TargetPath="$(ProjectDepsFileName)"
+        FinalOutputPath="$(ProjectDepsFilePath)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Hacky workaround for the fact that we don't publish the package yet. -->
+  <Target Name="CopyNupkgToCustomFolder" AfterTargets="Pack">
+    <Copy SourceFiles="$(OutDir)..\System.Containers.Tasks.1.0.0.nupkg"
+      DestinationFiles="..\Test.System.Containers.Filesystem\package\System.Containers.Tasks.1.0.0.nupkg" />
+  </Target>
 
 </Project>
