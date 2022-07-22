@@ -20,18 +20,18 @@
 
         <!-- Container Defaults -->
         <PropertyGroup>
-            <ContainerBaseImageName Condition="'$(ContainerBaseImageName)' == ''">TODO</ContainerBaseImageName>
+            <ContainerBaseImageName Condition="'$(ContainerBaseImageName)' == ''"></ContainerBaseImageName>
             <ContainerBaseImageTag Condition="'$(ContainerBaseImageTag)' == '' and $([MSBuild]::VersionGreaterThanOrEquals('$(TargetFrameworkVersion)', 6.0))">6.0</ContainerBaseImageTag>
             <ContainerBaseImage Condition="'$(ContainerBaseImage)' == ''">$(ContainerBaseImageName):$(ContainerBaseImageTag)</ContainerBaseImage>
-            <ContainerInputRegistryURL Condition="'$(ContainerInputRegistryURL)' == ''">https://localhost:5000</ContainerInputRegistryURL>
-            <ContainerOutputRegistryURL Condition="'$(ContainerOutputRegistryURL)' == ''">https://localhost:5000</ContainerOutputRegistryURL>
+            <ContainerInputRegistryURL Condition="'$(ContainerInputRegistryURL)' == ''">http://localhost:5010</ContainerInputRegistryURL>
+            <ContainerOutputRegistryURL Condition="'$(ContainerOutputRegistryURL)' == ''">http://localhost:5010</ContainerOutputRegistryURL>
             <ContainerImageName Condition="'$(ContainerImageName)' == ''">$(AssemblyName.ToLower())</ContainerImageName>
             <ContainerImageTag Condition="'$(ContainerImageTag)' == ''">$(Version)</ContainerImageTag>
             <ContainerWorkingDirectory Condition="'$(ContainerWorkingDirectory)' == ''">/app</ContainerWorkingDirectory>
             <ContainerEntrypoint Condition="'$(ContainerEntrypoint)' == '' and '$(SelfContained)' != 'true'">dotnet $(TargetFileName)</ContainerEntrypoint>
             <!-- https://gist.github.com/BenVillalobos/e5336491e683b87e7ec2a5322f58dfbe -->
             <ContainerEntrypoint Condition="'$(ContainerEntrypoint)' == '' and '$(SelfContained)' == 'true'">$(ContainerWorkingDirectory)/$(AssemblyName)$(_NativeExecutableExtension)</ContainerEntrypoint>
-            <ContainerEntrypointArgs Condition="'$(ContainerEntrypointArgs)' == ''">TODO</ContainerEntrypointArgs>
+            <ContainerEntrypointArgs Condition="'$(ContainerEntrypointArgs)' == ''"></ContainerEntrypointArgs>
         </PropertyGroup>
     </Target>
 
