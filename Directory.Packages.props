@@ -3,6 +3,7 @@
         <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     </PropertyGroup>
     <ItemGroup>
+        <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.2.0" />
         <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
         <PackageVersion Include="MSTest.TestAdapter" Version="2.2.10" />
         <PackageVersion Include="MSTest.TestFramework" Version="2.2.10" />
