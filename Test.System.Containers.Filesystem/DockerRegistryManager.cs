@@ -20,11 +20,15 @@ public class DockerRegistryManager
         ProcessStartInfo startRegistry = new("docker", "run --rm --publish 5010:5000 --detach registry:2")
         {
             RedirectStandardOutput = true,
+            RedirectStandardError = true,
         };
 
         using Process? registryProcess = Process.Start(startRegistry);
         Assert.IsNotNull(registryProcess);
         string? registryContainerId = registryProcess.StandardOutput.ReadLine();
+        // debugging purposes
+        string? everythingElse = registryProcess.StandardOutput.ReadToEnd();
+        string? errStream = registryProcess.StandardError.ReadToEnd();
         Assert.IsNotNull(registryContainerId);
         registryProcess.WaitForExit();
         Assert.AreEqual(0, registryProcess.ExitCode);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Resources;
 using System.Text;
@@ -71,9 +72,9 @@ namespace System.Containers.Tasks
             {
                 image = reg.GetImageManifest(BaseImageName, BaseImageTag).Result;
             }
-            catch
+            catch (Exception ex)
             {
-                Console.WriteLine("GetImageManifest failed");
+                Log.LogError("GetImageManifest Failed: {0}.\n{1}", ex.Message, ex.InnerException);
                 return false;
             }
 
