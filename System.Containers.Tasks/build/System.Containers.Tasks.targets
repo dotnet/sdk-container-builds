@@ -14,7 +14,7 @@
     <Target Name="ComputeContainerConfig" AfterTargets="Build;_CopyResolvedFilesToPublishPreserveNewest">
         <!-- Find everything in the publish directory -->
         <ItemGroup>
-            <_BuildOutputsNonRelative Include="$(PublishDir)**\*.*"/>
+            <_BuildOutputsNonRelative Include="$(MSBuildProjectDirectory)\$(PublishDir)**\*.*"/>
             <BuildOutputs Include="%(_BuildOutputsNonRelative.FullPath)"/>
         </ItemGroup>
 

@@ -1,6 +1,7 @@
 ﻿using System.Containers;
 using System.Diagnostics;
 using System.Reflection;
+using System.Threading;
 
 namespace Test.System.Containers.Filesystem;
 #nullable disable
@@ -79,8 +80,6 @@ public class EndToEnd
     {
         DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "CreateNewImageTest"));
         DirectoryInfo pathForLocalNugetSource = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "NuGetSource"));
-        //string previousNugetPath = Environment.GetEnvironmentVariable("NUGET_PACKAGES", );
-        //Environment.SetEnvironmentVariable("NUGET_PACKAGES", pathForLocalNugetSource.FullName);
 
         if (newProjectDir.Exists)
         {
@@ -110,7 +109,7 @@ public class EndToEnd
         {
             WorkingDirectory = newProjectDir.FullName,
             FileName = "dotnet",
-            Arguments = "new webapi -f net7.0",
+            Arguments = "new console -f net7.0",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
         };
@@ -154,19 +153,42 @@ public class EndToEnd
         Assert.AreEqual(0, dotnetPackageAdd.ExitCode);
 
         info.Arguments = $"publish /p:publishprofile=defaultcontainer /p:runtimeidentifier=win-x64 /bl" +
-                          " /p:ContainerBaseImageName=dotnet/runtime" +
-                          " /p:ContainerInputRegistryURL=http://localhost:5010" +
-                          " /p:ContainerOutputRegistryURL=http://localhost:5010" +
-                          " /p:ContainerImageName=dotnetcontainers/testimagename" +
-                          " /p:Version=1.0";
+                          $" /p:ContainerBaseImageName={DockerRegistryManager.BaseImage}" +
+                          $" /p:ContainerInputRegistryURL=http://{DockerRegistryManager.LocalRegistry}" +
+                          $" /p:ContainerOutputRegistryURL=http://{DockerRegistryManager.LocalRegistry}" +
+                          $" /p:ContainerImageName={NewImageName}" +
+                          $" /p:Version=1.0";
+
         // Build & publish the project
         Process publish = Process.Start(info);
         Assert.IsNotNull(publish);
         await publish.WaitForExitAsync();
         Assert.AreEqual(0, publish.ExitCode);
 
-        Console.WriteLine(publish.StandardOutput.ReadToEndAsync());
+        // Final step: verify by running the app.
+        // This is not as simple as checking the output contains "hello world" because
+        // we can't publish a console app (the container targets only import in websdk projects)
 
+        Process pull = Process.Start("docker", $"pull {DockerRegistryManager.LocalRegistry}/{NewImageName}:latest");
+        Assert.IsNotNull(pull);
+        await pull.WaitForExitAsync();
+        Assert.AreEqual(0, pull.ExitCode);
+
+        ProcessStartInfo runInfo = new("docker", $"run --rm --tty {DockerRegistryManager.LocalRegistry}/{NewImageName}:latest")
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+        };
+
+        Process run = Process.Start(runInfo);
+        Assert.IsNotNull(run);
+        string stdout = await run.StandardOutput.ReadToEndAsync();
+        await run.WaitForExitAsync();
+
+        Console.WriteLine("stdout: " + stdout);
+        Console.WriteLine("stderr: " + await run.StandardError.ReadToEndAsync());
+
+        Assert.AreEqual(0, run.ExitCode);
         newProjectDir.Delete(true);
         pathForLocalNugetSource.Delete(true);
     }
