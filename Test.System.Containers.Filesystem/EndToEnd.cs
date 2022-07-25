@@ -57,22 +57,12 @@ public class EndToEnd
 
         // Run the image
 
-        ProcessStartInfo runInfo = new("docker", $"run --rm --tty {DockerRegistryManager.LocalRegistry}/{NewImageName}:latest")
-        {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-        };
-        Process? run = Process.Start(runInfo);
+        ProcessStartInfo runInfo = new("docker", $"run --rm --tty {DockerRegistryManager.LocalRegistry}/{NewImageName}:latest");
+        Process run = Process.Start(runInfo);
         Assert.IsNotNull(run);
-        string? stdout = await run.StandardOutput.ReadToEndAsync();
         await run.WaitForExitAsync();
 
-        Console.WriteLine("stdout: " + stdout);
-        Console.WriteLine("stderr: " + await run.StandardError.ReadToEndAsync());
-
         Assert.AreEqual(0, run.ExitCode);
-
-        Assert.IsTrue(stdout.Contains("Hello, World!"));
     }
 
     [TestMethod]
@@ -152,7 +142,7 @@ public class EndToEnd
         await dotnetPackageAdd.WaitForExitAsync();
         Assert.AreEqual(0, dotnetPackageAdd.ExitCode);
 
-        info.Arguments = $"publish /p:publishprofile=defaultcontainer /p:runtimeidentifier=win-x64 /bl" +
+        info.Arguments = $"publish /p:publishprofile=defaultcontainer /p:runtimeidentifier=linux-x64 /bl" +
                           $" /p:ContainerBaseImageName={DockerRegistryManager.BaseImage}" +
                           $" /p:ContainerInputRegistryURL=http://{DockerRegistryManager.LocalRegistry}" +
                           $" /p:ContainerOutputRegistryURL=http://{DockerRegistryManager.LocalRegistry}" +
