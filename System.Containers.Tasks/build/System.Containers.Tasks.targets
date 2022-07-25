@@ -36,15 +36,14 @@
     </Target>
 
     <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)" BeforeTargets="Publish">
-        <CreateNewImage InputRegistryURL="$(ContainerInputRegistryURL)"
-                        OutputRegistryURL="$(ContainerOutputRegistryURL)"
-                        BaseImageName="$(ContainerBaseImageName)"
+        <CreateNewImage BaseImageName="$(ContainerBaseImageName)"
                         BaseImageTag="$(ContainerBaseImageTag)"
-                        Files="@(BuildOutputs)"
+                        InputRegistryURL="$(ContainerInputRegistryURL)"
+                        OutputRegistryURL="$(ContainerOutputRegistryURL)"
+                        PublishDirectory="$(MSBuildProjectDirectory)\$(PublishDir)"
                         WorkingDirectory="$(ContainerWorkingDirectory)"
                         NewImageName="$(ContainerImageName)"
                         Entrypoint="$(ContainerEntrypoint)"
-                        EntrypointArgs="$(ContainerEntrypointArgs)"
-                        PublishDirectory="$(MSBuildProjectDirectory)\$(PublishDir)"/>
+                        EntrypointArgs="$(ContainerEntrypointArgs)"/>
     </Target>
 </Project>
