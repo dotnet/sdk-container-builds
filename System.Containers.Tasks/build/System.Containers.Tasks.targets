@@ -14,7 +14,7 @@
     <Target Name="ComputeContainerConfig" AfterTargets="Build;_CopyResolvedFilesToPublishPreserveNewest">
         <!-- Find everything in the publish directory -->
         <ItemGroup>
-            <_BuildOutputsNonRelative Include="$(PublishDir)**\*.*"/>
+            <_BuildOutputsNonRelative Include="$(MSBuildProjectDirectory)\$(PublishDir)**\*.*"/>
             <BuildOutputs Include="%(_BuildOutputsNonRelative.FullPath)"/>
         </ItemGroup>
 
@@ -36,15 +36,14 @@
     </Target>
 
     <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)" BeforeTargets="Publish">
-        <CreateNewImage InputRegistryURL="$(ContainerInputRegistryURL)"
-                        OutputRegistryURL="$(ContainerOutputRegistryURL)"
-                        BaseImageName="$(ContainerBaseImageName)"
+        <CreateNewImage BaseImageName="$(ContainerBaseImageName)"
                         BaseImageTag="$(ContainerBaseImageTag)"
-                        Files="@(BuildOutputs)"
+                        InputRegistryURL="$(ContainerInputRegistryURL)"
+                        OutputRegistryURL="$(ContainerOutputRegistryURL)"
+                        PublishDirectory="$(MSBuildProjectDirectory)\$(PublishDir)"
                         WorkingDirectory="$(ContainerWorkingDirectory)"
                         NewImageName="$(ContainerImageName)"
                         Entrypoint="$(ContainerEntrypoint)"
-                        EntrypointArgs="$(ContainerEntrypointArgs)"
-                        PublishDirectory="$(MSBuildProjectDirectory)\$(PublishDir)"/>
+                        EntrypointArgs="$(ContainerEntrypointArgs)"/>
     </Target>
 </Project>

@@ -28,8 +28,11 @@ namespace System.Containers.Tasks
         [Required]
         public string OutputRegistryURL { get; set; }
 
+        /// <summary>
+        /// Constructed from "$(MSBuildProjectDirectory)\$(PublishDir)"
+        /// </summary>
         [Required]
-        public ITaskItem[] Files { get; set; }
+        public string PublishDirectory { get; set; }
 
         /// <summary>
         /// $(ContainerWorkingDirectory)
@@ -48,7 +51,7 @@ namespace System.Containers.Tasks
         /// </summary>
         public string EntrypointArgs { get; set; }
 
-        public string PublishDirectory { get; set; }
+
 
         /// <summary>
         /// CreateNewImage needs to:
@@ -59,9 +62,9 @@ namespace System.Containers.Tasks
         /// <returns></returns>
         public override bool Execute()
         {
-            if (Files.Length == 0)
+            if (string.IsNullOrEmpty(PublishDirectory) || !Directory.Exists(PublishDirectory))
             {
-                Log.LogError("No files to publish, aborting");
+                Log.LogError("PublishDirectory and Files are both invalid. One valid parameter MUST be given to the CreateNewImage task.");
                 return false;
             }
 
@@ -78,23 +81,10 @@ namespace System.Containers.Tasks
                 return false;
             }
 
-            // Turn the build output from items into an array of filepaths
-            string[] filePaths = Files.Select((f) => f.ItemSpec).ToArray();
-
-            // preserve the folder structure of items published
-            string[] relativeFilePaths = filePaths.Select((x) => Path.GetRelativePath(PublishDirectory, x)).ToArray<string>();
-
-            List<(string file, string relativePath)> filesWithPaths = new List<(string file, string relativePath)>();
-
-            for (int i = 0; i < filePaths.Length; i++)
-            {
-                Log.LogMessage("File {0} has relative path of {1}", filePaths[i], relativeFilePaths[i]);
-                filesWithPaths.Add((filePaths[i], relativeFilePaths[i]));
-            }
-
-            Layer newLayer = Layer.FromFiles(filesWithPaths.AsEnumerable());
-
+            Log.LogMessage($"Loading from directory: {PublishDirectory}");
+            Layer newLayer = Layer.FromDirectory(PublishDirectory, WorkingDirectory);
             image.AddLayer(newLayer);
+
             image.SetEntrypoint(Entrypoint, EntrypointArgs?.Split(' ').ToArray());
 
             Registry outputReg = new Registry(new Uri(OutputRegistryURL));
