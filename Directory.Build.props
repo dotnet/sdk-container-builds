@@ -1,0 +1,5 @@
+﻿<Project>
+  <ItemGroup>
+    <PackageReference Include="Nerdbank.GitVersioning"  />
+  </ItemGroup>
+</Project>
