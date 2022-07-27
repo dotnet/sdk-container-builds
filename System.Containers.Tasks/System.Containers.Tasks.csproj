@@ -19,7 +19,6 @@
 
     <!-- MSBuild tasks shouldn't be referenced. This is by design. -->
     <NoWarn>NU5100;NU5128</NoWarn>
-    <Version>0.1.0</Version>
     <Authors>Rainer Sigwald, Ben Villalobos, Chet Husk</Authors>
     <Company>Microsoft</Company>
     <Description>Tasks and targets to natively publish .NET applications as containers.</Description>
