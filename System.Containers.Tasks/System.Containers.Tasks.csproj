@@ -24,6 +24,7 @@
     <Company>Microsoft</Company>
     <Description>Tasks and targets to natively publish .NET applications as containers.</Description>
     <Copyright></Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/rainersigwald/containers</PackageProjectUrl>
     <RepositoryUrl>https://github.com/rainersigwald/containers</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
