@@ -19,6 +19,15 @@
 
     <!-- MSBuild tasks shouldn't be referenced. This is by design. -->
     <NoWarn>NU5100;NU5128</NoWarn>
+    <Authors>Rainer Sigwald, Ben Villalobos, Chet Husk</Authors>
+    <Company>Microsoft</Company>
+    <Description>Tasks and targets to natively publish .NET applications as containers.</Description>
+    <Copyright></Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/rainersigwald/containers</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/rainersigwald/containers</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>containers;docker;system.containers</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
@@ -53,8 +62,8 @@
 
   <!-- Hacky workaround for the fact that we don't publish the package yet. -->
   <Target Name="CopyNupkgToCustomFolder" AfterTargets="Pack">
-    <Copy SourceFiles="$(OutDir)..\System.Containers.Tasks.1.0.0.nupkg"
-      DestinationFiles="..\Test.System.Containers.Filesystem\package\System.Containers.Tasks.1.0.0.nupkg" />
+    <Copy SourceFiles="$(OutDir)..\System.Containers.Tasks.$(Version).nupkg"
+      DestinationFiles="..\Test.System.Containers.Filesystem\package\System.Containers.Tasks.$(Version).nupkg" />
   </Target>
 
 </Project>
