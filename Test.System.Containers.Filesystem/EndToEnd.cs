@@ -136,7 +136,7 @@ public class EndToEnd
         }
 
         // Add package to the project
-        info.Arguments = $"add package System.Containers.Tasks -v 1.0.0";
+        info.Arguments = $"add package System.Containers.Tasks";
         Process dotnetPackageAdd = Process.Start(info);
         Assert.IsNotNull(dotnetPackageAdd);
         await dotnetPackageAdd.WaitForExitAsync();
