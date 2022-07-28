@@ -10,12 +10,15 @@ public class Image
     internal JsonNode manifest;
     internal JsonNode config;
 
+    internal readonly Registry? originatingRegistry;
+
     internal List<Layer> newLayers = new();
 
-    public Image(JsonNode manifest, JsonNode config)
+    public Image(JsonNode manifest, JsonNode config, Registry? registry)
     {
         this.manifest = manifest;
         this.config = config;
+        this.originatingRegistry = registry;
     }
 
     public void AddLayer(Layer l)

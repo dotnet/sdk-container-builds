@@ -49,7 +49,7 @@ public record struct Registry(Uri BaseUri)
         Debug.Assert(configDoc is not null);
         //Debug.Assert(((string?)configDoc["mediaType"]) == DockerContainerV1);
 
-        return new Image(manifest, configDoc);
+        return new Image(manifest, configDoc, this);
     }
 
     public async Task Push(Layer layer, string name)
