@@ -11,38 +11,60 @@
         </PublishContainerDependsOn>
     </PropertyGroup>
 
-    <Target Name="ComputeContainerConfig" AfterTargets="Build;_CopyResolvedFilesToPublishPreserveNewest">
-        <!-- Find everything in the publish directory -->
-        <ItemGroup>
-            <_BuildOutputsNonRelative Include="$(MSBuildProjectDirectory)\$(PublishDir)**\*.*"/>
-            <BuildOutputs Include="%(_BuildOutputsNonRelative.FullPath)"/>
-        </ItemGroup>
+    <Target Name="ComputeContainerConfig" AfterTargets="Build">
 
         <!-- Container Defaults -->
         <PropertyGroup>
-            <ContainerBaseImageName Condition="'$(ContainerBaseImageName)' == ''"></ContainerBaseImageName>
-            <ContainerBaseImageTag Condition="'$(ContainerBaseImageTag)' == '' and $([MSBuild]::VersionGreaterThanOrEquals('$(TargetFrameworkVersion)', 6.0))">6.0</ContainerBaseImageTag>
-            <ContainerBaseImage Condition="'$(ContainerBaseImage)' == ''">$(ContainerBaseImageName):$(ContainerBaseImageTag)</ContainerBaseImage>
-            <ContainerInputRegistryURL Condition="'$(ContainerInputRegistryURL)' == ''">http://localhost:5010</ContainerInputRegistryURL>
-            <ContainerOutputRegistryURL Condition="'$(ContainerOutputRegistryURL)' == ''">http://localhost:5010</ContainerOutputRegistryURL>
-            <ContainerImageName Condition="'$(ContainerImageName)' == ''">$(AssemblyName.ToLower())</ContainerImageName>
+            <_ContainerBaseImageName Condition="'$(_ContainerBaseImageName)' == '' and '%(ProjectCapability.Identity)' == 'AspNetCore'">mcr.microsoft.com/dotnet/aspnet</_ContainerBaseImageName>
+            <_ContainerBaseImageName Condition="'$(_ContainerBaseImageName)' == ''">https://mcr.microsoft.com/dotnet/runtime</_ContainerBaseImageName>
+            <_ContainerBaseImageTag Condition="'$(_ContainerBaseImageTag)' == ''">$(_TargetFrameworkVersionWithoutV)</_ContainerBaseImageTag>
+            <ContainerBaseImage Condition="'$(ContainerBaseImage)' == ''">$(_ContainerBaseImageName):$(_ContainerBaseImageTag)</ContainerBaseImage>
+            <ContainerBaseRegistry Condition="'$(ContainerBaseRegistry)' == ''">docker://</ContainerBaseRegistry>
+            <!-- Note: spaces will be replaced with '-' in ContainerImageName and ContainerImageTag -->
+            <ContainerImageName Condition="'$(ContainerImageName)' == ''">$(AssemblyName)</ContainerImageName>
             <ContainerImageTag Condition="'$(ContainerImageTag)' == ''">$(Version)</ContainerImageTag>
             <ContainerWorkingDirectory Condition="'$(ContainerWorkingDirectory)' == ''">/app</ContainerWorkingDirectory>
-            <ContainerEntrypoint Condition="'$(ContainerEntrypoint)' == '' and '$(SelfContained)' != 'true'">dotnet $(TargetFileName)</ContainerEntrypoint>
-            <!-- https://gist.github.com/BenVillalobos/e5336491e683b87e7ec2a5322f58dfbe -->
-            <ContainerEntrypoint Condition="'$(ContainerEntrypoint)' == '' and '$(SelfContained)' == 'true'">$(ContainerWorkingDirectory)/$(AssemblyName)$(_NativeExecutableExtension)</ContainerEntrypoint>
+            <!-- TODO: Test this scenario -->
+            <ContainerEntrypoint Condition="'$(ContainerEntrypoint)' == '' and '$(UseAppHost)' != 'true'">dotnet $(TargetFileName)</ContainerEntrypoint>
+            <ContainerEntrypoint Condition="'$(ContainerEntrypoint)' == '' and '$(UseAppHost)' == 'true'">$(ContainerWorkingDirectory)/$(AssemblyName)$(_NativeExecutableExtension)</ContainerEntrypoint>
+            <!-- Could be semicolon-delimited -->
             <ContainerEntrypointArgs Condition="'$(ContainerEntrypointArgs)' == ''"></ContainerEntrypointArgs>
         </PropertyGroup>
+
+        <ItemGroup>
+            <ContainerLabel Condition="@(ContainerLabel) == ''"></ContainerLabel>
+        </ItemGroup>
+
+        <ItemGroup>
+            <!-- Storing this for later use:  or %(ContainerPort.Identity) == '80' and @(ContainerPort->WithMetadataValue('Type', 'tcp')->Count()) == 0) -->
+            <ContainerPort Include="80" Type="tcp" Condition="%(ProjectCapability.Identity) == 'AspNetCore' and
+                                                              %(ContainerPort.Identity) != '80'" />
+
+            <ContainerEnvironmentVariable Include="ASPNETCORE_URLS" Value="http://localhost:5000;https://localhost:5001"
+                                                                    Condition="%(ProjectCapability.Identity) == 'AspNetCore' and
+                                                                               %(ContainerEnvironmentVariable.Identity) != 'ASPNETCORE_URLS' "/>
+        </ItemGroup>
+
+        <ParseContainerProperties ContainerBaseImage="$(ContainerBaseImage)"
+                                  ContainerImageName="$(ContainerImageName)"
+                                  ContainerImageTag="$(ContainerImageTag)">
+
+            <Output TaskParameter="ParsedContainerRegistry" PropertyName="_ContainerRegistry" />
+            <Output TaskParameter="ParsedContainerImage" PropertyName="_ContainerImage" />
+            <Output TaskParameter="ParsedContainerTag" PropertyName="_ContainerTag" />
+            <Output TaskParameter="NewImageName" PropertyName="_NewImageName" />
+            <Output TaskParameter="NewImageTag" PropertyName="_NewImageTag" />
+        </ParseContainerProperties>
     </Target>
 
-    <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)" BeforeTargets="Publish">
-        <CreateNewImage BaseImageName="$(ContainerBaseImageName)"
-                        BaseImageTag="$(ContainerBaseImageTag)"
-                        InputRegistryURL="$(ContainerInputRegistryURL)"
-                        OutputRegistryURL="$(ContainerOutputRegistryURL)"
+    <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)" AfterTargets="ComputeContainerConfig" BeforeTargets="Publish">
+        <CreateNewImage BaseRegistry="$(_ContainerRegistry)"
+                        BaseImageName="$(_ContainerImage)"
+                        BaseImageTag="$(_ContainerTag)"
+                        OutputRegistryURL="$(ContainerOutputRegistry)"
                         PublishDirectory="$(MSBuildProjectDirectory)\$(PublishDir)"
+                        NewImageName="$(_NewImageName)"
                         WorkingDirectory="$(ContainerWorkingDirectory)"
-                        NewImageName="$(ContainerImageName)"
                         Entrypoint="$(ContainerEntrypoint)"
                         EntrypointArgs="$(ContainerEntrypointArgs)"/>
     </Target>

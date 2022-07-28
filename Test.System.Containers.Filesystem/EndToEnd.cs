@@ -143,11 +143,9 @@ public class EndToEnd
         Assert.AreEqual(0, dotnetPackageAdd.ExitCode);
 
         info.Arguments = $"publish /p:publishprofile=defaultcontainer /p:runtimeidentifier=linux-x64 /bl" +
-                          $" /p:ContainerBaseImageName={DockerRegistryManager.BaseImage}" +
-                          $" /p:ContainerInputRegistryURL=http://{DockerRegistryManager.LocalRegistry}" +
-                          $" /p:ContainerOutputRegistryURL=http://{DockerRegistryManager.LocalRegistry}" +
+                          $" /p:ContainerBaseImage=http://{DockerRegistryManager.LocalRegistry}/{DockerRegistryManager.BaseImage}:{DockerRegistryManager.BaseImageTag}" +
                           $" /p:ContainerImageName={NewImageName}" +
-                          $" /p:Version=1.0";
+                          $" /p:Version=1.0"; // this populates into $(ContainerImageTag)
 
         // Build & publish the project
         Process publish = Process.Start(info);

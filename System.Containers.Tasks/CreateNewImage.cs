@@ -14,16 +14,22 @@ namespace System.Containers.Tasks
     public class CreateNewImage : Microsoft.Build.Utilities.Task
     {
         /// <summary>
-        /// Base image name.
+        /// Ex: mcr.microsoft.com
+        /// </summary>
+        [Required]
+        public string BaseRegistry { get; set; }
+
+        /// <summary>
+        /// Ex: dotnet/runtime
         /// </summary>
         [Required]
         public string BaseImageName { get; set; }
 
+        /// <summary>
+        /// Ex: 6.0
+        /// </summary>
         [Required]
         public string BaseImageTag { get; set; }
-
-        [Required]
-        public string InputRegistryURL { get; set; }
 
         [Required]
         public string OutputRegistryURL { get; set; }
@@ -68,7 +74,7 @@ namespace System.Containers.Tasks
                 return false;
             }
 
-            Registry reg = new Registry(new Uri(InputRegistryURL));
+            Registry reg = new Registry(new Uri(BaseRegistry));
 
             Image image;
             try
@@ -81,7 +87,10 @@ namespace System.Containers.Tasks
                 return false;
             }
 
-            Log.LogMessage($"Loading from directory: {PublishDirectory}");
+            if (BuildEngine != null)
+            {
+                Log.LogMessage($"Loading from directory: {PublishDirectory}");
+            }
             Layer newLayer = Layer.FromDirectory(PublishDirectory, WorkingDirectory);
             image.AddLayer(newLayer);
 
