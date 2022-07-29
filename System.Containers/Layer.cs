@@ -30,14 +30,10 @@ public record struct Layer
 
     public static Layer FromFiles(IEnumerable<(string path, string containerPath)> fileList)
     {
-        string tempPath = Path.Join(Configuration.ArtifactRoot, "Temp");
-
-        Directory.CreateDirectory(tempPath);
-
         long fileSize;
         byte[] hash;
 
-        string tempTarballPath = Path.Join(tempPath, Path.GetRandomFileName());
+        string tempTarballPath = Configuration.GetTempFile();
         using (FileStream fs = File.Create(tempTarballPath))
         {
             // using (GZipStream gz = new(fs, CompressionMode.Compress)) // TODO: https://github.com/rainersigwald/containers/issues/29
