@@ -4,7 +4,7 @@ using System.Text;
 
 namespace System.Containers;
 
-internal class LocalDocker
+public class LocalDocker
 {
     public async Task Load(Image x, string name, string baseName)
     {
@@ -31,7 +31,7 @@ internal class LocalDocker
         // give it a tag?
     }
 
-    private static async Task WriteImageToStream(Image x, string name, string baseName, Stream imageStream)
+    public static async Task WriteImageToStream(Image x, string name, string baseName, Stream imageStream)
     {
         // Populate local cache with all layer tarballs
 
