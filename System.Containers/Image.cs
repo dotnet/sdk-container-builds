@@ -66,9 +66,18 @@ public class Image
 
     public string GetDigest(JsonNode json)
     {
+        string hashString;
+
+        hashString = GetSha(json);
+
+        return $"sha256:{hashString}";
+    }
+
+    public static string GetSha(JsonNode json)
+    {
         using SHA256 mySHA256 = SHA256.Create();
         byte[] hash = mySHA256.ComputeHash(Encoding.UTF8.GetBytes(json.ToJsonString()));
 
-        return $"sha256:{Convert.ToHexString(hash).ToLowerInvariant()}";
+        return Convert.ToHexString(hash).ToLowerInvariant();
     }
 }
