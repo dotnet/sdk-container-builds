@@ -63,7 +63,7 @@ public record struct Layer
 
         string contentHash = Convert.ToHexString(hash).ToLowerInvariant();
 
-        string storedContent = Path.Combine(Configuration.ContentRoot, contentHash);
+        string storedContent = Configuration.GetPathForHash(contentHash);
 
         Directory.CreateDirectory(Configuration.ContentRoot);
 

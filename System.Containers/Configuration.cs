@@ -7,4 +7,10 @@ public static class Configuration
     {
         get => Path.Combine(ArtifactRoot, "Content");
     }
+
+    public static string GetPathForHash(string contentHash)
+    {
+        return Path.Combine(ContentRoot, contentHash);
+    }
+
 }
