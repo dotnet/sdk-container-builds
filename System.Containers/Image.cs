@@ -30,7 +30,7 @@ public class Image
     }
 
     private void RecalculateDigest() {
-        manifest["config"]!["digest"] = GetSha(config);
+        manifest["config"]!["digest"] = GetDigest(config);
     }
 
     public void SetEntrypoint(string executable, string[]? args = null)
@@ -64,7 +64,7 @@ public class Image
         }
     }
 
-    public string GetSha(JsonNode json)
+    public string GetDigest(JsonNode json)
     {
         using SHA256 mySHA256 = SHA256.Create();
         byte[] hash = mySHA256.ComputeHash(Encoding.UTF8.GetBytes(json.ToJsonString()));

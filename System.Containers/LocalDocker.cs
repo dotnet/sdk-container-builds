@@ -42,7 +42,7 @@ public class LocalDocker
         // add config
         using (MemoryStream configStream = new MemoryStream(Encoding.UTF8.GetBytes(x.config.ToJsonString())))
         {
-            GnuTarEntry configEntry = new(TarEntryType.RegularFile, $"{x.GetSha(x.config)}.json")
+            GnuTarEntry configEntry = new(TarEntryType.RegularFile, $"{x.GetDigest(x.config)}.json")
             {
                 DataStream = configStream
             };
