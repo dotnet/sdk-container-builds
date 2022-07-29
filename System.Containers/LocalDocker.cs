@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Formats.Tar;
 using System.Text;
+using System.Text.Json;
 
 namespace System.Containers;
 
@@ -33,7 +34,17 @@ public class LocalDocker
 
     public static async Task WriteImageToStream(Image x, string name, string baseName, Stream imageStream)
     {
-        // Populate local cache with all layer tarballs
+        foreach (var layerJson in x.manifest["layers"].AsArray())
+        {
+            Descriptor d = layerJson.Deserialize<Descriptor>();
+
+            if (!x.originatingRegistry.HasValue)
+            {
+                throw new NotImplementedException("Need a good error for 'couldn't download a thing because no link to registry'");
+            }
+
+            string localPath = await x.originatingRegistry.Value.LocalFileForBlob(baseName, d);
+        }
 
         TarWriter writer = new(imageStream, TarEntryFormat.Gnu, leaveOpen: true);
 

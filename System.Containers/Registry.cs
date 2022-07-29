@@ -52,6 +52,35 @@ public record struct Registry(Uri BaseUri)
         return new Image(manifest, configDoc, this);
     }
 
+    public async Task<string> LocalFileForBlob(string name, Descriptor descriptor)
+    {
+        string localPath = Configuration.GetPathForDigest(descriptor.Digest);
+
+        if (File.Exists(localPath))
+        {
+            // Assume file is up to date and just return it
+            return localPath;
+        }
+
+        // No local copy, so download one
+
+        using HttpClient client = GetClient();
+
+        var response = await client.GetAsync(new Uri(BaseUri, $"/v2/{name}/blobs/{descriptor.Digest}"));
+
+        response.EnsureSuccessStatusCode();
+
+        string tempTarballPath = Configuration.GetTempFile();
+        using (FileStream fs = File.Create(tempTarballPath))
+        {
+            await response.Content.CopyToAsync(fs);
+        }
+
+        File.Move(tempTarballPath, localPath, overwrite: true);
+
+        return localPath;
+    }
+
     public async Task Push(Layer layer, string name)
     {
         string digest = layer.Descriptor.Digest;
