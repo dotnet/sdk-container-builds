@@ -48,7 +48,7 @@ namespace Test.System.Containers.Tasks
             task.BaseImageTag = "6.0";
 
             task.OutputRegistryURL = "http://localhost:5010";
-            task.PublishDirectory = newProjectDir.FullName + "\\bin\\release\\net7.0";
+            task.PublishDirectory = Path.Combine(newProjectDir.FullName, "bin", "release", "net7.0");
             task.NewImageName = "dotnet/testimage";
             task.WorkingDirectory = "app/";
             task.Entrypoint = "dotnet build";
@@ -111,7 +111,7 @@ namespace Test.System.Containers.Tasks
             cni.NewImageName = pcp.NewImageName;
 
             cni.OutputRegistryURL = "http://localhost:5010";
-            cni.PublishDirectory = newProjectDir.FullName + "\\bin\\release\\net7.0";
+            cni.PublishDirectory = Path.Combine(newProjectDir.FullName, "bin", "release", "net7.0");
             cni.WorkingDirectory = "app/";
             cni.Entrypoint = "ParseContainerProperties_EndToEnd";
             cni.EntrypointArgs = "";
