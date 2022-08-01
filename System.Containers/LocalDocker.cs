@@ -8,7 +8,7 @@ namespace System.Containers;
 
 public class LocalDocker
 {
-    public async Task Load(Image x, string name, string baseName)
+    public static async Task Load(Image x, string name, string baseName)
     {
         // call `docker load` and get it ready to recieve input
         ProcessStartInfo loadInfo = new("docker", $"load");
@@ -26,11 +26,9 @@ public class LocalDocker
 
         await WriteImageToStream(x, name, baseName, loadProcess.StandardInput.BaseStream);
 
+        loadProcess.StandardInput.Close();
+
         await loadProcess.WaitForExitAsync();
-
-
-
-        // give it a tag?
     }
 
     public static async Task WriteImageToStream(Image x, string name, string baseName, Stream imageStream)
