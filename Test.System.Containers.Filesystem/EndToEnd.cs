@@ -68,7 +68,7 @@ public class EndToEnd
     [TestMethod]
     public async Task EndToEnd_NoAPI()
     {
-        DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "CreateNewImageTest"));
+        DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "CreateNewImage_EndToEnd_NoAPI"));
         DirectoryInfo pathForLocalNugetSource = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "NuGetSource"));
 
         if (newProjectDir.Exists)
@@ -143,8 +143,9 @@ public class EndToEnd
         Assert.AreEqual(0, dotnetPackageAdd.ExitCode);
 
         info.Arguments = $"publish /p:publishprofile=defaultcontainer /p:runtimeidentifier=linux-x64 /bl" +
-                          $" /p:ContainerBaseImage=http://{DockerRegistryManager.LocalRegistry}/{DockerRegistryManager.BaseImage}:{DockerRegistryManager.BaseImageTag}" +
+                          $" /p:ContainerBaseImage=http://{DockerRegistryManager.BaseImageSource}{DockerRegistryManager.BaseImage}:{DockerRegistryManager.BaseImageTag}" +
                           $" /p:ContainerImageName={NewImageName}" +
+                          $" /p:ContainerOutputRegistry=http://{DockerRegistryManager.LocalRegistry}" +
                           $" /p:Version=1.0"; // this populates into $(ContainerImageTag)
 
         // Build & publish the project
@@ -152,10 +153,6 @@ public class EndToEnd
         Assert.IsNotNull(publish);
         await publish.WaitForExitAsync();
         Assert.AreEqual(0, publish.ExitCode);
-
-        // Final step: verify by running the app.
-        // This is not as simple as checking the output contains "hello world" because
-        // we can't publish a console app (the container targets only import in websdk projects)
 
         Process pull = Process.Start("docker", $"pull {DockerRegistryManager.LocalRegistry}/{NewImageName}:latest");
         Assert.IsNotNull(pull);

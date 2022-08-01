@@ -70,11 +70,24 @@ namespace System.Containers.Tasks
         {
             if (string.IsNullOrEmpty(PublishDirectory) || !Directory.Exists(PublishDirectory))
             {
-                Log.LogError("PublishDirectory and Files are both invalid. One valid parameter MUST be given to the CreateNewImage task.");
+                Log.LogError(string.Format("PublishDirectory is either null or doesn't exist invalid. IsNullOrEmpty: {0}, Exists: {1}", string.IsNullOrEmpty(PublishDirectory), Directory.Exists(PublishDirectory)));
                 return false;
             }
 
-            Registry reg = new Registry(new Uri(BaseRegistry));
+            Registry reg;
+
+            try
+            {
+                reg = new Registry(new Uri(BaseRegistry));
+            }
+            catch (Exception e)
+            {
+                if (BuildEngine != null)
+                {
+                    Log.LogError("Failed initializing the registry. Registry Given:{0}. Exception message: {1}", BaseRegistry, e.Message);
+                }
+                return false;
+            }
 
             Image image;
             try
@@ -83,7 +96,10 @@ namespace System.Containers.Tasks
             }
             catch (Exception ex)
             {
-                Log.LogError("GetImageManifest Failed: {0}.\n{1}", ex.Message, ex.InnerException);
+                if (BuildEngine != null)
+                {
+                    Log.LogError("Failed getting image manifest: {0}.\n{1}", ex.Message, ex.InnerException);
+                }
                 return false;
             }
 
@@ -104,7 +120,10 @@ namespace System.Containers.Tasks
             }
             catch (Exception e)
             {
-                Log.LogError("Failed to push to the output registry: {0}\n{1}", e.Message, e.InnerException);
+                if (BuildEngine != null)
+                {
+                    Log.LogError("Failed to push to the output registry: {0}\n{1}", e.Message, e.InnerException);
+                }
                 return false;
             }
 

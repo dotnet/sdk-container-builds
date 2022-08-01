@@ -1,6 +1,8 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Containers.Tasks;
 
+#nullable disable
+
 namespace Test.System.Containers.Tasks
 {
     [TestClass]
@@ -15,7 +17,7 @@ namespace Test.System.Containers.Tasks
             task.ContainerImageTag = "5.0";
 
             Assert.IsTrue(task.Execute());
-            Assert.AreEqual("mcr.microsoft.com", task.ParsedContainerRegistry);
+            Assert.AreEqual("https://mcr.microsoft.com", task.ParsedContainerRegistry);
             Assert.AreEqual("dotnet/runtime", task.ParsedContainerImage);
             Assert.AreEqual("6.0", task.ParsedContainerTag);
 
@@ -32,7 +34,7 @@ namespace Test.System.Containers.Tasks
             task.ContainerImageTag = "5.0";
 
             Assert.IsTrue(task.Execute());
-            Assert.AreEqual("mcr.microsoft.com", task.ParsedContainerHost);
+            Assert.AreEqual("https://mcr.microsoft.com", task.ParsedContainerRegistry);
             Assert.AreEqual("dotnet/runtime", task.ParsedContainerImage);
             Assert.AreEqual("6.0", task.ParsedContainerTag);
 

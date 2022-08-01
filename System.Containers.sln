@@ -13,8 +13,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "containerize", "containeriz
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "System.Containers.Tasks", "System.Containers.Tasks\System.Containers.Tasks.csproj", "{1CA8810B-8582-478E-A1E6-C9C7D53D8004}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.System.Containers.Tasks", "Test.System.Containers.Tasks\Test.System.Containers.Tasks.csproj", "{1D7D28DA-3CDD-40CF-8546-2E98212DB028}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,10 +39,6 @@ Global
 		{1CA8810B-8582-478E-A1E6-C9C7D53D8004}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1CA8810B-8582-478E-A1E6-C9C7D53D8004}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1CA8810B-8582-478E-A1E6-C9C7D53D8004}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1D7D28DA-3CDD-40CF-8546-2E98212DB028}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1D7D28DA-3CDD-40CF-8546-2E98212DB028}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1D7D28DA-3CDD-40CF-8546-2E98212DB028}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1D7D28DA-3CDD-40CF-8546-2E98212DB028}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

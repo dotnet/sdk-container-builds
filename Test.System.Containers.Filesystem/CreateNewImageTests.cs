@@ -3,6 +3,8 @@ using System.Containers.Tasks;
 using System.Diagnostics;
 using System.IO;
 
+#nullable disable
+
 namespace Test.System.Containers.Tasks
 {
     [TestClass]
@@ -24,9 +26,7 @@ namespace Test.System.Containers.Tasks
             {
                 WorkingDirectory = newProjectDir.FullName,
                 FileName = "dotnet",
-                Arguments = "new console -f net7.0",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
+                Arguments = "new console -f net7.0"
             };
 
             // Create the project to pack
@@ -61,7 +61,7 @@ namespace Test.System.Containers.Tasks
         [TestMethod]
         public void ParseContainerProperties_EndToEnd()
         {
-            DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "CreateNewImage_Baseline"));
+            DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "ParseContainerProperties_EndToEnd"));
 
             if (newProjectDir.Exists)
             {
@@ -109,12 +109,11 @@ namespace Test.System.Containers.Tasks
             cni.BaseImageName = pcp.ParsedContainerImage;
             cni.BaseImageTag = pcp.ParsedContainerTag;
             cni.NewImageName = pcp.NewImageName;
-            //cni.newimagetag
 
             cni.OutputRegistryURL = "http://localhost:5010";
             cni.PublishDirectory = newProjectDir.FullName + "\\bin\\release\\net7.0";
             cni.WorkingDirectory = "app/";
-            cni.Entrypoint = "CreateNewImage_Baseline";
+            cni.Entrypoint = "ParseContainerProperties_EndToEnd";
             cni.EntrypointArgs = "";
 
             Assert.IsTrue(cni.Execute());

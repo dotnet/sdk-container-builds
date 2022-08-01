@@ -66,8 +66,18 @@ namespace System.Containers.Tasks
                 return false;
             }
 
-            UriBuilder uri = new UriBuilder(ContainerBaseImage);
-
+            // To do: What if user inputs URI that starts with https?
+            UriBuilder uri;
+            
+            try
+            {
+                uri = new UriBuilder(ContainerBaseImage);
+            }
+            catch (Exception e)
+            {
+                Log.LogError("Failed to parse the given ContainerBaseImage: {0}", e.Message);
+                return false;
+            }
 
             // The first segment is the '/', create a string out of everything after.
             string image = uri.Uri.Segments.Skip(1).Aggregate((str, next) => str + next);
@@ -75,7 +85,15 @@ namespace System.Containers.Tasks
             // If the image has a ':', there's a tag we need to parse.
             int indexOfColon = image.IndexOf(':');
 
-            ParsedContainerHost = uri.Host;
+            if (uri.Host.Contains("localhost"))
+            {
+                ParsedContainerRegistry = "http://" + uri.Host;
+            }
+            else
+            {
+                ParsedContainerRegistry = "https://" + uri.Host;
+            }
+
             ParsedContainerImage = indexOfColon == -1 ? image : image.Substring(0, indexOfColon);
             ParsedContainerTag = indexOfColon == -1 ? "" : image.Substring(indexOfColon + 1);
             NewImageName = ContainerImageName.ToLower().Replace(' ', '-');
@@ -84,7 +102,7 @@ namespace System.Containers.Tasks
             if (BuildEngine != null)
             {
                 Log.LogMessage("Parsed the following properties. Note: Spaces are replaced with dashes.");
-                Log.LogMessage("Host: {0}", ParsedContainerHost);
+                Log.LogMessage("Host: {0}", ParsedContainerRegistry);
                 Log.LogMessage("Image: {0}", ParsedContainerImage);
                 Log.LogMessage("Tag: {0}", ParsedContainerTag);
                 Log.LogMessage("Image Name: {0}", NewImageName);
