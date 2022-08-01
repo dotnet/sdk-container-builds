@@ -22,13 +22,25 @@ public static class Configuration
         }
     }
 
-    public static string GetPathForDigest(string digest)
+    public static string PathForDescriptor(Descriptor descriptor)
     {
+        string digest = descriptor.Digest;
+
         Debug.Assert(digest.StartsWith("sha256:"));
 
         string contentHash = digest.Substring("sha256:".Length);
 
-        return GetPathForHash(contentHash);
+        string extension = descriptor.MediaType switch
+        {
+            "application/vnd.docker.image.rootfs.diff.tar.gzip"
+            or "application/vnd.docker.image.rootfs.diff.tar"
+            or "application/vnd.oci.image.layer.v1.tar"
+            or "application/vnd.oci.image.layer.v1.tar+gzip"
+                => ".tar",
+            _ => throw new ArgumentException($"Unrecognized mediaType '{descriptor.MediaType}'")
+        };
+
+        return GetPathForHash(contentHash) + extension;
     }
 
 

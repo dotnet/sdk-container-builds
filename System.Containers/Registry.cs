@@ -54,7 +54,7 @@ public record struct Registry(Uri BaseUri)
 
     public async Task<string> LocalFileForBlob(string name, Descriptor descriptor)
     {
-        string localPath = Configuration.GetPathForDigest(descriptor.Digest);
+        string localPath = Configuration.PathForDescriptor(descriptor);
 
         if (File.Exists(localPath))
         {
