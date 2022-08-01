@@ -1,6 +1,7 @@
 using Microsoft.VisualBasic;
 
 using System.Diagnostics;
+using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -73,7 +74,17 @@ public record struct Registry(Uri BaseUri)
         string tempTarballPath = Configuration.GetTempFile();
         using (FileStream fs = File.Create(tempTarballPath))
         {
-            await response.Content.CopyToAsync(fs);
+            Stream? gzs = null;
+
+            Stream responseStream = await response.Content.ReadAsStreamAsync();
+            if (descriptor.MediaType.EndsWith("gzip"))
+            {
+                gzs = new GZipStream(responseStream, CompressionMode.Decompress);
+            }
+
+            using Stream? gzipStreamToDispose = gzs;
+
+            await (gzs ?? responseStream).CopyToAsync(fs);
         }
 
         File.Move(tempTarballPath, localPath, overwrite: true);
