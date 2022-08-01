@@ -7,8 +7,8 @@ namespace System.Containers;
 
 public class Image
 {
-    internal JsonNode manifest;
-    internal JsonNode config;
+    public JsonNode manifest;
+    public JsonNode config;
 
     internal readonly Registry? originatingRegistry;
 
