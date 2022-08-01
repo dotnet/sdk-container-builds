@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Formats.Tar;
+using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
 
@@ -34,6 +35,11 @@ public class LocalDocker
 
     public static async Task WriteImageToStream(Image x, string name, string baseName, Stream imageStream)
     {
+        TarWriter writer = new(imageStream, TarEntryFormat.Gnu, leaveOpen: true);
+
+
+        // Feed each layer tarball into the stream
+
         foreach (var layerJson in x.manifest["layers"].AsArray())
         {
             Descriptor d = layerJson.Deserialize<Descriptor>();
@@ -44,11 +50,10 @@ public class LocalDocker
             }
 
             string localPath = await x.originatingRegistry.Value.LocalFileForBlob(baseName, d);
+
+            // Stuff that (uncompressed) tarball into the image tar stream
+            writer.WriteEntry(localPath, $"{d.Digest.Substring("sha256:".Length)}/layer.tar");
         }
-
-        TarWriter writer = new(imageStream, TarEntryFormat.Gnu, leaveOpen: true);
-
-        // Feed each layer tarball into the stream
 
         // add config
         using (MemoryStream configStream = new MemoryStream(Encoding.UTF8.GetBytes(x.config.ToJsonString())))
@@ -62,6 +67,5 @@ public class LocalDocker
         }
 
         // Add manifest
-
     }
 }
