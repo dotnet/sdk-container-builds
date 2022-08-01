@@ -59,7 +59,14 @@ public record struct Layer
 
         string contentHash = Convert.ToHexString(hash).ToLowerInvariant();
 
-        string storedContent = Configuration.GetPathForHash(contentHash);
+        Descriptor descriptor = new()
+        {
+            MediaType = "application/vnd.docker.image.rootfs.diff.tar", // TODO: configurable? gzip always?
+            Size = fileSize,
+            Digest = $"sha256:{contentHash}"
+        };
+
+        string storedContent = Configuration.PathForDescriptor(descriptor);
 
         Directory.CreateDirectory(Configuration.ContentRoot);
 
@@ -67,12 +74,7 @@ public record struct Layer
 
         Layer l = new()
         {
-            Descriptor = new()
-            {
-                MediaType = "application/vnd.docker.image.rootfs.diff.tar", // TODO: configurable? gzip always?
-                Size = fileSize,
-                Digest = $"sha256:{contentHash}"
-            },
+            Descriptor = descriptor,
             BackingFile = storedContent,
         };
 
