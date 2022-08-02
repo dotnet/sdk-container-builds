@@ -90,7 +90,7 @@ namespace Test.System.Containers.Tasks
             Assert.AreEqual(0, dotnetPublish.ExitCode);
 
             ParseContainerProperties pcp = new ParseContainerProperties();
-            pcp.ContainerBaseImage = "https://mcr.microsoft.com/dotnet/runtime:6.0";
+            pcp.FullyQualifiedBaseImageName = "https://mcr.microsoft.com/dotnet/runtime:6.0";
             pcp.ContainerImageName = "dotnet/testimage";
             pcp.ContainerImageTag = "5.0";
 
@@ -99,14 +99,14 @@ namespace Test.System.Containers.Tasks
             Assert.AreEqual("dotnet/runtime", pcp.ParsedContainerImage);
             Assert.AreEqual("6.0", pcp.ParsedContainerTag);
 
-            Assert.AreEqual("dotnet/testimage", pcp.NewImageName);
-            Assert.AreEqual("5.0", pcp.NewImageTag);
+            Assert.AreEqual("dotnet/testimage", pcp.NewContainerImageName);
+            Assert.AreEqual("5.0", pcp.NewContainerTag);
 
             CreateNewImage cni = new CreateNewImage();
             cni.BaseRegistry = pcp.ParsedContainerRegistry;
             cni.BaseImageName = pcp.ParsedContainerImage;
             cni.BaseImageTag = pcp.ParsedContainerTag;
-            cni.NewImageName = pcp.NewImageName;
+            cni.NewImageName = pcp.NewContainerImageName;
 
             cni.OutputRegistryURL = "http://localhost:5010";
             cni.PublishDirectory = Path.Combine(newProjectDir.FullName, "bin", "release", "net7.0");

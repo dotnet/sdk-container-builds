@@ -41,16 +41,16 @@
                                                                     Condition="@(ContainerEnvironmentVariable->AnyHaveMetadataValue('Identity', 'ASPNETCORE_URLS'))"/>
         </ItemGroup>
 
-        <ParseContainerProperties ContainerBaseImage="$(ContainerBaseImage)"
+        <ParseContainerProperties FullyQualifiedBaseImageName="$(ContainerBaseImage)"
                                   ContainerImageName="$(ContainerImageName)"
                                   ContainerImageTag="$(ContainerImageTag)">
 
             <Output TaskParameter="ParsedContainerRegistry" PropertyName="ContainerBaseRegistry" />
             <Output TaskParameter="ParsedContainerImage" PropertyName="ContainerBaseName" />
             <Output TaskParameter="ParsedContainerTag" PropertyName="ContainerBaseTag" />
-            <!-- To do: ContainerRegistry -->
-            <Output TaskParameter="NewImageName" PropertyName="ContainerImageName" />
-            <Output TaskParameter="NewImageTag" PropertyName="ContainerImageTag" />
+            <!-- To do: NewContainerRegistry -->
+            <Output TaskParameter="NewContainerImageName" PropertyName="ContainerImageName" />
+            <Output TaskParameter="NewContainerImageTag" PropertyName="ContainerImageTag" />
         </ParseContainerProperties>
     </Target>
     <!-- Aftertargets: Any time you run X, then run this target. -->
