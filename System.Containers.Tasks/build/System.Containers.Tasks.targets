@@ -46,21 +46,21 @@
                                   ContainerImageName="$(ContainerImageName)"
                                   ContainerImageTag="$(ContainerImageTag)">
 
-            <Output TaskParameter="ParsedContainerRegistry" PropertyName="_ContainerRegistry" />
-            <Output TaskParameter="ParsedContainerImage" PropertyName="_ContainerImage" />
-            <Output TaskParameter="ParsedContainerTag" PropertyName="_ContainerTag" />
-            <Output TaskParameter="NewImageName" PropertyName="_NewImageName" />
-            <Output TaskParameter="NewImageTag" PropertyName="_NewImageTag" />
+            <Output TaskParameter="ParsedContainerRegistry" PropertyName="ContainerRegistry" />
+            <Output TaskParameter="ParsedContainerImage" PropertyName="ContainerImage" />
+            <Output TaskParameter="ParsedContainerTag" PropertyName="ContainerTag" />
+            <Output TaskParameter="NewImageName" PropertyName="NewImageName" />
+            <Output TaskParameter="NewImageTag" PropertyName="NewImageTag" />
         </ParseContainerProperties>
     </Target>
 
     <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)" AfterTargets="ComputeContainerConfig" BeforeTargets="Publish">
-        <CreateNewImage BaseRegistry="$(_ContainerRegistry)"
-                        BaseImageName="$(_ContainerImage)"
-                        BaseImageTag="$(_ContainerTag)"
+        <CreateNewImage BaseRegistry="$(ContainerRegistry)"
+                        BaseImageName="$(ContainerImage)"
+                        BaseImageTag="$(ContainerTag)"
                         OutputRegistryURL="$(ContainerOutputRegistry)"
                         PublishDirectory="$(MSBuildProjectDirectory)\$(PublishDir)"
-                        NewImageName="$(_NewImageName)"
+                        NewImageName="$(NewImageName)"
                         WorkingDirectory="$(ContainerWorkingDirectory)"
                         Entrypoint="$(ContainerEntrypoint)"
                         EntrypointArgs="$(ContainerEntrypointArgs)"/>
