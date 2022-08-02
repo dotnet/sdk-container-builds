@@ -10,18 +10,26 @@ namespace System.Containers
         /// </summary>
         /// <param name="containerBase"></param>
         /// <returns>A UriBuilder with the given containerBase, or, if containerBase is relative, https:// + containerBase</returns>
-        public static UriBuilder ContainerImageToUriBuilder(string containerBase)
+        private static UriBuilder? ContainerImageToUriBuilder(string containerBase)
         {
             Uri uri = new Uri(containerBase, UriKind.RelativeOrAbsolute);
 
-            if (uri.IsAbsoluteUri)
+            try
             {
-                return new UriBuilder(uri);
+                if (uri.IsAbsoluteUri)
+                {
+                    return new UriBuilder(uri);
+                }
+                else
+                {
+                    // todo: allow customization?
+                    return new UriBuilder(containerBase.Contains("localhost") ? "http://" : "https://" + uri);
+                }
             }
-            else
+            catch (Exception e)
             {
-                // todo: allow customization?
-                return new UriBuilder(containerBase.Contains("localhost") ? "http://" : "https://" + uri);
+                Console.WriteLine("Failed parsing the container image into a UriBuilder: {0}", e);
+                return null;
             }
         }
 
@@ -52,26 +60,28 @@ namespace System.Containers
         /// <param name="containerName"></param>
         /// <param name="containerTag"></param>
         /// <returns></returns>
-        public static void ParseFullyQualifiedContainerName(UriBuilder fullyQualifiedContainerName, out string containerRegistry, out string containerName, out string containerTag)
+        public static bool TryParseFullyQualifiedContainerName(string fullyQualifiedContainerName, out string containerRegistry, out string containerName, out string containerTag)
         {
+            UriBuilder? uri = ContainerImageToUriBuilder(fullyQualifiedContainerName);
+
+            if (uri == null || uri.Uri.Segments.Length <= 1)
+            {
+                containerRegistry = "";
+                containerName = "";
+                containerTag = "";
+                return false;
+            }
+            
             // The first segment is the '/', create a string out of everything after.
-            string image = fullyQualifiedContainerName.Uri.Segments.Skip(1).Aggregate((str, next) => str + next);
+            string image = uri.Uri.Segments.Skip(1).Aggregate((str, next) => str + next);
 
             // If the image has a ':', there's a tag we need to parse.
             int indexOfColon = image.IndexOf(':');
 
-            if (fullyQualifiedContainerName.Host.Contains("localhost"))
-            {
-                containerRegistry = "http://" + fullyQualifiedContainerName.Host;
-            }
-            else
-            {
-                containerRegistry = "https://" + fullyQualifiedContainerName.Host;
-            }
-
-            containerRegistry = (fullyQualifiedContainerName.Host.Contains("localhost") ? "http://" : "https://") + fullyQualifiedContainerName.Host;
+            containerRegistry = (uri.Host.Contains("localhost") ? "http://" : "https://") + uri.Host;
             containerName = indexOfColon == -1 ? image : image.Substring(0, indexOfColon);
             containerTag = indexOfColon == -1 ? "" : image.Substring(indexOfColon + 1);
+            return true;
         }
     }
 }
