@@ -48,8 +48,9 @@
             <Output TaskParameter="ParsedContainerRegistry" PropertyName="ContainerBaseRegistry" />
             <Output TaskParameter="ParsedContainerImage" PropertyName="ContainerBaseName" />
             <Output TaskParameter="ParsedContainerTag" PropertyName="ContainerBaseTag" />
-            <Output TaskParameter="NewImageName" PropertyName="NewImageName" />
-            <Output TaskParameter="NewImageTag" PropertyName="NewImageTag" />
+            <!-- To do: ContainerRegistry -->
+            <Output TaskParameter="NewImageName" PropertyName="ContainerImageName" />
+            <Output TaskParameter="NewImageTag" PropertyName="ContainerImageTag" />
         </ParseContainerProperties>
     </Target>
     <!-- Aftertargets: Any time you run X, then run this target. -->
@@ -59,9 +60,10 @@
         <CreateNewImage BaseRegistry="$(ContainerBaseRegistry)"
                         BaseImageName="$(ContainerBaseName)"
                         BaseImageTag="$(ContainerBaseTag)"
-                        OutputRegistryURL="$(ContainerOutputRegistry)"
+                        OutputRegistryURL="$(ContainerRegistry)"
                         PublishDirectory="$(MSBuildProjectDirectory)\$(PublishDir)"
                         NewImageName="$(NewImageName)"
+                        NewImageTag="$(NewImageTag)"
                         WorkingDirectory="$(ContainerWorkingDirectory)"
                         Entrypoint="$(ContainerEntrypoint)"
                         EntrypointArgs="$(ContainerEntrypointArgs)"/>
