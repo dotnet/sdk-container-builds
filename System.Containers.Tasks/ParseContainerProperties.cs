@@ -50,20 +50,20 @@ namespace System.Containers.Tasks
                 if (ContainerImageName.StartsWith(knownImageSeparators[i]) || ContainerImageName.EndsWith(knownImageSeparators[i]))
                 {
                     Log.LogError("Container images cannot start or end with separators. Found: {0} in {1}", knownImageSeparators[i], ContainerImageName);
-                    return false;
+                    return !Log.HasLoggedErrors;
                 }
             }
 
             if (ContainerImageTag.StartsWith('.') || ContainerImageTag.StartsWith('-'))
             {
                 Log.LogError("Container tags cannot start with periods or dashes. Container tag was: {0}", ContainerImageTag);
-                return false;
+                return !Log.HasLoggedErrors;
             }
 
             if (ContainerImageTag.Length > 128)
             {
                 Log.LogError("The max length of a tag is 128 characters. Container tag's length was: {0}", ContainerImageTag.Length);
-                return false;
+                return !Log.HasLoggedErrors;
             }
 
             // To do: What if user inputs URI that starts with https?
@@ -76,7 +76,7 @@ namespace System.Containers.Tasks
             catch (Exception e)
             {
                 Log.LogError("Failed to parse the given ContainerBaseImage: {0}", e);
-                return false;
+                return !Log.HasLoggedErrors;
             }
 
             // The first segment is the '/', create a string out of everything after.
@@ -109,7 +109,7 @@ namespace System.Containers.Tasks
                 Log.LogMessage("Image Tag: {0}", NewImageTag);
             }
 
-            return true;
+            return !Log.HasLoggedErrors;
         }
     }
 }

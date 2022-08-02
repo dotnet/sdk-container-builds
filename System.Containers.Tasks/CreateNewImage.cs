@@ -71,7 +71,7 @@ namespace System.Containers.Tasks
             if (string.IsNullOrEmpty(PublishDirectory) || !Directory.Exists(PublishDirectory))
             {
                 Log.LogError(string.Format("PublishDirectory is either null or doesn't exist invalid. IsNullOrEmpty: {0}, Exists: {1}", string.IsNullOrEmpty(PublishDirectory), Directory.Exists(PublishDirectory)));
-                return false;
+                return !Log.HasLoggedErrors;
             }
 
             Registry reg;
@@ -86,7 +86,7 @@ namespace System.Containers.Tasks
                 {
                     Log.LogError("Failed initializing the registry. Registry Given:{0}. Exception message: {1}", BaseRegistry, e.Message);
                 }
-                return false;
+                return !Log.HasLoggedErrors;
             }
 
             Image image;
@@ -100,7 +100,7 @@ namespace System.Containers.Tasks
                 {
                     Log.LogError("Failed getting image manifest: {0}.\n{1}", ex.Message, ex.InnerException);
                 }
-                return false;
+                return !Log.HasLoggedErrors;
             }
 
             if (BuildEngine != null)
@@ -124,10 +124,10 @@ namespace System.Containers.Tasks
                 {
                     Log.LogError("Failed to push to the output registry: {0}\n{1}", e.Message, e.InnerException);
                 }
-                return false;
+                return !Log.HasLoggedErrors;
             }
 
-            return true;
+            return !Log.HasLoggedErrors;
         }
     }
 }
