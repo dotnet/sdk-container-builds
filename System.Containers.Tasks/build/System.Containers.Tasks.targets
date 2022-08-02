@@ -45,9 +45,9 @@
                                   ContainerImageName="$(ContainerImageName)"
                                   ContainerImageTag="$(ContainerImageTag)">
 
-            <Output TaskParameter="ParsedContainerRegistry" PropertyName="ContainerRegistry" />
-            <Output TaskParameter="ParsedContainerImage" PropertyName="ContainerImage" />
-            <Output TaskParameter="ParsedContainerTag" PropertyName="ContainerTag" />
+            <Output TaskParameter="ParsedContainerRegistry" PropertyName="ContainerBaseRegistry" />
+            <Output TaskParameter="ParsedContainerImage" PropertyName="ContainerBaseName" />
+            <Output TaskParameter="ParsedContainerTag" PropertyName="ContainerBaseTag" />
             <Output TaskParameter="NewImageName" PropertyName="NewImageName" />
             <Output TaskParameter="NewImageTag" PropertyName="NewImageTag" />
         </ParseContainerProperties>
@@ -56,9 +56,9 @@
     <!-- Beforetargets =publish here effectively means going over to publish and setting its dependsontargets=publishcontainers. -->
     <!-- BeforeTargets and AfterTargets happen "each time" that target runs -->
     <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)">
-        <CreateNewImage BaseRegistry="$(ContainerRegistry)"
-                        BaseImageName="$(ContainerImage)"
-                        BaseImageTag="$(ContainerTag)"
+        <CreateNewImage BaseRegistry="$(ContainerBaseRegistry)"
+                        BaseImageName="$(ContainerBaseName)"
+                        BaseImageTag="$(ContainerBaseTag)"
                         OutputRegistryURL="$(ContainerOutputRegistry)"
                         PublishDirectory="$(MSBuildProjectDirectory)\$(PublishDir)"
                         NewImageName="$(NewImageName)"
