@@ -15,7 +15,7 @@
 
         <!-- Container Defaults -->
         <PropertyGroup>
-            <_ContainerBaseImageName Condition="'$(_ContainerBaseImageName)' == '' and '%(ProjectCapability.Identity)' == 'AspNetCore'">mcr.microsoft.com/dotnet/aspnet</_ContainerBaseImageName>
+            <_ContainerBaseImageName Condition="'$(_ContainerBaseImageName)' == '' and @(ProjectCapability->AnyHaveMetadataValue('Identity', 'AspNetCore'))">https://mcr.microsoft.com/dotnet/aspnet</_ContainerBaseImageName>
             <_ContainerBaseImageName Condition="'$(_ContainerBaseImageName)' == ''">https://mcr.microsoft.com/dotnet/runtime</_ContainerBaseImageName>
             <_ContainerBaseImageTag Condition="'$(_ContainerBaseImageTag)' == ''">$(_TargetFrameworkVersionWithoutV)</_ContainerBaseImageTag>
             <ContainerBaseImage Condition="'$(ContainerBaseImage)' == ''">$(_ContainerBaseImageName):$(_ContainerBaseImageTag)</ContainerBaseImage>
@@ -35,14 +35,11 @@
             <ContainerLabel Condition="@(ContainerLabel) == ''"></ContainerLabel>
         </ItemGroup>
 
-        <ItemGroup>
-            <!-- Storing this for later use:  or %(ContainerPort.Identity) == '80' and @(ContainerPort->WithMetadataValue('Type', 'tcp')->Count()) == 0) -->
-            <ContainerPort Include="80" Type="tcp" Condition="%(ProjectCapability.Identity) == 'AspNetCore' and
-                                                              %(ContainerPort.Identity) != '80'" />
+        <ItemGroup Condition="@(ProjectCapability->AnyHaveMetadataValue('Identity', 'AspNetCore'))">
+            <ContainerPort Include="80" Type="tcp" Condition="!@(ContainerPort->WithMetadataValue('Identity', '80')->AnyHaveMetadataValue('Type', 'tcp'))" />
 
             <ContainerEnvironmentVariable Include="ASPNETCORE_URLS" Value="http://localhost:5000;https://localhost:5001"
-                                                                    Condition="%(ProjectCapability.Identity) == 'AspNetCore' and
-                                                                               %(ContainerEnvironmentVariable.Identity) != 'ASPNETCORE_URLS' "/>
+                                                                    Condition="@(ContainerEnvironmentVariable->AnyHaveMetadataValue('Identity', 'ASPNETCORE_URLS'))"/>
         </ItemGroup>
 
         <ParseContainerProperties ContainerBaseImage="$(ContainerBaseImage)"
