@@ -71,7 +71,7 @@ namespace System.Containers.Tasks
             
             try
             {
-                uri = new UriBuilder(ContainerBaseImage);
+                uri = new UriBuilder(new Uri(ContainerBaseImage, UriKind.RelativeOrAbsolute));
             }
             catch (Exception e)
             {

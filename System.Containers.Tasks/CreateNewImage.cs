@@ -78,7 +78,7 @@ namespace System.Containers.Tasks
 
             try
             {
-                reg = new Registry(new Uri(BaseRegistry));
+                reg = new Registry(new Uri(BaseRegistry, UriKind.RelativeOrAbsolute));
             }
             catch (Exception e)
             {
