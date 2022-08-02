@@ -84,7 +84,7 @@ namespace System.Containers.Tasks
             {
                 if (BuildEngine != null)
                 {
-                    Log.LogError("Failed initializing the registry. Registry Given:{0}. Exception message: {1}", BaseRegistry, e.Message);
+                    Log.LogError("Failed initializing the registry: {0}", e.Message);
                 }
                 return !Log.HasLoggedErrors;
             }
@@ -98,7 +98,7 @@ namespace System.Containers.Tasks
             {
                 if (BuildEngine != null)
                 {
-                    Log.LogError("Failed getting image manifest: {0}.\n{1}", ex.Message, ex.InnerException);
+                    Log.LogError("Failed getting image manifest: {0}.", ex.Message);
                 }
                 return !Log.HasLoggedErrors;
             }
@@ -122,7 +122,7 @@ namespace System.Containers.Tasks
             {
                 if (BuildEngine != null)
                 {
-                    Log.LogError("Failed to push to the output registry: {0}\n{1}", e.Message, e.InnerException);
+                    Log.LogError("Failed to push to the output registry: {0}", e.Message);
                 }
                 return !Log.HasLoggedErrors;
             }
