@@ -11,9 +11,9 @@ namespace Test.System.Containers.Tasks
     public class CreateNewImageTests
     {
         [TestMethod]
-        public void Baseline()
+        public void CreateNewImage_Baseline()
         {
-            DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "CreateNewImage_Baseline"));
+            DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), nameof(CreateNewImage_Baseline)));
 
             if (newProjectDir.Exists)
             {
@@ -61,7 +61,7 @@ namespace Test.System.Containers.Tasks
         [TestMethod]
         public void ParseContainerProperties_EndToEnd()
         {
-            DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "ParseContainerProperties_EndToEnd"));
+            DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), nameof(ParseContainerProperties_EndToEnd)));
 
             if (newProjectDir.Exists)
             {

@@ -68,7 +68,7 @@ public class EndToEnd
     [TestMethod]
     public async Task EndToEnd_NoAPI()
     {
-        DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "CreateNewImage_EndToEnd_NoAPI"));
+        DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), nameof(EndToEnd_NoAPI)));
         DirectoryInfo pathForLocalNugetSource = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "NuGetSource"));
 
         if (newProjectDir.Exists)
