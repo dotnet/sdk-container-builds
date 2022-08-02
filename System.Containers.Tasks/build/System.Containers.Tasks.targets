@@ -6,12 +6,11 @@
     <!-- Required targets dependencies -->
     <PropertyGroup>
         <PublishContainerDependsOn>
-            Build;
             ComputeContainerConfig
         </PublishContainerDependsOn>
     </PropertyGroup>
-
-    <Target Name="ComputeContainerConfig" AfterTargets="Build">
+<!-- is this target influenced by file state or properties defined/modified by other targets. If so, you have a dependency -->
+    <Target Name="ComputeContainerConfig">
 
         <!-- Container Defaults -->
         <PropertyGroup>
@@ -53,8 +52,10 @@
             <Output TaskParameter="NewImageTag" PropertyName="NewImageTag" />
         </ParseContainerProperties>
     </Target>
-
-    <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)" AfterTargets="ComputeContainerConfig" BeforeTargets="Publish">
+    <!-- Aftertargets: Any time you run X, then run this target. -->
+    <!-- Beforetargets =publish here effectively means going over to publish and setting its dependsontargets=publishcontainers. -->
+    <!-- BeforeTargets and AfterTargets happen "each time" that target runs -->
+    <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)">
         <CreateNewImage BaseRegistry="$(ContainerRegistry)"
                         BaseImageName="$(ContainerImage)"
                         BaseImageTag="$(ContainerTag)"
