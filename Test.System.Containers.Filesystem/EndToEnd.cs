@@ -136,7 +136,7 @@ public class EndToEnd
         }
 
         // Add package to the project
-        info.Arguments = $"add package System.Containers.Tasks";
+        info.Arguments = $"add package System.Containers.Tasks --prerelease";
         Process dotnetPackageAdd = Process.Start(info);
         Assert.IsNotNull(dotnetPackageAdd);
         await dotnetPackageAdd.WaitForExitAsync();

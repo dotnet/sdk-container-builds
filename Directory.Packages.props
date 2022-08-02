@@ -7,6 +7,7 @@
         <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
         <PackageVersion Include="MSTest.TestAdapter" Version="2.2.10" />
         <PackageVersion Include="MSTest.TestFramework" Version="2.2.10" />
+        <PackageVersion Include="Nerdbank.GitVersioning" Version="3.5.108" />
         <PackageVersion Include="coverlet.collector" Version="3.1.2" />
         <PackageVersion Include="GitHubActionsTestLogger" Version="2.0.1" />
         <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
