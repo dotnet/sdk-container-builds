@@ -75,7 +75,7 @@ namespace System.Containers.Tasks
             }
             catch (Exception e)
             {
-                Log.LogError("Failed to parse the given ContainerBaseImage: {0}", e.Message);
+                Log.LogError("Failed to parse the given ContainerBaseImage: {0}", e);
                 return false;
             }
 
