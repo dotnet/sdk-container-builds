@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -17,7 +16,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Utilities.Core" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\System.Containers\System.Containers.csproj" />
+    <ProjectReference Include="..\System.Containers.Tasks\System.Containers.Tasks.csproj" />
   </ItemGroup>
 
 </Project>
