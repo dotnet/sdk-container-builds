@@ -6,6 +6,23 @@ namespace Test.Microsoft.NET.Build.Containers;
 [TestClass]
 public class ContainerHelpersTests
 {
+    [TestMethod]
+    // Valid Tests
+    [DataRow("https://mcr.microsoft.com", true)]
+    [DataRow("https://mcr.microsoft.com/", true)]
+    [DataRow("http://mcr.microsoft.com:5001", true)] // Registries can have ports
+    [DataRow("docker://mcr.microsoft.com:5001", true)] // docker:// is considered valid
+
+    // // Invalid tests
+    [DataRow("docker://mcr.microsoft.com:xyz/dotnet/runtime:6.0", false)] // invalid port
+    // [DataRow("docker://mcr.microsoft.com:/dotnet/runtime:6.0", false)] // no port supplied
+    [DataRow("httpz://mcr.microsoft.com", false)] // invalid scheme
+    [DataRow("https://mcr.mi-=crosoft.com", false)] // invalid url
+    [DataRow("mcr.microsoft.com/", false)] // Missing scheme
+    public void IsValidRegistry(string registry, bool expectedReturn)
+    {
+        Assert.AreEqual(expectedReturn, ContainerHelpers.IsValidRegistry(registry));
+    }
 
     [TestMethod]
     [DataRow("https://mcr.microsoft.com/dotnet/runtime:6.0", true, "https://mcr.microsoft.com", "dotnet/runtime", "6.0")]

@@ -31,6 +31,34 @@ public static class ContainerHelpers
     }
 
     /// <summary>
+    /// Ensures the given registry is valid.
+    /// </summary>
+    /// <param name="imageName"></param>
+    /// <returns></returns>
+    public static bool IsValidRegistry(string registryName)
+    {
+        // No scheme prefixed onto the registry
+        if (!registryName.StartsWith("http://") && 
+            !registryName.StartsWith("https://") && 
+            !registryName.StartsWith("docker://"))
+        {
+            return false;
+        }
+
+        try
+        {
+            UriBuilder uri = new UriBuilder(registryName);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// Ensures the given image name is valid.
     /// Spec: https://github.com/opencontainers/distribution-spec/blob/4ab4752c3b86a926d7e5da84de64cbbdcc18d313/spec.md#pulling-manifests
     /// </summary>

@@ -74,6 +74,12 @@ public class ParseContainerProperties : Microsoft.Build.Utilities.Task
             return !Log.HasLoggedErrors;
         }
 
+        if (!ContainerHelpers.IsValidRegistry(ContainerRegistry))
+        {
+            Log.LogError("Invalid registry. Is your registry missing 'https://'? Given Registry: {0}", ContainerRegistry);
+            return !Log.HasLoggedErrors;
+        }
+
         if (FullyQualifiedBaseImageName.Contains(' ') && BuildEngine != null)
         {
             Log.LogWarning($"{nameof(FullyQualifiedBaseImageName)} had spaces in it, replacing with dashes.");
