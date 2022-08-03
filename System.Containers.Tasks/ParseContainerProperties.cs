@@ -11,6 +11,12 @@ public class ParseContainerProperties : Microsoft.Build.Utilities.Task
     public string FullyQualifiedBaseImageName { get; set; }
 
     /// <summary>
+    /// The registry to push the new container to.
+    /// </summary>
+    [Required]
+    public string ContainerRegistry { get; set; }
+
+    /// <summary>
     /// The image name for the container to be created.
     /// </summary>
     [Required]
@@ -32,6 +38,9 @@ public class ParseContainerProperties : Microsoft.Build.Utilities.Task
     public string ParsedContainerTag { get; private set; }
 
     [Output]
+    public string NewContainerRegistry { get; private set; }
+
+    [Output]
     public string NewContainerImageName { get; private set; }
 
     [Output]
@@ -40,11 +49,13 @@ public class ParseContainerProperties : Microsoft.Build.Utilities.Task
     public ParseContainerProperties()
     {
         FullyQualifiedBaseImageName = "";
+        ContainerRegistry = "";
         ContainerImageName = "";
         ContainerImageTag = "";
         ParsedContainerRegistry = "";
         ParsedContainerImage = "";
         ParsedContainerTag = "";
+        NewContainerRegistry = "";
         NewContainerImageName = "";
         NewContainerTag = "";
     }
@@ -80,6 +91,7 @@ public class ParseContainerProperties : Microsoft.Build.Utilities.Task
         ParsedContainerRegistry = outputReg;
         ParsedContainerImage = outputImage;
         ParsedContainerTag = outputTag;
+        NewContainerRegistry = ContainerRegistry;
         NewContainerImageName = ContainerImageName;
         NewContainerTag = ContainerImageTag;
 

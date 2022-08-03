@@ -15,7 +15,7 @@
         <!-- Container Defaults -->
         <PropertyGroup>
             <ContainerBaseImage Condition="'$(ContainerBaseImage)' == ''">$(_ContainerBaseRegistry)/$(_ContainerBaseImageName):$(_ContainerBaseImageTag)</ContainerBaseImage>
-            <ContainerOutputRegistry Condition="'$(ContainerOutputRegistry)' == ''">docker://</ContainerOutputRegistry>
+            <ContainerRegistry Condition="'$(ContainerRegistry)' == ''">docker://</ContainerRegistry>
             <!-- Note: spaces will be replaced with '-' in ContainerImageName and ContainerImageTag -->
             <ContainerImageName Condition="'$(ContainerImageName)' == ''">$(AssemblyName)</ContainerImageName>
             <ContainerImageTag Condition="'$(ContainerImageTag)' == ''">$(Version)</ContainerImageTag>
@@ -41,12 +41,14 @@
 
         <!-- TODO: Pass $(ContainerOutputRegistry) and output it -->
         <ParseContainerProperties FullyQualifiedBaseImageName="$(ContainerBaseImage)"
+                                  ContainerRegistry="$(ContainerRegistry)"
                                   ContainerImageName="$(ContainerImageName)"
                                   ContainerImageTag="$(ContainerImageTag)">
 
             <Output TaskParameter="ParsedContainerRegistry" PropertyName="ContainerBaseRegistry" />
             <Output TaskParameter="ParsedContainerImage" PropertyName="ContainerBaseName" />
             <Output TaskParameter="ParsedContainerTag" PropertyName="ContainerBaseTag" />
+            <Output TaskParameter="NewContainerRegistry" PropertyName="ContainerRegistry" />
             <Output TaskParameter="NewContainerImageName" PropertyName="ContainerImageName" />
             <Output TaskParameter="NewContainerImageTag" PropertyName="ContainerImageTag" />
         </ParseContainerProperties>
@@ -62,7 +64,7 @@
         <CreateNewImage BaseRegistry="$(ContainerInputRegistryURL)"
                         BaseImageName="$(ContainerBaseImageName)"
                         BaseImageTag="$(ContainerBaseImageTag)"
-                        OutputRegistry="$(ContainerOutputRegistryURL)"
+                        OutputRegistry="$(ContainerRegistry)"
                         ImageName="$(ContainerImageName)"
                         ImageTag="$(ContainerImageTag)"
                         PublishDirectory="$(MSBuildProjectDirectory)\$(PublishDir)"
