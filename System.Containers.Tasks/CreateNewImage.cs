@@ -14,35 +14,59 @@ namespace System.Containers.Tasks
     public class CreateNewImage : Microsoft.Build.Utilities.Task
     {
         /// <summary>
-        /// Base image name.
+        /// The base registry to pull from.
+        /// Ex: https://mcr.microsoft.com
+        /// </summary>
+        [Required]
+        public string BaseRegistry { get; set; }
+
+        /// <summary>
+        /// The base image to pull.
+        /// Ex: dotnet/runtime
         /// </summary>
         [Required]
         public string BaseImageName { get; set; }
 
+        /// <summary>
+        /// The base image tag.
+        /// Ex: 6.0
+        /// </summary>
         [Required]
         public string BaseImageTag { get; set; }
 
+        /// <summary>
+        /// The registry to push to.
+        /// </summary>
         [Required]
-        public string InputRegistryURL { get; set; }
-
-        [Required]
-        public string OutputRegistryURL { get; set; }
+        public string OutputRegistry { get; set; }
 
         /// <summary>
+        /// The name of the image to push to the registry.
+        /// </summary>
+        [Required]
+        public string ImageName { get; set; }
+
+        /// <summary>
+        /// The tag to associate with the image.
+        /// </summary>
+        public string ImageTag { get; set; }
+
+        /// <summary>
+        /// The directory for the build outputs to be published.
         /// Constructed from "$(MSBuildProjectDirectory)\$(PublishDir)"
         /// </summary>
         [Required]
         public string PublishDirectory { get; set; }
 
         /// <summary>
-        /// $(ContainerWorkingDirectory)
+        /// The working directory for the container.
         /// </summary>
         [Required]
         public string WorkingDirectory { get; set; }
 
-        [Required]
-        public string NewImageName { get; set; }
-
+        /// <summary>
+        /// The entrypoint for the container.
+        /// </summary>
         [Required]
         public string Entrypoint { get; set; }
 
@@ -52,54 +76,67 @@ namespace System.Containers.Tasks
         public string EntrypointArgs { get; set; }
 
 
-
-        /// <summary>
-        /// CreateNewImage needs to:
-        /// 1. Pull a base image (needs parameters: URL, BaseImage, BaseImageTag)
-        /// 2. Add output of build as a new layer
-        /// 3. Push image back to some registry (needs parameters: OutputURL, NewName, EntryPoint)
-        /// </summary>
-        /// <returns></returns>
         public override bool Execute()
         {
-            if (string.IsNullOrEmpty(PublishDirectory) || !Directory.Exists(PublishDirectory))
+            if (string.IsNullOrEmpty(PublishDirectory))
             {
-                Log.LogError("PublishDirectory and Files are both invalid. One valid parameter MUST be given to the CreateNewImage task.");
-                return false;
+                Log.LogError(string.Format("PublishDirectory is must have a value"));
+                return !Log.HasLoggedErrors;
+            }
+            else if (!Directory.Exists(PublishDirectory))
+            {
+                Log.LogError(string.Format("PublishDirectory does not exist."));
+                return !Log.HasLoggedErrors;
             }
 
-            Registry reg = new Registry(new Uri(InputRegistryURL));
-
+            Registry reg;
             Image image;
+
             try
             {
+                reg = new Registry(new Uri(BaseRegistry, UriKind.RelativeOrAbsolute));
                 image = reg.GetImageManifest(BaseImageName, BaseImageTag).Result;
-            }
-            catch (Exception ex)
-            {
-                Log.LogError("GetImageManifest Failed: {0}.\n{1}", ex.Message, ex.InnerException);
-                return false;
-            }
-
-            Log.LogMessage($"Loading from directory: {PublishDirectory}");
-            Layer newLayer = Layer.FromDirectory(PublishDirectory, WorkingDirectory);
-            image.AddLayer(newLayer);
-
-            image.SetEntrypoint(Entrypoint, EntrypointArgs?.Split(' ').ToArray());
-
-            Registry outputReg = new Registry(new Uri(OutputRegistryURL));
-
-            try
-            {
-                outputReg.Push(image, NewImageName, BaseImageName).Wait();
             }
             catch (Exception e)
             {
-                Log.LogError("Failed to push to the output registry: {0}\n{1}", e.Message, e.InnerException);
-                return false;
+                if (BuildEngine != null)
+                {
+                    Log.LogError("Failed getting image manifest: {0}", e);
+                }
+                return !Log.HasLoggedErrors;
             }
 
-            return true;
+            if (BuildEngine != null)
+            {
+                Log.LogMessage($"Loading from directory: {PublishDirectory}");
+            }
+            
+            Layer newLayer = Layer.FromDirectory(PublishDirectory, WorkingDirectory);
+            image.AddLayer(newLayer);
+            image.SetEntrypoint(Entrypoint, EntrypointArgs?.Split(' ').ToArray());
+
+            if (OutputRegistry.StartsWith("docker://"))
+            {
+                // To Do: LocalDocker.Load();
+            }
+            else
+            {
+                Registry outputReg = new Registry(new Uri(OutputRegistry));
+                try
+                {
+                    outputReg.Push(image, ImageName, BaseImageName).Wait();
+                }
+                catch (Exception e)
+                {
+                    if (BuildEngine != null)
+                    {
+                        Log.LogError("Failed to push to the output registry: {0}", e);
+                    }
+                    return !Log.HasLoggedErrors;
+                }
+            }
+
+            return !Log.HasLoggedErrors;
         }
     }
 }
