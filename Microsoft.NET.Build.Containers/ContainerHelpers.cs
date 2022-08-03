@@ -38,9 +38,10 @@ public static class ContainerHelpers
     public static bool IsValidRegistry(string registryName)
     {
         // No scheme prefixed onto the registry
-        if (!registryName.StartsWith("http://") && 
-            !registryName.StartsWith("https://") && 
-            !registryName.StartsWith("docker://"))
+        if (string.IsNullOrEmpty(registryName) ||
+            (!registryName.StartsWith("http://") && 
+             !registryName.StartsWith("https://") && 
+             !registryName.StartsWith("docker://")))
         {
             return false;
         }
@@ -49,9 +50,8 @@ public static class ContainerHelpers
         {
             UriBuilder uri = new UriBuilder(registryName);
         }
-        catch (Exception e)
+        catch
         {
-            Console.WriteLine(e);
             return false;
         }
 
@@ -110,7 +110,7 @@ public static class ContainerHelpers
         // If the image has a ':', there's a tag we need to parse.
         int indexOfColon = image.IndexOf(':');
 
-        containerRegistry = uri.Scheme + "://" + uri.Host;
+        containerRegistry = uri.Scheme + "://" + uri.Host + (uri.Port > 0 && !uri.IsDefaultPort ? ":" + uri.Port : "");
         containerName = indexOfColon == -1 ? image : image.Substring(0, indexOfColon);
         containerTag = indexOfColon == -1 ? "" : image.Substring(indexOfColon + 1);
         return true;

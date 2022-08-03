@@ -15,7 +15,6 @@ public class ContainerHelpersTests
 
     // // Invalid tests
     [DataRow("docker://mcr.microsoft.com:xyz/dotnet/runtime:6.0", false)] // invalid port
-    // [DataRow("docker://mcr.microsoft.com:/dotnet/runtime:6.0", false)] // no port supplied
     [DataRow("httpz://mcr.microsoft.com", false)] // invalid scheme
     [DataRow("https://mcr.mi-=crosoft.com", false)] // invalid url
     [DataRow("mcr.microsoft.com/", false)] // Missing scheme
@@ -29,6 +28,14 @@ public class ContainerHelpersTests
     [DataRow("https://mcr.microsoft.com/dotnet/runtime", true, "https://mcr.microsoft.com", "dotnet/runtime", "")]
     [DataRow("docker://mcr.microsoft.com/dotnet/runtime", true, "docker://mcr.microsoft.com", "dotnet/runtime", "")]
     [DataRow("https://mcr.microsoft.com/", false, null, null, null)] // no image = nothing resolves
+    // Ports tag along
+    [DataRow("docker://mcr.microsoft.com:54/dotnet/runtime", true, "docker://mcr.microsoft.com:54", "dotnet/runtime", "")]
+    // Unless they're invalid
+    [DataRow("docker://mcr.microsoft.com:0/dotnet/runtime", true, "docker://mcr.microsoft.com", "dotnet/runtime", "")]
+    // Strip the ':' in an unspecified port
+    [DataRow("docker://mcr.microsoft.com:/dotnet/runtime", true, "docker://mcr.microsoft.com", "dotnet/runtime", "")]
+    // no image = nothing resolves
+    [DataRow("https://mcr.microsoft.com/", false, null, null, null)]
     public void TryParseFullyQualifiedContainerName(string fullyQualifiedName, bool expectedReturn, string expectedRegistry, string expectedImage, string expectedTag)
     {
         Assert.AreEqual(expectedReturn, ContainerHelpers.TryParseFullyQualifiedContainerName(fullyQualifiedName, out string? containerReg, out string? containerName, out string? containerTag));
