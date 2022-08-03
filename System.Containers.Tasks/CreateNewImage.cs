@@ -75,30 +75,21 @@ namespace System.Containers.Tasks
             }
 
             Registry reg;
+            Image image;
 
             try
             {
+                // BaseRegistry is expected to be valid via ParseContainerProperties
                 reg = new Registry(new Uri(BaseRegistry, UriKind.RelativeOrAbsolute));
+
+                image = reg.GetImageManifest(BaseImageName, BaseImageTag).Result;
+
             }
             catch (Exception e)
             {
                 if (BuildEngine != null)
                 {
-                    Log.LogError("Failed initializing the registry: {0}", e.Message);
-                }
-                return !Log.HasLoggedErrors;
-            }
-
-            Image image;
-            try
-            {
-                image = reg.GetImageManifest(BaseImageName, BaseImageTag).Result;
-            }
-            catch (Exception ex)
-            {
-                if (BuildEngine != null)
-                {
-                    Log.LogError("Failed getting image manifest: {0}.", ex.Message);
+                    Log.LogError("Failed getting image manifest: {0}", e);
                 }
                 return !Log.HasLoggedErrors;
             }
@@ -107,24 +98,30 @@ namespace System.Containers.Tasks
             {
                 Log.LogMessage($"Loading from directory: {PublishDirectory}");
             }
+            
             Layer newLayer = Layer.FromDirectory(PublishDirectory, WorkingDirectory);
             image.AddLayer(newLayer);
-
             image.SetEntrypoint(Entrypoint, EntrypointArgs?.Split(' ').ToArray());
 
-            Registry outputReg = new Registry(new Uri(OutputRegistryURL));
-
-            try
+            if (OutputRegistryURL.StartsWith("docker://"))
             {
-                outputReg.Push(image, NewImageName, BaseImageName).Wait();
+                // To Do: LocalDocker.Load();
             }
-            catch (Exception e)
+            else
             {
-                if (BuildEngine != null)
+                Registry outputReg = new Registry(new Uri(OutputRegistryURL));
+                try
                 {
-                    Log.LogError("Failed to push to the output registry: {0}", e.Message);
+                    outputReg.Push(image, NewImageName, BaseImageName).Wait();
                 }
-                return !Log.HasLoggedErrors;
+                catch (Exception e)
+                {
+                    if (BuildEngine != null)
+                    {
+                        Log.LogError("Failed to push to the output registry: {0}", e);
+                    }
+                    return !Log.HasLoggedErrors;
+                }
             }
 
             return !Log.HasLoggedErrors;
