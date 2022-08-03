@@ -9,7 +9,8 @@ namespace Test.System.Containers
         [TestMethod]
         [DataRow("https://mcr.microsoft.com/dotnet/runtime:6.0", true, "https://mcr.microsoft.com", "dotnet/runtime", "6.0")]
         [DataRow("https://mcr.microsoft.com/dotnet/runtime", true, "https://mcr.microsoft.com", "dotnet/runtime", "")]
-        [DataRow("https://mcr.microsoft.com/", false, "", "", "")]
+        [DataRow("https://mcr.microsoft.com/", false, "", "", "")] // no image = nothing resolves
+        [DataRow("docker://mcr.microsoft.com/dotnet/runtime", true, "docker://mcr.microsoft.com", "dotnet/runtime", "")]
         public void TryParseFullyQualifiedContainerName(string fullyQualifiedName, bool expectedReturn, string expectedRegistry, string expectedImage, string expectedTag)
         {
             Assert.AreEqual(ContainerHelpers.TryParseFullyQualifiedContainerName(fullyQualifiedName, out string containerReg, out string containerName, out string containerTag), expectedReturn);

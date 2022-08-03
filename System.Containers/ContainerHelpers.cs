@@ -78,7 +78,7 @@ namespace System.Containers
             // If the image has a ':', there's a tag we need to parse.
             int indexOfColon = image.IndexOf(':');
 
-            containerRegistry = (uri.Host.Contains("localhost") ? "http://" : "https://") + uri.Host;
+            containerRegistry = uri.Scheme + "://" + uri.Host;
             containerName = indexOfColon == -1 ? image : image.Substring(0, indexOfColon);
             containerTag = indexOfColon == -1 ? "" : image.Substring(indexOfColon + 1);
             return true;
