@@ -61,9 +61,9 @@
     </PropertyGroup>
 
     <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)">
-        <CreateNewImage BaseRegistry="$(ContainerInputRegistryURL)"
-                        BaseImageName="$(ContainerBaseImageName)"
-                        BaseImageTag="$(ContainerBaseImageTag)"
+        <CreateNewImage BaseRegistry="$(ContainerBaseRegistry)"
+                        BaseImageName="$(ContainerBaseName)"
+                        BaseImageTag="$(ContainerBaseTag)"
                         OutputRegistry="$(ContainerRegistry)"
                         ImageName="$(ContainerImageName)"
                         ImageTag="$(ContainerImageTag)"
