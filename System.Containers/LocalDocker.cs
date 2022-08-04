@@ -39,10 +39,8 @@ public class LocalDocker
         // Feed each layer tarball into the stream
         JsonArray layerTarballPaths = new JsonArray();
 
-        foreach (var layerJson in x.manifest["layers"].AsArray())
+        foreach (var d in x.LayerDescriptors)
         {
-            Descriptor d = layerJson.Deserialize<Descriptor>();
-
             if (!x.originatingRegistry.HasValue)
             {
                 throw new NotImplementedException("Need a good error for 'couldn't download a thing because no link to registry'");

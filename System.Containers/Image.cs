@@ -23,6 +23,29 @@ public class Image
         this.originatingRegistry = registry;
     }
 
+    public IEnumerable<Descriptor> LayerDescriptors
+    {
+        get
+        {
+            JsonNode? layersNode = manifest["layers"];
+
+            if (layersNode is null)
+            {
+                throw new NotImplementedException("Tried to get layer information but there is no layer node?");
+            }
+
+            foreach (JsonNode? descriptorJson in layersNode.AsArray())
+            {
+                if (descriptorJson is null)
+                {
+                    throw new NotImplementedException("Null layer descriptor in the list?");
+                }
+
+                yield return descriptorJson.Deserialize<Descriptor>();
+            }
+        }
+    }
+
     public void AddLayer(Layer l)
     {
         newLayers.Add(l);

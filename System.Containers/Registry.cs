@@ -173,12 +173,9 @@ public record struct Registry(Uri BaseUri)
     {
         using HttpClient client = GetClient();
 
-        foreach (var layerJson in x.manifest["layers"].AsArray())
+        foreach (var descriptor in x.LayerDescriptors)
         {
-            JsonNode? layerValue = JsonValue.Parse(layerJson.ToJsonString());
-
-            JsonNode? digestNode = layerValue["digest"];
-            string digest = digestNode.ToString();
+            string digest = descriptor.Digest;
 
             if (await BlobAlreadyUploaded(name, digest, client))
             {
