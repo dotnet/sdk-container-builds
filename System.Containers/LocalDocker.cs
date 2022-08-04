@@ -48,7 +48,7 @@ public class LocalDocker
                 throw new NotImplementedException("Need a good error for 'couldn't download a thing because no link to registry'");
             }
 
-            string localPath = await x.originatingRegistry.Value.LocalFileForBlob(baseName, d);
+            string localPath = await x.originatingRegistry.Value.DownloadBlob(baseName, d);
 
             // Stuff that (uncompressed) tarball into the image tar stream
             string layerTarballPath = $"{d.Digest.Substring("sha256:".Length)}/layer.tar";

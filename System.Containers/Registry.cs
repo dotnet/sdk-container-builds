@@ -53,7 +53,13 @@ public record struct Registry(Uri BaseUri)
         return new Image(manifest, configDoc, this);
     }
 
-    public async Task<string> LocalFileForBlob(string name, Descriptor descriptor)
+    /// <summary>
+    /// Ensure a blob associated with <paramref name="name"/> from the registry is available locally.
+    /// </summary>
+    /// <param name="name">Name of the associated image.</param>
+    /// <param name="descriptor"><see cref="Descriptor"/> that describes the blob.</param>
+    /// <returns>Local path to the (decompressed) blob content.</returns>
+    public async Task<string> DownloadBlob(string name, Descriptor descriptor)
     {
         string localPath = Configuration.PathForDescriptor(descriptor);
 
