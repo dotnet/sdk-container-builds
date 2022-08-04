@@ -12,7 +12,7 @@ public class EndToEnd
     private const string NewImageName = "dotnetcontainers/testimage";
 
     [TestMethod]
-    public async Task ManuallyPackDotnetApplication()
+    public async Task ApiEndToEndWithRegistryPushAndPull()
     {
         string publishDirectory = await BuildLocalApp();
 
@@ -42,6 +42,37 @@ public class EndToEnd
         // Run the image
 
         ProcessStartInfo runInfo = new("docker", $"run --rm --tty {DockerRegistryManager.LocalRegistry}/{NewImageName}:latest");
+        Process run = Process.Start(runInfo);
+        Assert.IsNotNull(run);
+        await run.WaitForExitAsync();
+
+        Assert.AreEqual(0, run.ExitCode);
+    }
+
+    [TestMethod]
+    public async Task ApiEndToEndWithLocalLoad()
+    {
+        string publishDirectory = await BuildLocalApp();
+
+        // Build the image
+
+        Registry registry = new Registry(new Uri($"http://{DockerRegistryManager.LocalRegistry}"));
+
+        Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag);
+
+        Layer l = Layer.FromDirectory(publishDirectory, "/app");
+
+        x.AddLayer(l);
+
+        x.SetEntrypoint("/app/MinimalTestApp");
+
+        // Load the image into the local Docker daemon
+
+        await LocalDocker.Load(x, NewImageName, DockerRegistryManager.BaseImage);
+
+        // Run the image
+
+        ProcessStartInfo runInfo = new("docker", $"run --rm --tty {NewImageName}:latest");
         Process run = Process.Start(runInfo);
         Assert.IsNotNull(run);
         await run.WaitForExitAsync();
