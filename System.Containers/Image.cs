@@ -10,14 +10,16 @@ public class Image
     public JsonNode manifest;
     public JsonNode config;
 
+    public readonly string OriginatingName;
     internal readonly Registry? originatingRegistry;
 
     internal List<Layer> newLayers = new();
 
-    public Image(JsonNode manifest, JsonNode config, Registry? registry)
+    public Image(JsonNode manifest, JsonNode config, string name, Registry? registry)
     {
         this.manifest = manifest;
         this.config = config;
+        this.OriginatingName = name;
         this.originatingRegistry = registry;
     }
 

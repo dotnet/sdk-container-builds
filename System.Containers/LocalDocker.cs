@@ -24,14 +24,14 @@ public class LocalDocker
 
         // Create new stream tarball
 
-        await WriteImageToStream(x, name, baseName, loadProcess.StandardInput.BaseStream);
+        await WriteImageToStream(x, name, loadProcess.StandardInput.BaseStream);
 
         loadProcess.StandardInput.Close();
 
         await loadProcess.WaitForExitAsync();
     }
 
-    public static async Task WriteImageToStream(Image x, string name, string baseName, Stream imageStream)
+    public static async Task WriteImageToStream(Image x, string name, Stream imageStream)
     {
         TarWriter writer = new(imageStream, TarEntryFormat.Gnu, leaveOpen: true);
 
@@ -48,7 +48,7 @@ public class LocalDocker
                 throw new NotImplementedException("Need a good error for 'couldn't download a thing because no link to registry'");
             }
 
-            string localPath = await x.originatingRegistry.Value.DownloadBlob(baseName, d);
+            string localPath = await x.originatingRegistry.Value.DownloadBlob(x.OriginatingName, d);
 
             // Stuff that (uncompressed) tarball into the image tar stream
             string layerTarballPath = $"{d.Digest.Substring("sha256:".Length)}/layer.tar";

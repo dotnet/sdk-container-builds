@@ -50,7 +50,7 @@ public record struct Registry(Uri BaseUri)
         Debug.Assert(configDoc is not null);
         //Debug.Assert(((string?)configDoc["mediaType"]) == DockerContainerV1);
 
-        return new Image(manifest, configDoc, this);
+        return new Image(manifest, configDoc, name, this);
     }
 
     /// <summary>
