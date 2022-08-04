@@ -14,23 +14,7 @@ public class EndToEnd
     [TestMethod]
     public async Task ManuallyPackDotnetApplication()
     {
-        DirectoryInfo d = new DirectoryInfo("MinimalTestApp");
-        if (d.Exists)
-        {
-            d.Delete(recursive: true);
-        }
-
-        Process dotnetNew = Process.Start("dotnet", "new console -f net6.0 -o MinimalTestApp");
-        Assert.IsNotNull(dotnetNew);
-        await dotnetNew.WaitForExitAsync();
-        Assert.AreEqual(0, dotnetNew.ExitCode);
-
-        // Build project
-
-        Process publish = Process.Start("dotnet", "publish -bl MinimalTestApp -r linux-x64");
-        Assert.IsNotNull(publish);
-        await publish.WaitForExitAsync();
-        Assert.AreEqual(0, publish.ExitCode);
+        string publishDirectory = await BuildLocalApp();
 
         // Build the image
 
@@ -38,7 +22,7 @@ public class EndToEnd
 
         Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag);
 
-        Layer l = Layer.FromDirectory(Path.Join("MinimalTestApp", "bin", "Debug", "net6.0", "linux-x64", "publish"), "/app");
+        Layer l = Layer.FromDirectory(publishDirectory, "/app");
 
         x.AddLayer(l);
 
@@ -63,6 +47,30 @@ public class EndToEnd
         await run.WaitForExitAsync();
 
         Assert.AreEqual(0, run.ExitCode);
+    }
+
+    private static async Task<string> BuildLocalApp()
+    {
+        DirectoryInfo d = new DirectoryInfo("MinimalTestApp");
+        if (d.Exists)
+        {
+            d.Delete(recursive: true);
+        }
+
+        Process dotnetNew = Process.Start("dotnet", "new console -f net6.0 -o MinimalTestApp");
+        Assert.IsNotNull(dotnetNew);
+        await dotnetNew.WaitForExitAsync();
+        Assert.AreEqual(0, dotnetNew.ExitCode);
+
+        // Build project
+
+        Process publish = Process.Start("dotnet", "publish -bl MinimalTestApp -r linux-x64");
+        Assert.IsNotNull(publish);
+        await publish.WaitForExitAsync();
+        Assert.AreEqual(0, publish.ExitCode);
+
+        string publishDirectory = Path.Join("MinimalTestApp", "bin", "Debug", "net6.0", "linux-x64", "publish");
+        return publishDirectory;
     }
 
     [TestMethod]
