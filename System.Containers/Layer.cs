@@ -33,7 +33,7 @@ public record struct Layer
         long fileSize;
         byte[] hash;
 
-        string tempTarballPath = Configuration.GetTempFile();
+        string tempTarballPath = ContentStore.GetTempFile();
         using (FileStream fs = File.Create(tempTarballPath))
         {
             // using (GZipStream gz = new(fs, CompressionMode.Compress)) // TODO: https://github.com/rainersigwald/containers/issues/29
@@ -66,9 +66,9 @@ public record struct Layer
             Digest = $"sha256:{contentHash}"
         };
 
-        string storedContent = Configuration.PathForDescriptor(descriptor);
+        string storedContent = ContentStore.PathForDescriptor(descriptor);
 
-        Directory.CreateDirectory(Configuration.ContentRoot);
+        Directory.CreateDirectory(ContentStore.ContentRoot);
 
         File.Move(tempTarballPath, storedContent, overwrite: true);
 

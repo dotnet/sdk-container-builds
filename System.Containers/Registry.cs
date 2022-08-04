@@ -61,7 +61,7 @@ public record struct Registry(Uri BaseUri)
     /// <returns>Local path to the (decompressed) blob content.</returns>
     public async Task<string> DownloadBlob(string name, Descriptor descriptor)
     {
-        string localPath = Configuration.PathForDescriptor(descriptor);
+        string localPath = ContentStore.PathForDescriptor(descriptor);
 
         if (File.Exists(localPath))
         {
@@ -77,7 +77,7 @@ public record struct Registry(Uri BaseUri)
 
         response.EnsureSuccessStatusCode();
 
-        string tempTarballPath = Configuration.GetTempFile();
+        string tempTarballPath = ContentStore.GetTempFile();
         using (FileStream fs = File.Create(tempTarballPath))
         {
             Stream? gzs = null;
