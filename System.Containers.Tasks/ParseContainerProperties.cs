@@ -1,94 +1,98 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Resources;
-using System.Text;
 using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
-using System.Containers;
 
-#nullable disable
+namespace System.Containers.Tasks;
 
-namespace System.Containers.Tasks
+public class ParseContainerProperties : Microsoft.Build.Utilities.Task
 {
-    public class ParseContainerProperties : Microsoft.Build.Utilities.Task
+    /// <summary>
+    /// The full base image name. mcr.microsoft.com/dotnet/runtime:6.0, for example.
+    /// </summary>
+    [Required]
+    public string FullyQualifiedBaseImageName { get; set; }
+
+    /// <summary>
+    /// The image name for the container to be created.
+    /// </summary>
+    [Required]
+    public string ContainerImageName { get; set; }
+
+    /// <summary>
+    /// The tag for the container to be created.
+    /// </summary>
+    [Required]
+    public string ContainerImageTag { get; set; }
+
+    [Output]
+    public string ParsedContainerRegistry { get; private set; }
+
+    [Output]
+    public string ParsedContainerImage { get; private set; }
+
+    [Output]
+    public string ParsedContainerTag { get; private set; }
+
+    [Output]
+    public string NewContainerImageName { get; private set; }
+
+    [Output]
+    public string NewContainerTag { get; private set; }
+
+    public ParseContainerProperties()
     {
+        FullyQualifiedBaseImageName = "";
+        ContainerImageName = "";
+        ContainerImageTag = "";
+        ParsedContainerRegistry = "";
+        ParsedContainerImage = "";
+        ParsedContainerTag = "";
+        NewContainerImageName = "";
+        NewContainerTag = "";
+    }
 
-
-        /// <summary>
-        /// The full base image name. mcr.microsoft.com/dotnet/runtime:6.0, for example.
-        /// </summary>
-        [Required]
-        public string FullyQualifiedBaseImageName { get; set; }
-
-        /// <summary>
-        /// The image name for the container to be created.
-        /// </summary>
-        [Required]
-        public string ContainerImageName { get; set; }
-
-        /// <summary>
-        /// The tag for the container to be created.
-        /// </summary>
-        [Required]
-        public string ContainerImageTag { get; set; }
-
-        [Output]
-        public string ParsedContainerRegistry { get; private set; }
-
-        [Output]
-        public string ParsedContainerImage { get; private set; }
-
-        [Output]
-        public string ParsedContainerTag { get; private set; }
-
-        [Output]
-        public string NewContainerImageName { get; private set; }
-
-        [Output]
-        public string NewContainerTag { get; private set; }
-
-        public override bool Execute()
+    public override bool Execute()
+    {
+        if (!ContainerHelpers.IsValidImageName(ContainerImageName))
         {
-            if (!ContainerHelpers.IsValidImageName(ContainerImageName))
-            {
-                Log.LogError("Invalid image name: {0}", ContainerImageName);
-                return !Log.HasLoggedErrors;
-            }
-
-            if (!ContainerHelpers.IsValidImageTag(ContainerImageTag))
-            {
-                Log.LogError("Invalid image tag: {0}", ContainerImageTag);
-                return !Log.HasLoggedErrors;
-            }
-
-            if (!ContainerHelpers.TryParseFullyQualifiedContainerName(FullyQualifiedBaseImageName,
-                                                                      out string outputReg,
-                                                                      out string outputImage,
-                                                                      out string outputTag))
-            {
-                Log.LogError("Could not parse the given ContainerBaseImage: {0}", FullyQualifiedBaseImageName);
-                return !Log.HasLoggedErrors;
-            }
-
-            ParsedContainerRegistry = outputReg;
-            ParsedContainerImage = outputImage;
-            ParsedContainerTag = outputTag;
-            NewContainerImageName = ContainerImageName;
-            NewContainerTag = ContainerImageTag;
-
-            if (BuildEngine != null)
-            {
-                Log.LogMessage("Parsed the following properties. Note: Spaces are replaced with dashes.");
-                Log.LogMessage("Host: {0}", ParsedContainerRegistry);
-                Log.LogMessage("Image: {0}", ParsedContainerImage);
-                Log.LogMessage("Tag: {0}", ParsedContainerTag);
-                Log.LogMessage("Image Name: {0}", NewContainerImageName);
-                Log.LogMessage("Image Tag: {0}", NewContainerTag);
-            }
-
+            Log.LogError($"Invalid {nameof(ContainerImageName)}: {0}", ContainerImageName);
             return !Log.HasLoggedErrors;
         }
+
+        if (!string.IsNullOrEmpty(ContainerImageTag) && !ContainerHelpers.IsValidImageTag(ContainerImageTag))
+        {
+            Log.LogError($"Invalid {nameof(ContainerImageTag)}: {0}", ContainerImageTag);
+            return !Log.HasLoggedErrors;
+        }
+
+        if (FullyQualifiedBaseImageName.Contains(' ') && BuildEngine != null)
+        {
+            Log.LogWarning($"{nameof(FullyQualifiedBaseImageName)} had spaces in it, replacing with dashes.");
+        }
+
+        if (!ContainerHelpers.TryParseFullyQualifiedContainerName(FullyQualifiedBaseImageName.Replace(' ', '-'),
+                                                                  out string? outputReg,
+                                                                  out string? outputImage,
+                                                                  out string? outputTag))
+        {
+            Log.LogError($"Could not parse {nameof(FullyQualifiedBaseImageName)}: {0}", FullyQualifiedBaseImageName);
+            return !Log.HasLoggedErrors;
+        }
+
+        ParsedContainerRegistry = outputReg;
+        ParsedContainerImage = outputImage;
+        ParsedContainerTag = outputTag;
+        NewContainerImageName = ContainerImageName;
+        NewContainerTag = ContainerImageTag;
+
+        if (BuildEngine != null)
+        {
+            Log.LogMessage(MessageImportance.Low, "Parsed the following properties. Note: Spaces are replaced with dashes.");
+            Log.LogMessage(MessageImportance.Low, "Host: {0}", ParsedContainerRegistry);
+            Log.LogMessage(MessageImportance.Low, "Image: {0}", ParsedContainerImage);
+            Log.LogMessage(MessageImportance.Low, "Tag: {0}", ParsedContainerTag);
+            Log.LogMessage(MessageImportance.Low, "Image Name: {0}", NewContainerImageName);
+            Log.LogMessage(MessageImportance.Low, "Image Tag: {0}", NewContainerTag);
+        }
+
+        return !Log.HasLoggedErrors;
     }
 }
