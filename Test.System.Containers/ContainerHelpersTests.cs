@@ -24,13 +24,12 @@ public class ContainerHelpersTests
     [DataRow("dotnet/runtime", true)]
     [DataRow("foo/bar", true)]
     [DataRow("registry", true)]
-    [DataRow("-foo/bar", true)]
-    [DataRow(".foo/bar", true)]
-    [DataRow("foo/bar_", true)]
-    [DataRow("foo/bar.", true)]
-    [DataRow("_foo/bar", true)]
-    [DataRow("foo/bar-", true)]
-    [DataRow("-//-", false)]
+    [DataRow("-foo/bar", false)]
+    [DataRow(".foo/bar", false)]
+    [DataRow("_foo/bar", false)]
+    [DataRow("foo/bar-", false)]
+    [DataRow("foo/bar.", false)]
+    [DataRow("foo/bar_", false)]
     public void IsValidImageName(string imageName, bool expectedReturn)
     {
         Assert.AreEqual(expectedReturn, ContainerHelpers.IsValidImageName(imageName));
@@ -38,9 +37,9 @@ public class ContainerHelpersTests
 
     [TestMethod]
     [DataRow("6.0", true)] // baseline
-    [DataRow("5.2+asd123", true)] // with commit hash
-    [DataRow(".6.0", true)] // starts with .
-    [DataRow("-6.0", true)] // starts with -
+    [DataRow("5.2-asd123", true)] // with commit hash
+    [DataRow(".6.0", false)] // starts with .
+    [DataRow("-6.0", false)] // starts with -
     [DataRow("---", false)] // malformed
     public void IsValidImageTag(string imageTag, bool expectedReturn)
     {

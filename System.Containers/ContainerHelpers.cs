@@ -5,18 +5,16 @@ using System.Text.RegularExpressions;
 
 public static class ContainerHelpers
 {
-    private static string[] knownImageSeparators = { "-", ".", "_" };
+    private static Regex imageTagRegex = new Regex("^[a-zA-Z0-9_][a-zA-Z0-9._-]{0,127}$");
 
-    private static Regex imageTagRegex = new Regex("[a-zA-Z0-9_][a-zA-Z0-9._-]{0,127}");
-
-    private static Regex imageNameRegex = new Regex("[a-z0-9]+([._-][a-z0-9]+)*(/[a-z0-9]+([._-][a-z0-9]+)*)*");
+    private static Regex imageNameRegex = new Regex("^[a-z0-9]+([._-][a-z0-9]+)*(/[a-z0-9]+([._-][a-z0-9]+)*)*$");
 
     /// <summary>
     /// Given some "fully qualified" image name (e.g. mcr.microsoft.com/dotnet/runtime), return
     /// a valid UriBuilder. This means appending 'https' if the URI is not absolute, otherwise UriBuilder will throw.
     /// </summary>
     /// <param name="containerBase"></param>
-    /// <returns>A UriBuilder with the given containerBase, or, if containerBase is relative, https:// + containerBase</returns>
+    /// <returns>A <see cref="Uri" /> with the given containerBase, or, if containerBase is relative, https:// + containerBase</returns>
     private static Uri? ContainerImageToUri(string containerBase)
     {
         Uri uri = new Uri(containerBase, UriKind.RelativeOrAbsolute);
@@ -51,7 +49,7 @@ public static class ContainerHelpers
     /// <returns></returns>
     public static bool IsValidImageTag(string imageTag)
     {
-        return imageTag.Length <= 128 && imageTagRegex.IsMatch(imageTag);
+        return imageTagRegex.IsMatch(imageTag);
     }
 
     /// <summary>
