@@ -32,13 +32,13 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
     public string OutputRegistry { get; set; }
 
     /// <summary>
-    /// The name of the image to push to the registry.
+    /// The name of the output image that will be pushed to the registry.
     /// </summary>
     [Required]
     public string ImageName { get; set; }
 
     /// <summary>
-    /// The tag to associate with the image.
+    /// The tag to associate with the new image.
     /// </summary>
     public string ImageTag { get; set; }
 
@@ -50,13 +50,13 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
     public string PublishDirectory { get; set; }
 
     /// <summary>
-    /// The working directory for the container.
+    /// The working directory of the container.
     /// </summary>
     [Required]
     public string WorkingDirectory { get; set; }
 
     /// <summary>
-    /// The entrypoint for the container.
+    /// The entrypoint application of the container.
     /// </summary>
     [Required]
     public string Entrypoint { get; set; }
@@ -83,14 +83,9 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
 
     public override bool Execute()
     {
-        if (string.IsNullOrEmpty(PublishDirectory))
+        if (!Directory.Exists(PublishDirectory))
         {
-            Log.LogError(string.Format("PublishDirectory is must have a value"));
-            return !Log.HasLoggedErrors;
-        }
-        else if (!Directory.Exists(PublishDirectory))
-        {
-            Log.LogError(string.Format("PublishDirectory does not exist."));
+            Log.LogError("{0} '{1}' does not exist", nameof(PublishDirectory), PublishDirectory);
             return !Log.HasLoggedErrors;
         }
 
@@ -102,13 +97,9 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
             reg = new Registry(new Uri(BaseRegistry, UriKind.RelativeOrAbsolute));
             image = reg.GetImageManifest(BaseImageName, BaseImageTag).Result;
         }
-        catch (Exception e)
+        catch
         {
-            if (BuildEngine != null)
-            {
-                Log.LogError("Failed getting image manifest: {0}", e);
-            }
-            return !Log.HasLoggedErrors;
+            throw;
         }
 
         if (BuildEngine != null)
@@ -139,6 +130,11 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
                 }
                 return !Log.HasLoggedErrors;
             }
+        }
+
+        if (BuildEngine != null)
+        {
+            Log.LogMessage(MessageImportance.High, "Pushed container '{0}:{1}' to registry '{2}'", ImageName, ImageTag, OutputRegistry);
         }
 
         return !Log.HasLoggedErrors;
