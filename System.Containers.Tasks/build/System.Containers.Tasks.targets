@@ -1,4 +1,9 @@
 <Project>
+    <PropertyGroup>
+        <!-- todo: And we're not a default web project -->
+        <PublishTargetForNonWebContainerPublishes Condition="$(PublishProfile) == 'DefaultContainer'">Publish</PublishTargetForNonWebContainerPublishes>
+
+    </PropertyGroup>
     <Target Name="ComputeContainerConfig">
         <!-- Compute private defaults -->
         <PropertyGroup Condition="$(ContainerBaseImage) == ''">
@@ -54,7 +59,7 @@
         </PublishContainerDependsOn>
     </PropertyGroup>
 
-    <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)">
+    <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)" BeforeTargets="$(PublishTargetForNonWebContainerPublishes)">
         <CreateNewImage BaseRegistry="$(ContainerBaseRegistry)"
                         BaseImageName="$(ContainerBaseName)"
                         BaseImageTag="$(ContainerBaseTag)"
