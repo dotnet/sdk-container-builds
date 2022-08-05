@@ -1,15 +1,11 @@
 <Project>
-    <PropertyGroup>
-        <TargetFrameworkVersion>6.0</TargetFrameworkVersion>
-    </PropertyGroup>
-
     <Target Name="ComputeContainerConfig">
         <!-- Compute private defaults -->
-        <PropertyGroup>
-            <_ContainerBaseRegistry Condition="'$(_ContainerBaseRegistry)' == ''">https://mcr.microsoft.com</_ContainerBaseRegistry>
-            <_ContainerBaseImageName Condition="'$(_ContainerBaseImageName)' == '' and @(ProjectCapability->AnyHaveMetadataValue('Identity', 'AspNetCore'))">dotnet/aspnet</_ContainerBaseImageName>
+        <PropertyGroup Condition="$(ContainerBaseImage) == ''">
+            <_ContainerBaseRegistry>https://mcr.microsoft.com</_ContainerBaseRegistry>
+            <_ContainerBaseImageName Condition="@(ProjectCapability->AnyHaveMetadataValue('Identity', 'AspNetCore'))">dotnet/aspnet</_ContainerBaseImageName>
             <_ContainerBaseImageName Condition="'$(_ContainerBaseImageName)' == ''">dotnet/runtime</_ContainerBaseImageName>
-            <_ContainerBaseImageTag Condition="'$(_ContainerBaseImageTag)' == ''">$(_TargetFrameworkVersionWithoutV)</_ContainerBaseImageTag>
+            <_ContainerBaseImageTag>$(_TargetFrameworkVersionWithoutV)</_ContainerBaseImageTag>
         </PropertyGroup>
 
         <!-- Container Defaults -->
@@ -39,7 +35,6 @@
                                                                     Condition="@(ContainerEnvironmentVariable->AnyHaveMetadataValue('Identity', 'ASPNETCORE_URLS'))"/>
         </ItemGroup>
 
-        <!-- TODO: Pass $(ContainerOutputRegistry) and output it -->
         <ParseContainerProperties FullyQualifiedBaseImageName="$(ContainerBaseImage)"
                                   ContainerRegistry="$(ContainerRegistry)"
                                   ContainerImageName="$(ContainerImageName)"
