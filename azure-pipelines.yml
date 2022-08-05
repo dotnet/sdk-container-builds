@@ -1,0 +1,42 @@
+trigger:
+- main
+
+parameters:
+  - name: SignType
+    type: string
+    default: test
+    values:
+      - real
+      - test
+
+pool:
+  name: VSEngSS-MicroBuild2022-1ES
+
+steps:
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '7.0.100-preview.6.22352.1'
+    includePreviewVersions: true
+
+- task: MicroBuildSigningPlugin@4
+  inputs:
+    signType: 'test'
+    feedSource: 'https://devdiv.pkgs.visualstudio.com/DefaultCollection/_packaging/MicroBuildToolset/nuget/v3/index.json'
+
+- task: MSBuild@1
+  inputs:
+    solution: '**/*.sln'
+    msbuildArchitecture: 'x64'
+    configuration: 'Release'
+    msbuildArguments: '-restore -bl:$(Build.StagingDirectory)\ContainersOfficialBuild.binlog -v:minimal'
+    maximumCpuCount: true
+
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(Pipeline.Workspace)'
+    artifact: 'Everything'
+    publishLocation: 'pipeline'
+  condition: succeededOrFailed()
+
+- task: MicroBuildCleanup@1
