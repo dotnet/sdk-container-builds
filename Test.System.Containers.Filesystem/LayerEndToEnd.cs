@@ -84,9 +84,9 @@ public class LayerEndToEnd
     {
         testSpecificArtifactRoot = new();
 
-        priorArtifactRoot = Configuration.ArtifactRoot;
+        priorArtifactRoot = ContentStore.ArtifactRoot;
 
-        Configuration.ArtifactRoot = testSpecificArtifactRoot.Path;
+        ContentStore.ArtifactRoot = testSpecificArtifactRoot.Path;
     }
 
     [TestCleanup]
@@ -95,7 +95,7 @@ public class LayerEndToEnd
         testSpecificArtifactRoot?.Dispose();
         if (priorArtifactRoot is not null)
         {
-            Configuration.ArtifactRoot = priorArtifactRoot;
+            ContentStore.ArtifactRoot = priorArtifactRoot;
         }
     }
 }

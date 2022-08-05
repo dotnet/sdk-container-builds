@@ -1,6 +1,7 @@
 using Microsoft.VisualBasic;
 
 using System.Diagnostics;
+using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -49,7 +50,52 @@ public record struct Registry(Uri BaseUri)
         Debug.Assert(configDoc is not null);
         //Debug.Assert(((string?)configDoc["mediaType"]) == DockerContainerV1);
 
-        return new Image(manifest, configDoc);
+        return new Image(manifest, configDoc, name, this);
+    }
+
+    /// <summary>
+    /// Ensure a blob associated with <paramref name="name"/> from the registry is available locally.
+    /// </summary>
+    /// <param name="name">Name of the associated image.</param>
+    /// <param name="descriptor"><see cref="Descriptor"/> that describes the blob.</param>
+    /// <returns>Local path to the (decompressed) blob content.</returns>
+    public async Task<string> DownloadBlob(string name, Descriptor descriptor)
+    {
+        string localPath = ContentStore.PathForDescriptor(descriptor);
+
+        if (File.Exists(localPath))
+        {
+            // Assume file is up to date and just return it
+            return localPath;
+        }
+
+        // No local copy, so download one
+
+        using HttpClient client = GetClient();
+
+        var response = await client.GetAsync(new Uri(BaseUri, $"/v2/{name}/blobs/{descriptor.Digest}"));
+
+        response.EnsureSuccessStatusCode();
+
+        string tempTarballPath = ContentStore.GetTempFile();
+        using (FileStream fs = File.Create(tempTarballPath))
+        {
+            Stream? gzs = null;
+
+            Stream responseStream = await response.Content.ReadAsStreamAsync();
+            if (descriptor.MediaType.EndsWith("gzip"))
+            {
+                gzs = new GZipStream(responseStream, CompressionMode.Decompress);
+            }
+
+            using Stream? gzipStreamToDispose = gzs;
+
+            await (gzs ?? responseStream).CopyToAsync(fs);
+        }
+
+        File.Move(tempTarballPath, localPath, overwrite: true);
+
+        return localPath;
     }
 
     public async Task Push(Layer layer, string name)
@@ -127,12 +173,9 @@ public record struct Registry(Uri BaseUri)
     {
         using HttpClient client = GetClient();
 
-        foreach (var layerJson in x.manifest["layers"].AsArray())
+        foreach (var descriptor in x.LayerDescriptors)
         {
-            JsonNode? layerValue = JsonValue.Parse(layerJson.ToJsonString());
-
-            JsonNode? digestNode = layerValue["digest"];
-            string digest = digestNode.ToString();
+            string digest = descriptor.Digest;
 
             if (await BlobAlreadyUploaded(name, digest, client))
             {
@@ -162,13 +205,13 @@ public record struct Registry(Uri BaseUri)
 
         using (MemoryStream stringStream = new MemoryStream(Encoding.UTF8.GetBytes(x.config.ToJsonString())))
         {
-            await UploadBlob(name, x.GetSha(x.config), stringStream);
+            await UploadBlob(name, x.GetDigest(x.config), stringStream);
         }
 
         HttpContent manifestUploadContent = new StringContent(x.manifest.ToJsonString());
         manifestUploadContent.Headers.ContentType = new MediaTypeHeaderValue(DockerManifestV2);
 
-        var putResponse = await client.PutAsync(new Uri(BaseUri, $"/v2/{name}/manifests/{x.GetSha(x.manifest)}"), manifestUploadContent);
+        var putResponse = await client.PutAsync(new Uri(BaseUri, $"/v2/{name}/manifests/{x.GetDigest(x.manifest)}"), manifestUploadContent);
 
         string putresponsestr = await putResponse.Content.ReadAsStringAsync();
 

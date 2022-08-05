@@ -12,25 +12,9 @@ public class EndToEnd
     private const string NewImageName = "dotnetcontainers/testimage";
 
     [TestMethod]
-    public async Task ManuallyPackDotnetApplication()
+    public async Task ApiEndToEndWithRegistryPushAndPull()
     {
-        DirectoryInfo d = new DirectoryInfo("MinimalTestApp");
-        if (d.Exists)
-        {
-            d.Delete(recursive: true);
-        }
-
-        Process dotnetNew = Process.Start("dotnet", "new console -f net6.0 -o MinimalTestApp");
-        Assert.IsNotNull(dotnetNew);
-        await dotnetNew.WaitForExitAsync();
-        Assert.AreEqual(0, dotnetNew.ExitCode);
-
-        // Build project
-
-        Process publish = Process.Start("dotnet", "publish -bl MinimalTestApp -r linux-x64");
-        Assert.IsNotNull(publish);
-        await publish.WaitForExitAsync();
-        Assert.AreEqual(0, publish.ExitCode);
+        string publishDirectory = await BuildLocalApp();
 
         // Build the image
 
@@ -38,7 +22,7 @@ public class EndToEnd
 
         Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag);
 
-        Layer l = Layer.FromDirectory(Path.Join("MinimalTestApp", "bin", "Debug", "net6.0", "linux-x64", "publish"), "/app");
+        Layer l = Layer.FromDirectory(publishDirectory, "/app");
 
         x.AddLayer(l);
 
@@ -63,6 +47,61 @@ public class EndToEnd
         await run.WaitForExitAsync();
 
         Assert.AreEqual(0, run.ExitCode);
+    }
+
+    [TestMethod]
+    public async Task ApiEndToEndWithLocalLoad()
+    {
+        string publishDirectory = await BuildLocalApp();
+
+        // Build the image
+
+        Registry registry = new Registry(new Uri($"http://{DockerRegistryManager.LocalRegistry}"));
+
+        Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag);
+
+        Layer l = Layer.FromDirectory(publishDirectory, "/app");
+
+        x.AddLayer(l);
+
+        x.SetEntrypoint("/app/MinimalTestApp");
+
+        // Load the image into the local Docker daemon
+
+        await LocalDocker.Load(x, NewImageName, DockerRegistryManager.BaseImage);
+
+        // Run the image
+
+        ProcessStartInfo runInfo = new("docker", $"run --rm --tty {NewImageName}:latest");
+        Process run = Process.Start(runInfo);
+        Assert.IsNotNull(run);
+        await run.WaitForExitAsync();
+
+        Assert.AreEqual(0, run.ExitCode);
+    }
+
+    private static async Task<string> BuildLocalApp()
+    {
+        DirectoryInfo d = new DirectoryInfo("MinimalTestApp");
+        if (d.Exists)
+        {
+            d.Delete(recursive: true);
+        }
+
+        Process dotnetNew = Process.Start("dotnet", "new console -f net6.0 -o MinimalTestApp");
+        Assert.IsNotNull(dotnetNew);
+        await dotnetNew.WaitForExitAsync();
+        Assert.AreEqual(0, dotnetNew.ExitCode);
+
+        // Build project
+
+        Process publish = Process.Start("dotnet", "publish -bl MinimalTestApp -r linux-x64");
+        Assert.IsNotNull(publish);
+        await publish.WaitForExitAsync();
+        Assert.AreEqual(0, publish.ExitCode);
+
+        string publishDirectory = Path.Join("MinimalTestApp", "bin", "Debug", "net6.0", "linux-x64", "publish");
+        return publishDirectory;
     }
 
     [TestMethod]
