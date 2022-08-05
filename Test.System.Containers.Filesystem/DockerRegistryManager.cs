@@ -31,7 +31,7 @@ public class DockerRegistryManager
         string errStream = registryProcess.StandardError.ReadToEnd();
         Assert.IsNotNull(registryContainerId);
         registryProcess.WaitForExit();
-        Assert.AreEqual(0, registryProcess.ExitCode);
+        Assert.AreEqual(0, registryProcess.ExitCode, $"Could not start Docker registry. Are you running one for manual testing?{Environment.NewLine}{errStream}");
 
         s_registryContainerId = registryContainerId;
 
