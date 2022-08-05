@@ -138,7 +138,7 @@ public class EndToEnd
         {
             WorkingDirectory = newProjectDir.FullName,
             FileName = "dotnet",
-            Arguments = "new console -f net7.0",
+            Arguments = "new webapi -f net7.0",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
         };
@@ -182,9 +182,8 @@ public class EndToEnd
         Assert.AreEqual(0, dotnetPackageAdd.ExitCode);
 
         info.Arguments = $"publish /p:publishprofile=defaultcontainer /p:runtimeidentifier=linux-x64 /bl" +
-                          $" /p:ContainerBaseImageName={DockerRegistryManager.BaseImage}" +
-                          $" /p:ContainerInputRegistryURL=http://{DockerRegistryManager.LocalRegistry}" +
-                          $" /p:ContainerOutputRegistryURL=http://{DockerRegistryManager.LocalRegistry}" +
+                          $" /p:ContainerBaseImage={DockerRegistryManager.FullyQualifiedBaseImageDefault}" +
+                          $" /p:ContainerRegistry=http://{DockerRegistryManager.LocalRegistry}" +
                           $" /p:ContainerImageName={NewImageName}" +
                           $" /p:Version=1.0";
 
@@ -193,10 +192,6 @@ public class EndToEnd
         Assert.IsNotNull(publish);
         await publish.WaitForExitAsync();
         Assert.AreEqual(0, publish.ExitCode);
-
-        // Final step: verify by running the app.
-        // This is not as simple as checking the output contains "hello world" because
-        // we can't publish a console app (the container targets only import in websdk projects)
 
         Process pull = Process.Start("docker", $"pull {DockerRegistryManager.LocalRegistry}/{NewImageName}:latest");
         Assert.IsNotNull(pull);

@@ -7,7 +7,7 @@
         <Exec Command="docker run -d -p $(_RegistryPort):5000 --restart=always --name registry registry:2" />
     </Target>
 
-    <Target Name="PreloadBaseImages">
+    <Target Name="PreloadBaseImages" DependsOnTargets="StartDockerRegistry">
         <PropertyGroup>
             <_MCR>mcr.microsoft.com</_MCR>
             <_LocalRegistry>localhost:5010</_LocalRegistry>
