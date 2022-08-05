@@ -29,10 +29,10 @@
 
         <!-- Asp.NET defaults -->
         <ItemGroup Condition="@(ProjectCapability->AnyHaveMetadataValue('Identity', 'AspNetCore'))">
-            <ContainerPort Include="80" Type="tcp" Condition="!@(ContainerPort->WithMetadataValue('Identity', '80')->AnyHaveMetadataValue('Type', 'tcp'))" />
+            <ContainerPort Include="80" Type="tcp" Condition="@(ContainerPort->WithMetadataValue('Identity', '80')->AnyHaveMetadataValue('Type', 'tcp')) == ''" />
 
             <ContainerEnvironmentVariable Include="ASPNETCORE_URLS" Value="http://localhost:5000;https://localhost:5001"
-                                                                    Condition="@(ContainerEnvironmentVariable->AnyHaveMetadataValue('Identity', 'ASPNETCORE_URLS'))"/>
+                                                                    Condition="@(ContainerEnvironmentVariable->WithMetadataValue('Identity', 'ASPNETCORE_URLS')) == ''"/>
         </ItemGroup>
 
         <ParseContainerProperties FullyQualifiedBaseImageName="$(ContainerBaseImage)"
@@ -45,7 +45,7 @@
             <Output TaskParameter="ParsedContainerTag" PropertyName="ContainerBaseTag" />
             <Output TaskParameter="NewContainerRegistry" PropertyName="ContainerRegistry" />
             <Output TaskParameter="NewContainerImageName" PropertyName="ContainerImageName" />
-            <Output TaskParameter="NewContainerImageTag" PropertyName="ContainerImageTag" />
+            <Output TaskParameter="NewContainerTag" PropertyName="ContainerImageTag" />
         </ParseContainerProperties>
     </Target>
 

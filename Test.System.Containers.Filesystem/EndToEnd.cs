@@ -138,7 +138,7 @@ public class EndToEnd
         {
             WorkingDirectory = newProjectDir.FullName,
             FileName = "dotnet",
-            Arguments = "new console -f net7.0",
+            Arguments = "new webapi -f net7.0",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
         };
