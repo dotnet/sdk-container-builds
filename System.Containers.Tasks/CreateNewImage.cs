@@ -113,7 +113,7 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
 
         if (OutputRegistry.StartsWith("docker://"))
         {
-            // To Do: LocalDocker.Load();
+            LocalDocker.Load(image, ImageName, BaseImageName).Wait();
         }
         else
         {
