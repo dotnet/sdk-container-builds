@@ -62,7 +62,7 @@
                         OutputRegistry="$(ContainerRegistry)"
                         ImageName="$(ContainerImageName)"
                         ImageTag="$(ContainerImageTag)"
-                        PublishDirectory="$(MSBuildProjectDirectory)\$(PublishDir)"
+                        PublishDirectory="$(PublishDir)"
                         WorkingDirectory="$(ContainerWorkingDirectory)"
                         Entrypoint="$(ContainerEntrypoint)"
                         EntrypointArgs="$(ContainerEntrypointArgs)"/>
