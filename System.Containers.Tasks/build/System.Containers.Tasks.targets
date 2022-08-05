@@ -16,7 +16,6 @@
             <ContainerImageName Condition="'$(ContainerImageName)' == ''">$(AssemblyName)</ContainerImageName>
             <ContainerImageTag Condition="'$(ContainerImageTag)' == ''">$(Version)</ContainerImageTag>
             <ContainerWorkingDirectory Condition="'$(ContainerWorkingDirectory)' == ''">/app</ContainerWorkingDirectory>
-            <!-- TODO: Test this scenario -->
             <ContainerEntrypoint Condition="'$(ContainerEntrypoint)' == '' and '$(UseAppHost)' != 'true'">dotnet $(TargetFileName)</ContainerEntrypoint>
             <ContainerEntrypoint Condition="'$(ContainerEntrypoint)' == '' and '$(UseAppHost)' == 'true'">$(ContainerWorkingDirectory)/$(AssemblyName)$(_NativeExecutableExtension)</ContainerEntrypoint>
             <!-- Could be semicolon-delimited -->
