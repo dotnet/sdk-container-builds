@@ -16,7 +16,7 @@ steps:
 - task: UseDotNet@2
   inputs:
     packageType: 'sdk'
-    version: '7.0.100-preview.6.22352.1'
+    useGlobalJson: true
     includePreviewVersions: true
 
 - task: MicroBuildSigningPlugin@4
