@@ -1,5 +1,6 @@
 ﻿<Project>
   <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudioEng.MicroBuild.Core"  />
     <PackageReference Include="Nerdbank.GitVersioning"  />
   </ItemGroup>
 </Project>
