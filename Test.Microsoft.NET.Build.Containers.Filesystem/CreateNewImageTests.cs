@@ -90,6 +90,7 @@ public class CreateNewImageTests
 
         ParseContainerProperties pcp = new ParseContainerProperties();
         pcp.FullyQualifiedBaseImageName = "https://mcr.microsoft.com/dotnet/runtime:6.0";
+        pcp.ContainerRegistry = "http://localhost:5010";
         pcp.ContainerImageName = "dotnet/testimage";
         pcp.ContainerImageTag = "5.0";
 
@@ -106,7 +107,6 @@ public class CreateNewImageTests
         cni.BaseImageName = pcp.ParsedContainerImage;
         cni.BaseImageTag = pcp.ParsedContainerTag;
         cni.ImageName = pcp.NewContainerImageName;
-
         cni.OutputRegistry = "http://localhost:5010";
         cni.PublishDirectory = Path.Combine(newProjectDir.FullName, "bin", "release", "net7.0");
         cni.WorkingDirectory = "app/";

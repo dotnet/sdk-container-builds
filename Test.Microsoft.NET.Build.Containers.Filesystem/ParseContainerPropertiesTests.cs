@@ -13,6 +13,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
         {
             ParseContainerProperties task = new ParseContainerProperties();
             task.FullyQualifiedBaseImageName = "https://mcr.microsoft.com/dotnet/runtime:6.0";
+            task.ContainerRegistry = "http://localhost:5010";
             task.ContainerImageName = "dotnet/testimage";
             task.ContainerImageTag = "5.0";
 
@@ -30,6 +31,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
         {
             ParseContainerProperties task = new ParseContainerProperties();
             task.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:6.0";
+            task.ContainerRegistry = "http://localhost:5010";
             task.ContainerImageName = "dotnet/testimage";
             task.ContainerImageTag = "5.0";
 
@@ -47,6 +49,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
         {
             ParseContainerProperties task = new ParseContainerProperties();
             task.FullyQualifiedBaseImageName = "mcr microsoft com/dotnet runtime:6 0";
+            task.ContainerRegistry = "http://localhost:5010";
 
             // Spaces in the "new" container info don't pass the regex.
             task.ContainerImageName = "dotnet/testimage";
@@ -67,6 +70,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
         {
             ParseContainerProperties task = new ParseContainerProperties();
             task.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:6 0";
+            task.ContainerRegistry = "http://localhost:5010";
 
             // Spaces in the "new" container info don't pass the regex.
             task.ContainerImageName = "dotnet testimage";
@@ -82,7 +86,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
         {
             ParseContainerProperties task = new ParseContainerProperties();
             task.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:6 0";
-
+            task.ContainerRegistry = "http://localhost:5010";
             // Spaces in the "new" container info don't pass the regex.
             task.ContainerImageName = "dotnet/testimage";
             task.ContainerImageTag = "5 0";
