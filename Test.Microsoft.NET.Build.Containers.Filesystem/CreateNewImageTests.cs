@@ -48,8 +48,7 @@ public class CreateNewImageTests
         task.PublishDirectory = Path.Combine(newProjectDir.FullName, "bin", "release", "net7.0");
         task.ImageName = "dotnet/testimage";
         task.WorkingDirectory = "app/";
-        task.Entrypoint = "dotnet build";
-        task.EntrypointArgs = "";
+        task.Entrypoint = new TaskItem[] { new("dotnet"), new("build") };
 
         Assert.IsTrue(task.Execute());
         newProjectDir.Delete(true);
@@ -110,8 +109,7 @@ public class CreateNewImageTests
         cni.OutputRegistry = "http://localhost:5010";
         cni.PublishDirectory = Path.Combine(newProjectDir.FullName, "bin", "release", "net7.0");
         cni.WorkingDirectory = "app/";
-        cni.Entrypoint = "ParseContainerProperties_EndToEnd";
-        cni.EntrypointArgs = "";
+        cni.Entrypoint = new TaskItem[] { new("ParseContainerProperties_EndToEnd") };
 
         Assert.IsTrue(cni.Execute());
         newProjectDir.Delete(true);
