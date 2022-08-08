@@ -14,7 +14,7 @@ public class DockerRegistryManager
 
     private static string s_registryContainerId;
 
-    [AssemblyInitialize]
+    [ClassInitialize]
     public static void StartAndPopulateDockerRegistry(TestContext context)
     {
         Console.WriteLine(nameof(StartAndPopulateDockerRegistry));
@@ -53,7 +53,7 @@ public class DockerRegistryManager
         Assert.AreEqual(0, pushBase.ExitCode);
     }
 
-    [AssemblyCleanup]
+    [ClassCleanup]
     public static void ShutdownDockerRegistry()
     {
         Assert.IsNotNull(s_registryContainerId);
