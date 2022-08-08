@@ -1,11 +1,18 @@
 <Project>
+    <Import Condition="'$(_IsTest)' == 'true'" Project="$(MSBuildThisFileDirectory)System.Containers.Tasks.props" />
+    
     <Target Name="ComputeContainerConfig">
+        <!-- Reference data about this project -->
+        <PropertyGroup>
+            <_IsAspNet Condition="@(ProjectCapability->Count()) > 0 and @(ProjectCapability->AnyHaveMetadataValue('Identity', 'AspNetCore'))">true</_IsAspNet>
+            <_IsSelfContained Condition="'$(SelfContained)' == 'true' or '$(PublishSelfContained)' == 'true'">true</_IsSelfContained>
+        </PropertyGroup>
+
         <!-- Compute private defaults -->
         <PropertyGroup Condition="$(ContainerBaseImage) == ''">
-            <_IsSelfContained Condition="'$(SelfContained)' == 'true' or '$(PublishSelfContained)' == 'true'">true</_IsSelfContained>
             <_ContainerBaseRegistry>https://mcr.microsoft.com</_ContainerBaseRegistry>
             <_ContainerBaseImageName Condition="'$(_IsSelfContained)' == 'true'">dotnet/runtime-deps</_ContainerBaseImageName>
-            <_ContainerBaseImageName Condition="'$(_ContainerBaseImageName)' == '' and @(ProjectCapability->AnyHaveMetadataValue('Identity', 'AspNetCore'))">dotnet/aspnet</_ContainerBaseImageName>
+            <_ContainerBaseImageName Condition="'$(_ContainerBaseImageName)' == '' and '$(_IsAspNet)' == 'true'">dotnet/aspnet</_ContainerBaseImageName>
             <_ContainerBaseImageName Condition="'$(_ContainerBaseImageName)' == ''">dotnet/runtime</_ContainerBaseImageName>
             <_ContainerBaseImageTag>$(_TargetFrameworkVersionWithoutV)</_ContainerBaseImageTag>
         </PropertyGroup>
@@ -30,7 +37,7 @@
         </ItemGroup>
 
         <!-- Asp.NET defaults -->
-        <ItemGroup Condition="@(ProjectCapability->AnyHaveMetadataValue('Identity', 'AspNetCore'))">
+        <ItemGroup Condition="'$(_IsAspNet)' == 'true'">
             <ContainerPort Include="80" Type="tcp" Condition="@(ContainerPort->WithMetadataValue('Identity', '80')->AnyHaveMetadataValue('Type', 'tcp')) == ''" />
 
             <ContainerEnvironmentVariable Include="ASPNETCORE_URLS" Value="http://localhost:5000;https://localhost:5001"

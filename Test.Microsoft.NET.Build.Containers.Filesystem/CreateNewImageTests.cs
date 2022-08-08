@@ -1,5 +1,7 @@
+using System.Collections;
 using Microsoft.NET.Build.Containers.Tasks;
 using System.Diagnostics;
+using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
 namespace Test.Microsoft.NET.Build.Containers.Tasks;
