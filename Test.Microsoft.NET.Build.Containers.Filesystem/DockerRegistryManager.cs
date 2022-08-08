@@ -2,7 +2,6 @@
 
 namespace Test.Microsoft.NET.Build.Containers.Filesystem;
 
-[TestClass]
 public class DockerRegistryManager
 {
     public const string BaseImage = "dotnet/runtime";
@@ -14,7 +13,6 @@ public class DockerRegistryManager
 
     private static string s_registryContainerId;
 
-    [ClassInitialize]
     public static void StartAndPopulateDockerRegistry(TestContext context)
     {
         Console.WriteLine(nameof(StartAndPopulateDockerRegistry));
@@ -53,7 +51,6 @@ public class DockerRegistryManager
         Assert.AreEqual(0, pushBase.ExitCode);
     }
 
-    [ClassCleanup]
     public static void ShutdownDockerRegistry()
     {
         Assert.IsNotNull(s_registryContainerId);
@@ -61,6 +58,8 @@ public class DockerRegistryManager
         Process shutdownRegistry = Process.Start("docker", $"stop {s_registryContainerId}");
         Assert.IsNotNull(shutdownRegistry);
         shutdownRegistry.WaitForExit();
-        Assert.AreEqual(0, shutdownRegistry.ExitCode);
+        Process removeRegistry = Process.Start("docker", $"rm {s_registryContainerId}");
+        removeRegistry.WaitForExit();
+        Assert.AreEqual(0, removeRegistry.ExitCode);
     }
 }

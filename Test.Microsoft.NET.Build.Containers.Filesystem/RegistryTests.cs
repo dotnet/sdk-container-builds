@@ -10,6 +10,12 @@ namespace Test.Microsoft.NET.Build.Containers.Filesystem;
 [TestClass]
 public class RegistryTests
 {
+    [ClassInitialize]
+    public static void InitRegistry(TestContext ctx) => DockerRegistryManager.StartAndPopulateDockerRegistry(ctx);
+
+    [ClassCleanup]
+    public static void TeardownRegistry() => DockerRegistryManager.ShutdownDockerRegistry();
+
     [TestMethod]
     public async Task GetFromRegistry()
     {

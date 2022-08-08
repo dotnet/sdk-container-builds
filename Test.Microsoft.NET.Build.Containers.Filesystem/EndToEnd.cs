@@ -11,6 +11,12 @@ public class EndToEnd
 {
     private const string NewImageName = "dotnetcontainers/testimage";
 
+    [ClassInitialize]
+    public static void InitRegistry(TestContext ctx) => DockerRegistryManager.StartAndPopulateDockerRegistry(ctx);
+
+    [ClassCleanup]
+    public static void TeardownRegistry() => DockerRegistryManager.ShutdownDockerRegistry();
+
     [TestMethod]
     public async Task ApiEndToEndWithRegistryPushAndPull()
     {
