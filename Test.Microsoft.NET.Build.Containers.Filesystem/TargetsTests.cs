@@ -15,7 +15,7 @@ public class TargetsTests
     }
 
     private Project InitProject(Dictionary<string, string> bonusProps) {
-        var targetsFile = Path.Combine("..", "..", "..", "..", "Microsoft.NET.Build.Containers.Tasks", "build", "Microsoft.NET.Build.Containers.Tasks.targets");
+        var targetsFile = CurrentFile.Relative("../Microsoft.NET.Build.Containers.Tasks/build/Microsoft.NET.Build.Containers.Tasks.targets");
         var props = new Dictionary<string, string>();
         // required parameters
         props["TargetFileName"] = "foo.dll";
