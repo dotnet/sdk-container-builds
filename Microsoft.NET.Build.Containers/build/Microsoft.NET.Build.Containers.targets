@@ -1,6 +1,4 @@
 <Project>
-    <Import Condition="'$(_IsTest)' == 'true'" Project="$(MSBuildThisFileDirectory)Microsoft.NET.Build.Containers.Tasks.props" />
-    
     <Target Name="ComputeContainerConfig">
         <!-- Reference data about this project -->
         <PropertyGroup>
