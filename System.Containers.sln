@@ -3,15 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.32710.52
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "System.Containers", "System.Containers\System.Containers.csproj", "{A85F5917-A1F5-43D2-BDDC-CAE179B15DDE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.NET.Build.Containers", "Microsoft.NET.Build.Containers\Microsoft.NET.Build.Containers.csproj", "{A85F5917-A1F5-43D2-BDDC-CAE179B15DDE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.System.Containers", "Test.System.Containers\Test.System.Containers.csproj", "{E6EE341A-E10A-423C-B3D8-FEEA0942CFA8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Microsoft.NET.Build.Containers", "Test.Microsoft.NET.Build.Containers\Test.Microsoft.NET.Build.Containers.csproj", "{E6EE341A-E10A-423C-B3D8-FEEA0942CFA8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.System.Containers.Filesystem", "Test.System.Containers.Filesystem\Test.System.Containers.Filesystem.csproj", "{CC249FAD-C24D-4B37-AF8F-FA05D0FD5620}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Microsoft.NET.Build.Containers.Filesystem", "Test.Microsoft.NET.Build.Containers.Filesystem\Test.Microsoft.NET.Build.Containers.Filesystem.csproj", "{CC249FAD-C24D-4B37-AF8F-FA05D0FD5620}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "containerize", "containerize\containerize.csproj", "{151F7937-D2AF-4242-9B6D-81FD5228D132}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "System.Containers.Tasks", "System.Containers.Tasks\System.Containers.Tasks.csproj", "{1CA8810B-8582-478E-A1E6-C9C7D53D8004}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.NET.Build.Containers.Tasks", "Microsoft.NET.Build.Containers.Tasks\Microsoft.NET.Build.Containers.Tasks.csproj", "{1CA8810B-8582-478E-A1E6-C9C7D53D8004}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,9 +1,9 @@
-﻿using System.Containers;
+﻿using Microsoft.NET.Build.Containers;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 
-namespace Test.System.Containers.Filesystem;
+namespace Test.Microsoft.NET.Build.Containers.Filesystem;
 #nullable disable
 
 [TestClass]
@@ -129,7 +129,7 @@ public class EndToEnd
         FileInfo[] nupkgs = nupkgPath.GetFiles("*.nupkg");
         if (nupkgs == null || nupkgs.Length == 0)
         {
-            // Build System.Containers.Tasks.csproj & wait.
+            // Build Microsoft.NET.Build.Containers.Tasks.csproj & wait.
             // for now, fail.
             Assert.Fail("No nupkg found in expected package folder. You may need to rerun the build");
         }
@@ -175,7 +175,7 @@ public class EndToEnd
         }
 
         // Add package to the project
-        info.Arguments = $"add package System.Containers.Tasks --prerelease";
+        info.Arguments = $"add package Microsoft.NET.Build.Containers.Tasks --prerelease";
         Process dotnetPackageAdd = Process.Start(info);
         Assert.IsNotNull(dotnetPackageAdd);
         await dotnetPackageAdd.WaitForExitAsync();

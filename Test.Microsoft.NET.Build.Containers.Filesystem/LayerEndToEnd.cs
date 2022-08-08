@@ -1,7 +1,7 @@
-using System.Containers;
+using Microsoft.NET.Build.Containers;
 using System.Security.Cryptography;
 
-namespace Test.System.Containers.Filesystem;
+namespace Test.Microsoft.NET.Build.Containers.Filesystem;
 
 [TestClass]
 public class LayerEndToEnd

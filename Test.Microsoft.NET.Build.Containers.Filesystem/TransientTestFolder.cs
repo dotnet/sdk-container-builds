@@ -1,6 +1,6 @@
 ﻿using static System.IO.Path;
 
-namespace Test.System.Containers.Filesystem;
+namespace Test.Microsoft.NET.Build.Containers.Filesystem;
 
 /// <summary>
 /// Helper class to clean up after tests that touch the filesystem.

@@ -1,8 +1,8 @@
-using System.Containers.Tasks;
+using Microsoft.NET.Build.Containers.Tasks;
 using System.Diagnostics;
 using Microsoft.Build.Utilities;
 
-namespace Test.System.Containers.Tasks;
+namespace Test.Microsoft.NET.Build.Containers.Tasks;
 
 [TestClass]
 public class CreateNewImageTests
