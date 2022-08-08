@@ -2,8 +2,10 @@
     <Target Name="ComputeContainerConfig">
         <!-- Compute private defaults -->
         <PropertyGroup Condition="$(ContainerBaseImage) == ''">
+            <_IsSelfContained Condition="'$(SelfContained)' == 'true' or '$(PublishSelfContained)' == 'true'">true</_IsSelfContained>
             <_ContainerBaseRegistry>https://mcr.microsoft.com</_ContainerBaseRegistry>
-            <_ContainerBaseImageName Condition="@(ProjectCapability->AnyHaveMetadataValue('Identity', 'AspNetCore'))">dotnet/aspnet</_ContainerBaseImageName>
+            <_ContainerBaseImageName Condition="'$(_IsSelfContained)' == 'true'">dotnet/runtime-deps</_ContainerBaseImageName>
+            <_ContainerBaseImageName Condition="'$(_ContainerBaseImageName)' == '' and @(ProjectCapability->AnyHaveMetadataValue('Identity', 'AspNetCore'))">dotnet/aspnet</_ContainerBaseImageName>
             <_ContainerBaseImageName Condition="'$(_ContainerBaseImageName)' == ''">dotnet/runtime</_ContainerBaseImageName>
             <_ContainerBaseImageTag>$(_TargetFrameworkVersionWithoutV)</_ContainerBaseImageTag>
         </PropertyGroup>
