@@ -21,7 +21,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.NET.Build.Containers\Microsoft.NET.Build.Containers.csproj" />
-    <ProjectReference Include="..\Microsoft.NET.Build.Containers.Tasks\Microsoft.NET.Build.Containers.Tasks.csproj" />
   </ItemGroup>
 
 </Project>
