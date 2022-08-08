@@ -11,13 +11,14 @@ public class TargetsTests
 
     private static string CombineFiles(string propsFile, string targetsFile)
     {
-        var propsContent = System.IO.File.ReadAllLines(propsFile);
-        var targetsContent = System.IO.File.ReadAllLines(targetsFile);
+        var propsContent = File.ReadAllLines(propsFile);
+        var targetsContent = File.ReadAllLines(targetsFile);
         var combinedContent = new List<string>();
         combinedContent.AddRange(propsContent[..^1]);
         combinedContent.AddRange(targetsContent[1..]);
         var tempTargetLocation = Path.Combine(Path.GetTempPath(), "Containers", "ContainerTargets.targets");
-        System.IO.File.WriteAllLines(tempTargetLocation, combinedContent);
+        Directory.CreateDirectory(Path.GetDirectoryName(tempTargetLocation));
+        File.WriteAllLines(tempTargetLocation, combinedContent);
         return tempTargetLocation;
     }
 
@@ -35,7 +36,7 @@ public class TargetsTests
     [ClassCleanup]
     public static void Cleanup()
     {
-        System.IO.File.Delete(CombinedTargetsLocation);
+        if (CombinedTargetsLocation != null) File.Delete(CombinedTargetsLocation);
     }
 
     private Project InitProject(Dictionary<string, string> bonusProps)
