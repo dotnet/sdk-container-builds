@@ -2,6 +2,7 @@
 
 namespace Test.Microsoft.NET.Build.Containers.Filesystem;
 
+[TestClass]
 public class DockerRegistryManager
 {
     public const string BaseImage = "dotnet/runtime";
@@ -13,6 +14,7 @@ public class DockerRegistryManager
 
     private static string s_registryContainerId;
 
+    [AssemblyInitialize]
     public static void StartAndPopulateDockerRegistry(TestContext context)
     {
         Console.WriteLine(nameof(StartAndPopulateDockerRegistry));
@@ -51,6 +53,7 @@ public class DockerRegistryManager
         Assert.AreEqual(0, pushBase.ExitCode);
     }
 
+    [AssemblyCleanup]
     public static void ShutdownDockerRegistry()
     {
         Assert.IsNotNull(s_registryContainerId);
