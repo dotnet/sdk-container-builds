@@ -27,8 +27,8 @@ public class TargetsTests
     {
         var instances = MSBuildLocator.QueryVisualStudioInstances(new() { DiscoveryTypes = DiscoveryType.DotNetSdk, WorkingDirectory = Environment.CurrentDirectory });
         MSBuildLocator.RegisterInstance(instances.First());
-
-        var targetsFile = CurrentFile.Relative("../Microsoft.NET.Build.Containers.Tasks/build/Microsoft.NET.Build.Containers.Tasks.targets");
+        var relativePath = Path.Combine("..", "Microsoft.NET.Build.Containers.Tasks", "build", "Microsoft.NET.Build.Containers.Tasks.targets");
+        var targetsFile = CurrentFile.Relative(relativePath);
         var propsFile = Path.ChangeExtension(targetsFile, ".props");
         CombinedTargetsLocation = CombineFiles(propsFile, targetsFile);
     }

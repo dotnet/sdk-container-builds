@@ -61,8 +61,6 @@ public class DockerRegistryManager
         Process shutdownRegistry = Process.Start("docker", $"stop {s_registryContainerId}");
         Assert.IsNotNull(shutdownRegistry);
         shutdownRegistry.WaitForExit();
-        Process removeRegistry = Process.Start("docker", $"rm {s_registryContainerId}");
-        removeRegistry.WaitForExit();
-        Assert.AreEqual(0, removeRegistry.ExitCode);
+        Assert.AreEqual(0, shutdownRegistry.ExitCode);
     }
 }
