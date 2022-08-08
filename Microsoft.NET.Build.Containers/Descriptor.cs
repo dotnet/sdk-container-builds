@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace System.Containers;
+namespace Microsoft.NET.Build.Containers;
 
 /// <summary>
 /// An OCI Content Descriptor describing a component.

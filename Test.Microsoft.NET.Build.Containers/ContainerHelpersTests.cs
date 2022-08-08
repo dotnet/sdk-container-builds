@@ -1,7 +1,7 @@
-using System.Containers;
+using Microsoft.NET.Build.Containers;
 using System.Text;
 
-namespace Test.System.Containers;
+namespace Test.Microsoft.NET.Build.Containers;
 
 [TestClass]
 public class ContainerHelpersTests

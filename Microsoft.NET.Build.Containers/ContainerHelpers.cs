@@ -1,4 +1,4 @@
-namespace System.Containers;
+namespace Microsoft.NET.Build.Containers;
 
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;

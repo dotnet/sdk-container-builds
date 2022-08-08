@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace Test.System.Containers.Filesystem;
+namespace Test.Microsoft.NET.Build.Containers.Filesystem;
 
 [TestClass]
 public class DockerRegistryManager

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Containers;
+using Microsoft.NET.Build.Containers;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Test.System.Containers.Filesystem;
+namespace Test.Microsoft.NET.Build.Containers.Filesystem;
 
 [TestClass]
 public class RegistryTests

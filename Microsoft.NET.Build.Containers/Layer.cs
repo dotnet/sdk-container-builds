@@ -1,7 +1,7 @@
 ﻿using System.Formats.Tar;
 using System.Security.Cryptography;
 
-namespace System.Containers;
+namespace Microsoft.NET.Build.Containers;
 
 public record struct Layer
 {

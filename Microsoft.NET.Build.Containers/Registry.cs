@@ -11,7 +11,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Xml.Linq;
 
-namespace System.Containers;
+namespace Microsoft.NET.Build.Containers;
 
 public record struct Registry(Uri BaseUri)
 {

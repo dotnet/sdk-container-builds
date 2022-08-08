@@ -1,9 +1,9 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Containers.Tasks;
+using Microsoft.NET.Build.Containers.Tasks;
 
 #nullable disable
 
-namespace Test.System.Containers.Tasks
+namespace Test.Microsoft.NET.Build.Containers.Tasks
 {
     [TestClass]
     public class ParseContainerPropertiesTests

@@ -1,7 +1,7 @@
-﻿using System.Containers;
+﻿using Microsoft.NET.Build.Containers;
 using System.Text.Json;
 
-namespace Test.System.Containers;
+namespace Test.Microsoft.NET.Build.Containers;
 
 [TestClass]
 public class DescriptorTests

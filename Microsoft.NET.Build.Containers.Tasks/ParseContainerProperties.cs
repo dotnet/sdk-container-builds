@@ -1,6 +1,6 @@
 using Microsoft.Build.Framework;
 
-namespace System.Containers.Tasks;
+namespace Microsoft.NET.Build.Containers.Tasks;
 
 public class ParseContainerProperties : Microsoft.Build.Utilities.Task
 {

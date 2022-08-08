@@ -20,8 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\System.Containers\System.Containers.csproj" />
-    <ProjectReference Include="..\System.Containers.Tasks\System.Containers.Tasks.csproj" />
+    <ProjectReference Include="..\Microsoft.NET.Build.Containers\Microsoft.NET.Build.Containers.csproj" />
+    <ProjectReference Include="..\Microsoft.NET.Build.Containers.Tasks\Microsoft.NET.Build.Containers.Tasks.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace System.Containers;
+namespace Microsoft.NET.Build.Containers;
 
 public static class ContentStore
 {
