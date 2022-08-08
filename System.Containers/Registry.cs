@@ -120,7 +120,7 @@ public record struct Registry(Uri BaseUri)
 
         HttpResponseMessage pushResponse = await client.PostAsync(new Uri(BaseUri, $"/v2/{name}/blobs/uploads/"), content: null);
 
-        Debug.Assert(pushResponse.StatusCode == Net.HttpStatusCode.Accepted);
+        Debug.Assert(pushResponse.StatusCode == HttpStatusCode.Accepted);
 
         //Uri uploadUri = new(BaseUri, pushResponse.Headers.GetValues("location").Single() + $"?digest={layer.Descriptor.Digest}");
         Debug.Assert(pushResponse.Headers.Location is not null);
@@ -144,7 +144,7 @@ public record struct Registry(Uri BaseUri)
     {
         HttpResponseMessage response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Head, new Uri(BaseUri, $"/v2/{name}/blobs/{digest}")));
 
-        if (response.StatusCode == Net.HttpStatusCode.OK)
+        if (response.StatusCode == HttpStatusCode.OK)
         {
             return true;
         }
