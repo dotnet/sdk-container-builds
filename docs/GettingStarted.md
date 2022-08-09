@@ -12,3 +12,6 @@ Pushed container '<your app name>:<your app version>' to registry 'docker://'
 ```
 
 Out of the box, this package will infer a number of properties about the generated container image, including which base image to use, which version of that image to use, and where to push the generated image. You have control over all of these properties, however. You can read more about customizing the container [here](./ContainerCustomization.md)
+
+> **Note**
+> This package only supports Linux containers in this version.
