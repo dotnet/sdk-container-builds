@@ -26,7 +26,7 @@ public class EndToEnd
 
         x.AddLayer(l);
 
-        x.SetEntrypoint("/app/MinimalTestApp");
+        x.SetEntrypoint(new [] {"/app/MinimalTestApp" });
 
         // Push the image back to the local registry
 
@@ -64,7 +64,7 @@ public class EndToEnd
 
         x.AddLayer(l);
 
-        x.SetEntrypoint("/app/MinimalTestApp");
+        x.SetEntrypoint(new [] { "/app/MinimalTestApp" });
 
         // Load the image into the local Docker daemon
 
