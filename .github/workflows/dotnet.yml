@@ -20,7 +20,7 @@ jobs:
       with:
         dotnet-version: |
           6.0.x
-          7.0.100-preview.6.22352.1
+        global-json-file: 'global.json' # in addition to the 6.0 we need for tests, install "latest"
     - name: Build
       run: dotnet build
     - name: Test
