@@ -16,7 +16,7 @@ public class TargetsTests
         var combinedContent = new List<string>();
         combinedContent.AddRange(propsContent[..^1]);
         combinedContent.AddRange(targetsContent[1..]);
-        var tempTargetLocation = Path.Combine(Path.GetTempPath(), "Containers", "ContainerTargets.targets");
+        var tempTargetLocation = Path.Combine(Path.GetTempPath(), "Containers", "Microsoft.NET.Build.Containers.targets");
         Directory.CreateDirectory(Path.GetDirectoryName(tempTargetLocation));
         File.WriteAllLines(tempTargetLocation, combinedContent);
         return tempTargetLocation;
@@ -50,13 +50,13 @@ public class TargetsTests
         props["Version"] = "1.0.0"; // TODO: need to test non-compliant version strings here
 
         // test setup parameters so that we can load the props/targets/tasks 
-        props["CustomTasksAssembly"] = Path.GetFullPath(Path.Combine(".", "Microsoft.NET.Build.Containers.Tasks.dll"));
+        props["CustomTasksAssembly"] = Path.GetFullPath(Path.Combine(".", "Microsoft.NET.Build.Containers.dll"));
         props["_IsTest"] = "true";
 
         var loggers = new List<ILogger>
         {
             // new Microsoft.Build.Logging.BinaryLogger() {CollectProjectImports = Microsoft.Build.Logging.BinaryLogger.ProjectImportsCollectionMode.Embed, Verbosity = LoggerVerbosity.Diagnostic, Parameters = "LogFile=blah.binlog" },
-            // new Microsoft.Build.Logging.ConsoleLogger(LoggerVerbosity.Detailed)
+            // new global::Microsoft.Build.Logging.ConsoleLogger(LoggerVerbosity.Detailed)
         };
         var collection = new ProjectCollection(null, loggers, ToolsetDefinitionLocations.Default);
         foreach (var kvp in bonusProps)
