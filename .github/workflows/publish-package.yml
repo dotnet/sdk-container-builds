@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Get full repo history because versioning
+    - name: Get full repo history
       uses: actions/checkout@v3
       with:
         ref: ${{ github.event.push.sha }}
