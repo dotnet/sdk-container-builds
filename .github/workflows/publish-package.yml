@@ -12,7 +12,6 @@ jobs:
     - name: Get full repo history
       uses: actions/checkout@v3
       with:
-        ref: ${{ github.event.push.sha }}
         # 0 here means 'all history'.
         # we need at least the current 'height' in order for Nerdbank to work
         fetch-depth: 0
@@ -21,7 +20,7 @@ jobs:
       with:
         dotnet-version: |
           6.0.x
-          7.0.100-preview.6.22352.1
+        global-json-file: 'global.json' # in addition to the 6.0 we need for tests, install "latest"
     - name: Release
       run: dotnet build --configuration release
     - name: Publish
