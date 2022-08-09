@@ -9,7 +9,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Get full repo history because versioning
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.push.sha }}
     - name: Setup .NET
       uses: actions/setup-dotnet@v2
       with:
