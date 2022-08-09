@@ -75,7 +75,7 @@ public class TargetsTests
         {
             ["UseAppHost"] = useAppHost.ToString()
         });
-        if (project.Build("ComputeContainerConfig"))
+        Assert.IsTrue(project.Build("ComputeContainerConfig"));
         {
             var computedEntrypointArgs = project.GetItems("ContainerEntrypoint").Select(i => i.EvaluatedInclude).ToArray();
             foreach (var (First, Second) in entrypointArgs.Zip(computedEntrypointArgs))
