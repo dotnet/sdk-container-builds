@@ -30,7 +30,7 @@ public class EndToEnd
 
         // Push the image back to the local registry
 
-        await registry.Push(x, NewImageName, DockerRegistryManager.BaseImage);
+        await registry.Push(x, NewImageName, "latest", DockerRegistryManager.BaseImage);
 
         // pull it back locally
 
@@ -68,7 +68,7 @@ public class EndToEnd
 
         // Load the image into the local Docker daemon
 
-        await LocalDocker.Load(x, NewImageName, DockerRegistryManager.BaseImage);
+        await LocalDocker.Load(x, NewImageName, "latest", DockerRegistryManager.BaseImage);
 
         // Run the image
 
