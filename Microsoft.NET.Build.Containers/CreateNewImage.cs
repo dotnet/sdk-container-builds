@@ -76,8 +76,8 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
         ImageTag = "";
         PublishDirectory = "";
         WorkingDirectory = "";
-        Entrypoint = new ITaskItem[] {};
-        EntrypointArgs = new ITaskItem[] {};
+        Entrypoint = Array.Empty<ITaskItem>();
+        EntrypointArgs = Array.Empty<ITaskItem>();
     }
 
 
