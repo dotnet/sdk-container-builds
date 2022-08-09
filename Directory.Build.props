@@ -1,6 +1,6 @@
 ﻿<Project>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudioEng.MicroBuild.Core"  />
-    <PackageReference Include="Nerdbank.GitVersioning"  />
+    <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="all" IncludeAssets="build; buildMultitargeting" />
+    <PackageReference Include="Microsoft.VisualStudioEng.MicroBuild.Core" PrivateAssets="all" />
   </ItemGroup>
 </Project>
