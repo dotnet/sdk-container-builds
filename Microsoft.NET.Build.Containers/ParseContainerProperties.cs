@@ -74,6 +74,14 @@ public class ParseContainerProperties : Microsoft.Build.Utilities.Task
             return !Log.HasLoggedErrors;
         }
 
+        if (!ContainerRegistry.StartsWith("http://") &&
+             !ContainerRegistry.StartsWith("https://") &&
+             !ContainerRegistry.StartsWith("docker://"))
+        {
+            // Default to https when no scheme is present: https://github.com/distribution/distribution/blob/main/reference/normalize.go#L88
+            ContainerRegistry = "https://" + ContainerRegistry;
+        }
+
         if (!ContainerHelpers.IsValidRegistry(ContainerRegistry))
         {
             Log.LogError("Invalid registry. Is your registry missing 'https://'? Given Registry: {0}", ContainerRegistry);
