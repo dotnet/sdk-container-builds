@@ -88,7 +88,7 @@ public class ParseContainerProperties : Microsoft.Build.Utilities.Task
 
         if (!ContainerHelpers.IsValidRegistry(registryToUse))
         {
-            Log.LogError("Could not recognize registry '{0}'.", ContainerRegistry);
+            Log.LogError("Could not recognize registry '{0}'. Does your registry need a scheme, like 'https://'?", ContainerRegistry);
             return !Log.HasLoggedErrors;
         }
 
