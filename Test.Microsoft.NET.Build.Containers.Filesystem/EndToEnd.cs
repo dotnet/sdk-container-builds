@@ -88,10 +88,17 @@ public class EndToEnd
             d.Delete(recursive: true);
         }
 
-        Process dotnetNew = Process.Start("dotnet", "new console -f net6.0 -o MinimalTestApp");
+        ProcessStartInfo psi = new("dotnet", "new console -f net6.0 -o MinimalTestApp")
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+        };
+
+        Process dotnetNew = Process.Start(psi);
+
         Assert.IsNotNull(dotnetNew);
         await dotnetNew.WaitForExitAsync();
-        Assert.AreEqual(0, dotnetNew.ExitCode);
+        Assert.AreEqual(0, dotnetNew.ExitCode, await dotnetNew.StandardOutput.ReadToEndAsync() + await dotnetNew.StandardError.ReadToEndAsync());
 
         // Build project
 
@@ -191,7 +198,7 @@ public class EndToEnd
         Process publish = Process.Start(info);
         Assert.IsNotNull(publish);
         await publish.WaitForExitAsync();
-        Assert.AreEqual(0, publish.ExitCode);
+        Assert.AreEqual(0, publish.ExitCode, await publish.StandardOutput.ReadToEndAsync());
 
         Process pull = Process.Start("docker", $"pull {DockerRegistryManager.LocalRegistry}/{NewImageName}:latest");
         Assert.IsNotNull(pull);
