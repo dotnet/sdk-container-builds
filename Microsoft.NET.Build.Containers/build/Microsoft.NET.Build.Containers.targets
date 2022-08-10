@@ -1,5 +1,7 @@
 <Project>
-    <Target Name="ComputeContainerConfig">
+    <!-- Establishing a 'before' relationship between this target and the actual Publish target means
+         that any Items created here are visible to that target. -->
+    <Target Name="ComputeContainerConfig" BeforeTargets="PublishContainer">
         <!-- Reference data about this project -->
         <PropertyGroup>
             <_IsAspNet Condition="@(ProjectCapability->Count()) > 0 and @(ProjectCapability->AnyHaveMetadataValue('Identity', 'AspNetCore'))">true</_IsAspNet>
