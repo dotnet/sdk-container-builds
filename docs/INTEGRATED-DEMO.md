@@ -20,12 +20,12 @@ dotnet nuget add source https://nuget.pkg.github.com/rainersigwald/index.json \
     --store-password-in-clear-text --configfile nuget.config
 
 # add a reference to the package
-dotnet add package Microsoft.NET.Build.Containers --prerelease
+dotnet add package Microsoft.NET.Build.Containers
 
 # publish your project
 dotnet publish --os linux --arch x64 -p:PublishProfile=DefaultContainer
 
 # run your app
-docker run -it --rm my-awesome-container-app:latest
+docker run -it --rm -p 5010:80 my-awesome-container-app:latest
 ```
 
