@@ -120,6 +120,7 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
             catch (AggregateException ex) when (ex.InnerException is DockerLoadException dle)
             {
                 Log.LogErrorFromException(dle, showStackTrace: false);
+                return !Log.HasLoggedErrors;
             }
         }
         else
