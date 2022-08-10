@@ -5,7 +5,8 @@ You should expect it to shrink noticeably over time!
 
 ## Prerequisites
 
-* Docker should be running
+* [.NET SDK 7.0.100-preview.7](https://dotnet.microsoft.com/download/dotnet/7.0) or higher
+* Docker should be installed and running
 * You should have an environment variable called GITHUB_USERNAME, with your github username in it
 * You should have an environment variable called GITHUB_TOKEN, with a github [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) that has `read:packages` permissions.
 
