@@ -17,7 +17,7 @@ public static class ContainerHelpers
     /// <summary>
     /// Matches if the string is not lowercase or numeric, or ., _, or -.
     /// </summary>
-    private static Regex imageNameCharacters = new Regex("^[^a-zA-Z0-9._-]+$");
+    private static Regex imageNameCharacters = new Regex("[^a-zA-Z0-9._-]");
 
     /// <summary>
     /// Given some "fully qualified" image name (e.g. mcr.microsoft.com/dotnet/runtime), return

@@ -86,6 +86,7 @@ public class TargetsTests
     [DataRow("WebApplication44", "webApplication44", true)]
     [DataRow("friendly-suspicious-alligator", "friendly-suspicious-alligator", true)]
     [DataRow("*friendly-suspicious-alligator", "", false)]
+    [DataRow("web/app2+7", "web-app2-7", true)]
     [TestMethod]
     public void CanNormalizeInputContainerNames(string projectName, string expectedContainerImageName, bool shouldPass)
     {
