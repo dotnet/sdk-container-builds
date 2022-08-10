@@ -3,6 +3,15 @@
 This guidance will track the most up-to-date version of the package and tasks.
 You should expect it to shrink noticeably over time!
 
+## Prerequisites
+
+* Docker should be running
+* You should have an environment variable called GITHUB_USERNAME, with your github username in it
+* You should have an environment variable called GITHUB_TOKEN, with a github [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) that has `read:packages` permissions.
+
+
+## Usage
+
 ```bash
 # create a new project and move to its directory
 dotnet new web -n my-awesome-container-app
@@ -28,4 +37,6 @@ dotnet publish --os linux --arch x64 -p:PublishProfile=DefaultContainer
 # run your app
 docker run -it --rm -p 5010:80 my-awesome-container-app:latest
 ```
+
+Now you can go to `localhost:5010` and you should see the `Hello World!` text!
 
