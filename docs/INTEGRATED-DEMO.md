@@ -26,7 +26,7 @@ dotnet new nugetconfig
 # GITHUB_TOKEN environment variables being present, the token should have 'read:packages'
 # permissions. (replace the \ with ` if using powershell)
 dotnet nuget add source https://nuget.pkg.github.com/rainersigwald/index.json \
-    --name rainer --username '%GITHUB_USERNAME%' --password '%GITHUB_TOKEN%' \
+    --name rainer --username "%GITHUB_USERNAME%" --password "%GITHUB_TOKEN%" \
     --store-password-in-clear-text --configfile nuget.config
 
 # add a reference to the package
