@@ -33,7 +33,7 @@ public class LocalDocker
 
         if (loadProcess.ExitCode != 0)
         {
-            throw new InvalidOperationException($"Failed to load image to local Docker daemon.{Environment.NewLine}stdout: {await loadProcess.StandardError.ReadToEndAsync()}{Environment.NewLine}stderr: {await loadProcess.StandardOutput.ReadToEndAsync()}");
+            throw new DockerLoadException($"Failed to load image to local Docker daemon.{Environment.NewLine}stdout: {await loadProcess.StandardError.ReadToEndAsync()}{Environment.NewLine}stderr: {await loadProcess.StandardOutput.ReadToEndAsync()}");
         }
     }
 
