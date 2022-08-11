@@ -10,11 +10,6 @@ public static class ContainerHelpers
     private static Regex imageNameRegex = new Regex("^[a-z0-9]+([._-][a-z0-9]+)*(/[a-z0-9]+([._-][a-z0-9]+)*)*$");
 
     /// <summary>
-    /// Matches if the character is not lowercase or numeric
-    /// </summary>
-    private static Regex imageFirstNameCharacters = new Regex("[^a-z0-9]");
-    
-    /// <summary>
     /// Matches if the string is not lowercase or numeric, or ., _, or -.
     /// </summary>
     private static Regex imageNameCharacters = new Regex("[^a-zA-Z0-9._-]");
