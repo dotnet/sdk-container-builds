@@ -7,6 +7,14 @@ namespace Microsoft.NET.Build.Containers;
 
 record Label(string name, string value);
 
+public enum PortType
+{
+    tcp,
+    udp
+}
+
+record Port(int number, PortType type);
+
 public class Image
 {
     public JsonNode manifest;
@@ -18,6 +26,8 @@ public class Image
     internal List<Layer> newLayers = new();
 
     private HashSet<Label> labels;
+
+    internal HashSet<Port> exposedPorts = new();
 
     public Image(JsonNode manifest, JsonNode config, string name, Registry? registry)
     {
@@ -65,6 +75,18 @@ public class Image
         config["created"] = DateTime.UtcNow;
 
         manifest["config"]!["digest"] = GetDigest(config);
+    }
+
+    private JsonObject CreatePortMap()
+    {
+        // ports are entries in a key/value map whose keys are "<number>/<type>" and whose values are an empty object.
+        // yes, this is odd.
+        var container = new JsonObject();
+        foreach (var port in exposedPorts)
+        {
+            container.Add($"{port.number}/{port.type}", new JsonObject());
+        }
+        return container;
     }
 
     private static HashSet<Label> ReadLabelsFromConfig(JsonNode inputConfig)
@@ -138,6 +160,13 @@ public class Image
     {
         labels.Add(new(name, value));
         config["config"]!["Labels"] = CreateLabelMap();
+        RecalculateDigest();
+    }
+
+    public void ExposePort(int number, PortType type)
+    {
+        exposedPorts.Add(new(number, type));
+        config["config"]!["ExposedPorts"] = CreatePortMap();
         RecalculateDigest();
     }
 
