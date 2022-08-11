@@ -76,12 +76,26 @@ public class TargetsTests
             ["UseAppHost"] = useAppHost.ToString()
         });
         Assert.IsTrue(project.Build("ComputeContainerConfig"));
+        var computedEntrypointArgs = project.GetItems("ContainerEntrypoint").Select(i => i.EvaluatedInclude).ToArray();
+        foreach (var (First, Second) in entrypointArgs.Zip(computedEntrypointArgs))
         {
-            var computedEntrypointArgs = project.GetItems("ContainerEntrypoint").Select(i => i.EvaluatedInclude).ToArray();
-            foreach (var (First, Second) in entrypointArgs.Zip(computedEntrypointArgs))
-            {
-                Assert.AreEqual(First, Second);
-            }
+            Assert.AreEqual(First, Second);
         }
+    }
+
+    [DataRow("WebApplication44", "webApplication44", true)]
+    [DataRow("friendly-suspicious-alligator", "friendly-suspicious-alligator", true)]
+    [DataRow("*friendly-suspicious-alligator", "", false)]
+    [DataRow("web/app2+7", "web-app2-7", true)]
+    [TestMethod]
+    public void CanNormalizeInputContainerNames(string projectName, string expectedContainerImageName, bool shouldPass)
+    {
+        var project = InitProject(new()
+        {
+            ["AssemblyName"] = projectName
+        });
+        var instance = project.CreateProjectInstance(global::Microsoft.Build.Execution.ProjectInstanceSettings.None);
+        Assert.AreEqual(shouldPass, instance.Build(new[]{"ComputeContainerConfig"}, null, null, out var outputs), "Build should have succeeded");
+        Assert.AreEqual(expectedContainerImageName, instance.GetPropertyValue("ContainerImageName"));
     }
 }
