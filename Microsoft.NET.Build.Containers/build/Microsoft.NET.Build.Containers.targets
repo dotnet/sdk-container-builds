@@ -72,6 +72,7 @@
                         PublishDirectory="$(PublishDir)"
                         WorkingDirectory="$(ContainerWorkingDirectory)"
                         Entrypoint="@(ContainerEntrypoint)"
-                        EntrypointArgs="@(ContainerEntrypointArgs)"/>
+                        EntrypointArgs="@(ContainerEntrypointArgs)"
+						Labels="@(ContainerLabel)"/>
     </Target>
 </Project>

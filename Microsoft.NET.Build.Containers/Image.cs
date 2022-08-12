@@ -5,6 +5,8 @@ using System.Text.Json.Nodes;
 
 namespace Microsoft.NET.Build.Containers;
 
+record Label(string name, string value);
+
 public class Image
 {
     public JsonNode manifest;
@@ -14,6 +16,8 @@ public class Image
     internal readonly Registry? originatingRegistry;
 
     internal List<Layer> newLayers = new();
+
+    internal HashSet<Label> labels = new();
 
     public Image(JsonNode manifest, JsonNode config, string name, Registry? registry)
     {
@@ -61,6 +65,16 @@ public class Image
         manifest["config"]!["digest"] = GetDigest(config);
     }
 
+    private JsonObject CreateLabelMap()
+    {
+        var container = new JsonObject();
+        foreach (var label in labels)
+        {
+            container.Add(label.name, label.value);
+        }
+        return container;
+    }
+
     static JsonArray ToJsonArray(string[] items) => new JsonArray(items.Where(s => !string.IsNullOrEmpty(s)).Select(s =>(JsonValue) s).ToArray());
 
     public void SetEntrypoint(string[] executableArgs, string[]? args = null)
@@ -92,6 +106,13 @@ public class Image
             config["config"]!["WorkingDir"] = value;
             RecalculateDigest();
         }
+    }
+
+    public void Label(string name, string value)
+    {
+        labels.Add(new(name, value));
+        config["config"]!["Labels"] = CreateLabelMap();
+        RecalculateDigest();
     }
 
     public string GetDigest(JsonNode json)
