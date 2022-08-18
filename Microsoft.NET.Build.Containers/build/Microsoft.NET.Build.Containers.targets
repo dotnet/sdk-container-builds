@@ -45,7 +45,9 @@
         <ParseContainerProperties FullyQualifiedBaseImageName="$(ContainerBaseImage)"
                                   ContainerRegistry="$(ContainerRegistry)"
                                   ContainerImageName="$(ContainerImageName)"
-                                  ContainerImageTag="$(ContainerImageTag)">
+                                  ContainerImageTag="$(ContainerImageTag)"
+                                  ContainerEntrypoint="$(ContainerEntrypoint)"
+                                  ContainerWorkingDirectory="$(ContainerWorkingDirectory)">
 
             <Output TaskParameter="ParsedContainerRegistry" PropertyName="ContainerBaseRegistry" />
             <Output TaskParameter="ParsedContainerImage" PropertyName="ContainerBaseName" />
@@ -53,6 +55,7 @@
             <Output TaskParameter="NewContainerRegistry" PropertyName="ContainerRegistry" />
             <Output TaskParameter="NewContainerImageName" PropertyName="ContainerImageName" />
             <Output TaskParameter="NewContainerTag" PropertyName="ContainerImageTag" />
+            <Output TaskParameter="NewContainerEntrypoint" ItemName="ContainerEntrypoint" />
         </ParseContainerProperties>
     </Target>
 

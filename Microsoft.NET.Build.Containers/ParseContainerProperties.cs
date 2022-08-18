@@ -148,7 +148,7 @@ public class ParseContainerProperties : Microsoft.Build.Utilities.Task
             {
                 if (BuildEngine != null)
                 {
-                    Log.LogWarning($"{nameof(ContainerEntrypoint)} '{ContainerEntrypoint[0].ItemSpec[0]}' should be a fully rooted path. {nameof(ContainerEntrypoint)} will be rooted to {nameof(ContainerWorkingDirectory)}: '{ContainerWorkingDirectory}'");
+                    Log.LogWarning($"{nameof(ContainerEntrypoint)} '{ContainerEntrypoint[0].ItemSpec}' should be a fully rooted path. {nameof(ContainerEntrypoint)} will be rooted to {nameof(ContainerWorkingDirectory)}: '{ContainerWorkingDirectory}'");
                 }
                 NewContainerEntrypoint = new ITaskItem[] { new TaskItem(Path.Combine(ContainerWorkingDirectory, ContainerEntrypoint[0].ItemSpec)) };
             }
