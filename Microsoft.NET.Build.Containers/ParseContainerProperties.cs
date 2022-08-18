@@ -1,4 +1,5 @@
 using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
 
 namespace Microsoft.NET.Build.Containers.Tasks;
 
@@ -28,6 +29,18 @@ public class ParseContainerProperties : Microsoft.Build.Utilities.Task
     [Required]
     public string ContainerImageTag { get; set; }
 
+    /// <summary>
+    /// The entrypoint for the container.
+    /// </summary>
+    [Required]
+    public ITaskItem[] ContainerEntrypoint { get; set; }
+
+    /// <summary>
+    /// The working directory for the container.
+    /// </summary>
+    [Required]
+    public string ContainerWorkingDirectory { get; set; }
+
     [Output]
     public string ParsedContainerRegistry { get; private set; }
 
@@ -46,18 +59,24 @@ public class ParseContainerProperties : Microsoft.Build.Utilities.Task
     [Output]
     public string NewContainerTag { get; private set; }
 
+    [Output]
+    public ITaskItem[] NewContainerEntrypoint { get; private set; }
+
     public ParseContainerProperties()
     {
         FullyQualifiedBaseImageName = "";
         ContainerRegistry = "";
         ContainerImageName = "";
         ContainerImageTag = "";
+        ContainerEntrypoint = new ITaskItem[] {};
+        ContainerWorkingDirectory = "";
         ParsedContainerRegistry = "";
         ParsedContainerImage = "";
         ParsedContainerTag = "";
         NewContainerRegistry = "";
         NewContainerImageName = "";
         NewContainerTag = "";
+        NewContainerEntrypoint = new ITaskItem[] { };
     }
 
     public override bool Execute()
@@ -118,6 +137,21 @@ public class ParseContainerProperties : Microsoft.Build.Utilities.Task
         {
             Log.LogError($"Invalid {nameof(ContainerImageName)}: {{0}}", ContainerImageName);
             return !Log.HasLoggedErrors;
+        }
+
+        NewContainerEntrypoint = ContainerEntrypoint;
+
+        // The SelfContained scenario: /path/to/appname
+        if (ContainerEntrypoint.Length == 1)
+        {
+            if (!Path.IsPathRooted(ContainerEntrypoint[0].ItemSpec))
+            {
+                if (BuildEngine != null)
+                {
+                    Log.LogWarning($"{nameof(ContainerEntrypoint)} '{ContainerEntrypoint[0].ItemSpec[0]}' should be a fully rooted path. {nameof(ContainerEntrypoint)} will be rooted to {nameof(ContainerWorkingDirectory)}: '{ContainerWorkingDirectory}'");
+                }
+                NewContainerEntrypoint = new ITaskItem[] { new TaskItem(Path.Combine(ContainerWorkingDirectory, ContainerEntrypoint[0].ItemSpec)) };
+            }
         }
 
         ParsedContainerRegistry = outputReg;
