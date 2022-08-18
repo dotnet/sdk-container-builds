@@ -111,22 +111,7 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
         image.AddLayer(newLayer);
         image.WorkingDirectory = WorkingDirectory;
 
-        string[] entryPoint = Entrypoint.Select(i => i.ItemSpec).ToArray();
-
-        // The SelfContained scenario: /path/to/appname
-        if (entryPoint.Length == 1)
-        {
-            if (!Path.IsPathRooted(entryPoint[0]))
-            {
-                if (BuildEngine != null)
-                {
-                    Log.LogWarning($"Entrypoint '{entryPoint[0]}' should be a fully rooted path. Attempting to root to $(ContainerWorkingDirectory): {WorkingDirectory}");
-                }
-                entryPoint[0] = Path.Combine(WorkingDirectory, entryPoint[0]);
-            }
-        }
-
-        image.SetEntrypoint(entryPoint, EntrypointArgs.Select(i => i.ItemSpec).ToArray());
+        image.SetEntrypoint(Entrypoint.Select(i => i.ItemSpec).ToArray(), EntrypointArgs.Select(i => i.ItemSpec).ToArray());
 
         if (OutputRegistry.StartsWith("docker://"))
         {
