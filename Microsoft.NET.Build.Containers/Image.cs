@@ -121,9 +121,10 @@ public class Image
             var ports = new HashSet<Port>();
             foreach (var property in portsJson)
             {
-                if (property.Key is { } propertyName && property.Value is JsonObject propertyValue)
+                if (property.Key is { } propertyName
+                    && property.Value is JsonObject propertyValue
+                    && ContainerHelpers.TryParsePort(propertyName, out var port))
                 {
-                    if (ContainerHelpers.TryParsePort(propertyName, out var port))
                     ports.Add(port);
                 }
             }

@@ -150,7 +150,8 @@ public static class ContainerHelpers
         Port? p =
             parts switch
             {
-                [var portNumber, var type] when int.TryParse(portNumber, out var portInt) && Enum.TryParse<PortType>(type, out var portType) => new(portInt, portType),
+                [var portNumber, var type] when int.TryParse(portNumber, out var portInt)
+                                                && Enum.TryParse<PortType>(type, out var portType) => new(portInt, portType),
                 [var portNumber] when int.TryParse(portNumber, out var portInt) => new(portInt, PortType.tcp),
                 _ => null
             };
