@@ -17,7 +17,7 @@ public class Image
 
     internal List<Layer> newLayers = new();
 
-    public HashSet<Label> labels;
+    private HashSet<Label> labels;
 
     public Image(JsonNode manifest, JsonNode config, string name, Registry? registry)
     {
@@ -25,6 +25,7 @@ public class Image
         this.config = config;
         this.OriginatingName = name;
         this.originatingRegistry = registry;
+        // labels are inherited from the parent image, so we need to seed our new image with them.
         this.labels = ReadLabelsFromConfig(config);
     }
 
