@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -13,7 +14,7 @@ public enum PortType
     udp
 }
 
-record Port(int number, PortType type);
+public record Port(int number, PortType type);
 
 public class Image
 {
@@ -27,7 +28,7 @@ public class Image
 
     private HashSet<Label> labels;
 
-    internal HashSet<Port> exposedPorts = new();
+    internal HashSet<Port> exposedPorts;
 
     public Image(JsonNode manifest, JsonNode config, string name, Registry? registry)
     {
@@ -35,8 +36,9 @@ public class Image
         this.config = config;
         this.OriginatingName = name;
         this.originatingRegistry = registry;
-        // labels are inherited from the parent image, so we need to seed our new image with them.
+        // these next values are inherited from the parent image, so we need to seed our new image with them.
         this.labels = ReadLabelsFromConfig(config);
+        this.exposedPorts = ReadPortsFromConfig(config);
     }
 
     public IEnumerable<Descriptor> LayerDescriptors
@@ -106,8 +108,31 @@ public class Image
         }
         else
         {
-            // initialize and empty labels map
+            // initialize an empty labels map
             return new HashSet<Label>();
+        }
+    }
+
+    private static HashSet<Port> ReadPortsFromConfig(JsonNode inputConfig)
+    {
+        if (inputConfig is JsonObject config && config["ExposedPorts"] is JsonObject portsJson)
+        {
+            // read label mappings from object
+            var ports = new HashSet<Port>();
+            foreach (var property in portsJson)
+            {
+                if (property.Key is { } propertyName && property.Value is JsonObject propertyValue)
+                {
+                    if (ContainerHelpers.TryParsePort(propertyName, out var port))
+                    ports.Add(port);
+                }
+            }
+            return ports;
+        }
+        else
+        {
+            // initialize an empty ports map
+            return new HashSet<Port>();
         }
     }
 

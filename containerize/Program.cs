@@ -84,6 +84,24 @@ var labelsOpt = new Option<string[]>(
     AllowMultipleArgumentsPerToken = true
 };
 
+var portsOpt = new Option<string[]>(
+    name: "--ports",
+    description: "Ports that the application declares that it will use. Note that this means nothing to container hosts, by default - it's mostly documentation.",
+    parseArgument: result => {
+        var ports = result.Tokens.Select(x => x.Value).ToArray();
+        var portParts = ports.Select(v => v.Split('='));
+        var badPorts = ports.Where((v) => v is not [var num, var type]);
+
+        // Is there a non-zero number of Labels that didn't split into two elements? If so, assume invalid input and error out
+        if (badPorts.Count() != 0)
+        {
+            result.ErrorMessage = "Incorrectly formatted labels: " + badPorts.Aggregate((x, y) => x = x + ";" + y);
+            return new string[] { };
+        }
+        return ports;
+    }
+);
+
 RootCommand root = new RootCommand("Containerize an application without Docker.")
 {
     publishDirectoryArg,
@@ -96,7 +114,8 @@ RootCommand root = new RootCommand("Containerize an application without Docker."
     workingDirectoryOpt,
     entrypointOpt,
     entrypointArgsOpt,
-    labelsOpt
+    labelsOpt,
+    portsOpt
 };
 
 root.SetHandler(async (context) =>
@@ -112,8 +131,8 @@ root.SetHandler(async (context) =>
     string[] _entrypoint = context.ParseResult.GetValueForOption(entrypointOpt) ?? Array.Empty<string>();
     string[] _entrypointArgs = context.ParseResult.GetValueForOption(entrypointArgsOpt) ?? Array.Empty<string>();
     string[] _labels = context.ParseResult.GetValueForOption(labelsOpt) ?? Array.Empty<string>();
-
-    await ContainerHelpers.Containerize(_publishDir, _workingDir, _baseReg, _baseName, _baseTag, _entrypoint, _entrypointArgs, _name, _tags, _outputReg, _labels);
+    string[] _ports = context.ParseResult.GetValueForOption(portsOpt) ?? Array.Empty<string>();
+    await ContainerHelpers.Containerize(_publishDir, _workingDir, _baseReg, _baseName, _baseTag, _entrypoint, _entrypointArgs, _name, _tags, _outputReg, _labels, _ports);
 });
 
 return await root.InvokeAsync(args);

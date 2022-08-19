@@ -144,7 +144,21 @@ public static class ContainerHelpers
         }
     }
 
-    public static async Task Containerize(DirectoryInfo folder, string workingDir, string registryName, string baseName, string baseTag, string[] entrypoint, string[] entrypointArgs, string imageName, string[] imageTags, string outputRegistry, string[] labels)
+    public static bool TryParsePort(string input, [NotNullWhen(true)] out Port? port)
+    {
+        var parts = input.Split('/');
+        Port? p =
+            parts switch
+            {
+                [var portNumber, var type] when int.TryParse(portNumber, out var portInt) && Enum.TryParse<PortType>(type, out var portType) => new(portInt, portType),
+                [var portNumber] when int.TryParse(portNumber, out var portInt) => new(portInt, PortType.tcp),
+                _ => null
+            };
+        port = p;
+        return p == null;
+    }
+
+    public static async Task Containerize(DirectoryInfo folder, string workingDir, string registryName, string baseName, string baseTag, string[] entrypoint, string[] entrypointArgs, string imageName, string[] imageTags, string outputRegistry, string[] labels, string[] exposedPorts)
     {
         Registry baseRegistry = new Registry(new Uri(registryName));
 
@@ -174,6 +188,14 @@ public static class ContainerHelpers
 
             // labels are validated by System.Commandline API
             img.Label(labelPieces[0], labelPieces[1]);
+        }
+
+        foreach (var exposedPort in exposedPorts)
+        {
+            if (TryParsePort(exposedPort, out var port))
+            {
+                img.ExposePort(port.number, port.type);
+            }
         }
 
         foreach (var tag in imageTags)
@@ -206,6 +228,5 @@ public static class ContainerHelpers
                 }
             }
         }
-
     }
 }
