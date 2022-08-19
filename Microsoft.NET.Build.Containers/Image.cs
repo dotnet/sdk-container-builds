@@ -17,7 +17,7 @@ public class Image
 
     internal List<Layer> newLayers = new();
 
-    internal HashSet<Label> labels = new();
+    public HashSet<Label> labels;
 
     public Image(JsonNode manifest, JsonNode config, string name, Registry? registry)
     {
@@ -25,6 +25,7 @@ public class Image
         this.config = config;
         this.OriginatingName = name;
         this.originatingRegistry = registry;
+        this.labels = ReadLabelsFromConfig(config);
     }
 
     public IEnumerable<Descriptor> LayerDescriptors
@@ -65,6 +66,28 @@ public class Image
         manifest["config"]!["digest"] = GetDigest(config);
     }
 
+    private static HashSet<Label> ReadLabelsFromConfig(JsonNode inputConfig)
+    {
+        if (inputConfig is JsonObject config && config["Labels"] is JsonObject labelsJson)
+        {
+            // read label mappings from object
+            var labels = new HashSet<Label>();
+            foreach (var property in labelsJson)
+            {
+                if (property.Key is { } propertyName && property.Value is JsonValue propertyValue)
+                {
+                    labels.Add(new(propertyName, propertyValue.ToString()));
+                }
+            }
+            return labels;
+        }
+        else
+        {
+            // initialize and empty labels map
+            return new HashSet<Label>();
+        }
+    }
+
     private JsonObject CreateLabelMap()
     {
         var container = new JsonObject();
@@ -75,7 +98,7 @@ public class Image
         return container;
     }
 
-    static JsonArray ToJsonArray(string[] items) => new JsonArray(items.Where(s => !string.IsNullOrEmpty(s)).Select(s =>(JsonValue) s).ToArray());
+    static JsonArray ToJsonArray(string[] items) => new JsonArray(items.Where(s => !string.IsNullOrEmpty(s)).Select(s => (JsonValue)s).ToArray());
 
     public void SetEntrypoint(string[] executableArgs, string[]? args = null)
     {
@@ -100,9 +123,11 @@ public class Image
         RecalculateDigest();
     }
 
-    public string WorkingDirectory {
-        get => (string?)manifest["config"]!["WorkingDir"] ?? "";
-        set {
+    public string WorkingDirectory
+    {
+        get => (string?)config["config"]!["WorkingDir"] ?? "";
+        set
+        {
             config["config"]!["WorkingDir"] = value;
             RecalculateDigest();
         }
