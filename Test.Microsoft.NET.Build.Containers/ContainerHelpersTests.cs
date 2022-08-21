@@ -75,4 +75,23 @@ public class ContainerHelpersTests
     {
         Assert.AreEqual(false, ContainerHelpers.IsValidImageTag(new string('a', 129)));
     }
+
+    [TestMethod]
+    [DataRow("80/tcp", true, 80, PortType.tcp)]
+    [DataRow("80", true, 80, PortType.tcp)]
+    [DataRow("125/dup", false, 125, PortType.tcp)]
+    [DataRow("invalidNumber", false, null, null)]
+    [DataRow("80/unknowntype", false, null, null)]
+    public void CanParsePort(string input, bool shouldParse, int? expectedPortNumber, PortType? expectedType) {
+        var parseSuccess = ContainerHelpers.TryParsePort(input, out var parsedPort);
+        Assert.AreEqual(shouldParse, parseSuccess, $"Should have parsed {input} into a port");
+        if (!shouldParse) {
+            Assert.IsNull(parsedPort);
+        }
+        if (shouldParse) {
+            Assert.IsNotNull(parsedPort);
+            Assert.AreEqual(parsedPort.number, expectedPortNumber);
+            Assert.AreEqual(parsedPort.type, expectedType);
+        }
+    }
 }

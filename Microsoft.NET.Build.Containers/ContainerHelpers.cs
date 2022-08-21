@@ -156,7 +156,7 @@ public static class ContainerHelpers
                 _ => null
             };
         port = p;
-        return p == null;
+        return p != null;
     }
 
     public static async Task Containerize(DirectoryInfo folder, string workingDir, string registryName, string baseName, string baseTag, string[] entrypoint, string[] entrypointArgs, string imageName, string[] imageTags, string outputRegistry, string[] labels, string[] exposedPorts)
