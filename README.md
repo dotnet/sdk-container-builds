@@ -4,7 +4,7 @@ An API for creating and manipulating OCI containers, and build tasks for creatin
 
 You can learn more about the project from the project [Documentation](docs).
 
-[![.NET](https://github.com/rainersigwald/containers/actions/workflows/dotnet.yml/badge.svg)](https://github.com/rainersigwald/containers/actions/workflows/dotnet.yml)
+[![.NET](https://github.com/dotnet/sdk-container-builds/actions/workflows/dotnet.yml/badge.svg)](https://github.com/dotnet/sdk-container-builds/actions/workflows/dotnet.yml)
 
 ## Using New Repo
 
