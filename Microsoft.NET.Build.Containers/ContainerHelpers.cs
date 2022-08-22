@@ -144,19 +144,64 @@ public static class ContainerHelpers
         }
     }
 
-    public static bool TryParsePort(string input, [NotNullWhen(true)] out Port? port)
+    [Flags]
+    public enum ParsePortError
+    {
+        MissingPortNumber,
+        InvalidPortNumber,
+        InvalidPortType,
+        UnknownPortFormat
+    }
+
+    public record ParsePortResult(bool success, Port? port, ParsePortError? parseErrors);
+
+    public static ParsePortResult ParsePort(string? portNumber, string? portType)
+    {
+        ParsePortError? errors = null;
+        int port = 0;
+        if (String.IsNullOrEmpty(portNumber))
+        {
+            errors = ParsePortError.MissingPortNumber;
+        }
+        else if (!int.TryParse(portNumber, out port))
+        {
+            errors = ParsePortError.InvalidPortNumber;
+        }
+
+        if (!Enum.TryParse<PortType>(portType, out PortType t))
+        {
+            if (portType is not null)
+            {
+                errors = (errors ?? ParsePortError.InvalidPortType) | ParsePortError.InvalidPortType;
+            }
+            else
+            {
+                t = PortType.tcp;
+            }
+        }
+
+        if (errors is null)
+        {
+            return new(true, new(port, t), errors);
+        }
+        else
+        {
+            return new(false, null, errors);
+        }
+
+    }
+
+    public static ParsePortResult TryParsePort(string input)
     {
         var parts = input.Split('/');
-        Port? p =
+        ParsePortResult p =
             parts switch
             {
-                [var portNumber, var type] when int.TryParse(portNumber, out var portInt)
-                                                && Enum.TryParse<PortType>(type, out var portType) => new(portInt, portType),
-                [var portNumber] when int.TryParse(portNumber, out var portInt) => new(portInt, PortType.tcp),
-                _ => null
+                [var portNumber, var type] => ParsePort(portNumber, type),
+                [var portNumber] => ParsePort(portNumber, null),
+                _ => new(false, null, ParsePortError.UnknownPortFormat)
             };
-        port = p;
-        return p != null;
+        return p;
     }
 
     public static async Task Containerize(DirectoryInfo folder, string workingDir, string registryName, string baseName, string baseTag, string[] entrypoint, string[] entrypointArgs, string imageName, string[] imageTags, string outputRegistry, string[] labels, string[] exposedPorts)

@@ -77,21 +77,25 @@ public class ContainerHelpersTests
     }
 
     [TestMethod]
-    [DataRow("80/tcp", true, 80, PortType.tcp)]
-    [DataRow("80", true, 80, PortType.tcp)]
-    [DataRow("125/dup", false, 125, PortType.tcp)]
-    [DataRow("invalidNumber", false, null, null)]
-    [DataRow("80/unknowntype", false, null, null)]
-    public void CanParsePort(string input, bool shouldParse, int? expectedPortNumber, PortType? expectedType) {
-        var parseSuccess = ContainerHelpers.TryParsePort(input, out var parsedPort);
-        Assert.AreEqual(shouldParse, parseSuccess, $"Should have parsed {input} into a port");
+    [DataRow("80/tcp", true, 80, PortType.tcp, null)]
+    [DataRow("80", true, 80, PortType.tcp, null)]
+    [DataRow("125/dup", false, 125, PortType.tcp, ContainerHelpers.ParsePortError.InvalidPortType)]
+    [DataRow("invalidNumber", false, null, null, ContainerHelpers.ParsePortError.InvalidPortNumber)]
+    [DataRow("welp/unknowntype", false, null, null, (ContainerHelpers.ParsePortError)3)]
+    [DataRow("a/b/c", false, null, null, ContainerHelpers.ParsePortError.UnknownPortFormat)]
+    [DataRow("/tcp", false, null, null, ContainerHelpers.ParsePortError.MissingPortNumber)]
+    public void CanParsePort(string input, bool shouldParse, int? expectedPortNumber, PortType? expectedType, ContainerHelpers.ParsePortError? expectedError) {
+        var parseSuccess = ContainerHelpers.TryParsePort(input);
+        Assert.AreEqual<bool>(shouldParse, parseSuccess.success, $"{(shouldParse ? "Should" : "Shouldn't")} have parsed {input} into a port");
         if (!shouldParse) {
-            Assert.IsNull(parsedPort);
+            Assert.IsNull(parseSuccess.port);
+            Assert.IsNotNull(parseSuccess.parseErrors);
+            Assert.AreEqual(expectedError, parseSuccess.parseErrors);
         }
         if (shouldParse) {
-            Assert.IsNotNull(parsedPort);
-            Assert.AreEqual(parsedPort.number, expectedPortNumber);
-            Assert.AreEqual(parsedPort.type, expectedType);
+            Assert.IsNotNull(parseSuccess.port);
+            Assert.AreEqual(parseSuccess.port.number, expectedPortNumber);
+            Assert.AreEqual(parseSuccess.port.type, expectedType);
         }
     }
 }

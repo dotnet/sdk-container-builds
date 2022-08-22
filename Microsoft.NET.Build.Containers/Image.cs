@@ -123,9 +123,9 @@ public class Image
             {
                 if (property.Key is { } propertyName
                     && property.Value is JsonObject propertyValue
-                    && ContainerHelpers.TryParsePort(propertyName, out var port))
+                    && ContainerHelpers.TryParsePort(propertyName) is { success: true } result)
                 {
-                    ports.Add(port);
+                    ports.Add(result.port!);
                 }
             }
             return ports;
