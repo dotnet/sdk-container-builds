@@ -1,26 +1,29 @@
-# OCI Containers for .NET
+# .NET SDK Container Building Tools
 
-An API for creating and manipulating OCI containers, and build tasks for creating them at build time.
+This repo contains APIs and MSBuild Tasks for generating an OCI Container from a .NET project, as well as tests for the same.
 
-You can learn more about the project from the project [Documentation](docs).
+Getting started with the library in an existing project is as easy as
 
-[![.NET](https://github.com/rainersigwald/containers/actions/workflows/dotnet.yml/badge.svg)](https://github.com/rainersigwald/containers/actions/workflows/dotnet.yml)
+```shell
+dotnet add package Microsoft.NET.Build.Containers
+dotnet publish --os linux --arch x64 -c Release -p:PublishProfile=DefaultContainer
+```
 
-## Using New Repo
+You can learn more about the project from the project [Documentation](./docs).
 
-You can simply `git clone` this project to get started. It is recommended that you don't preserve history of the project (it isn't generally meaningful) for your repo, but make a copy and `git init` your project from source.
+[![.NET](https://github.com/dotnet/sdk-container-builds/actions/workflows/dotnet.yml/badge.svg)](https://github.com/dotnet/sdk-container-builds/actions/workflows/dotnet.yml)
 
-Consult [CHECKLIST.md] for helpful suggestions on preparing your repo to go public.
+## Prerequisites
 
-## Building
+In order to build the project you will need [.NET SDK 7.0.100, preview 7](https://dotnet.microsoft.com/download/dotnet/7.0) or greater installed.
+From there, you can simply `dotnet build` the repository and be good to go!
 
-You don't "build" New Repo, however, this will be meaningful for many other projects.
 
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for information on contributing to this project.
 
-This project has adopted the code of conduct defined by the [Contributor Covenant](http://contributor-covenant.org/) 
+This project has adopted the code of conduct defined by the [Contributor Covenant](http://contributor-covenant.org/)
 to clarify expected behavior in our community. For more information, see the [.NET Foundation Code of Conduct](http://www.dotnetfoundation.org/code-of-conduct).
 
 ## License
@@ -29,12 +32,12 @@ This project is licensed with the [MIT license](LICENSE).
 
 ## .NET Foundation
 
-New Repo is a [.NET Foundation project](https://dotnetfoundation.org/projects).
+sdk-container-builds is a [.NET Foundation project](https://dotnetfoundation.org/projects).
 
 ## Related Projects
 
 You should take a look at these related projects:
 
-- [.NET Core](https://github.com/dotnet/core)
-- [ASP.NET](https://github.com/aspnet)
-- [Mono](https://github.com/mono)
+- [Konet](https://github.com/lippertmarkus/konet)
+- [`dotnet build-image`](https://github.com/tmds/build-image)
+- [.NET SDK](https://github.com/dotnet/sdk)
