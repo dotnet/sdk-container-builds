@@ -11,7 +11,7 @@ You'll want to use a nuget.config file to
 * define a source for this repository
 * define credentials (username and Personal Access Token) to use when accessing this source
 
-Then, you can use `dotnet add package Microsoft.NET.Build.Containers prerelease` to get the latest version.
+Then, you can use `dotnet add package Microsoft.NET.Build.Containers -prerelease` to get the latest version.
 
 You can also always clone this repository, run `dotnet build`, and use the newly-generated nupkg.
 
