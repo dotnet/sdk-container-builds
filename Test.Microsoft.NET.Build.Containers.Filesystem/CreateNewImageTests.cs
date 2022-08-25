@@ -101,7 +101,7 @@ public class CreateNewImageTests
         Assert.AreEqual("6.0", pcp.ParsedContainerTag);
 
         Assert.AreEqual("dotnet/testimage", pcp.NewContainerImageName);
-        Assert.AreEqual("5.0", pcp.NewContainerTag);
+        new []{ "5.0"}.SequenceEqual(pcp.NewContainerTags);
 
         CreateNewImage cni = new CreateNewImage();
         cni.BaseRegistry = pcp.ParsedContainerRegistry;

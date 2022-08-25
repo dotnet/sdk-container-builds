@@ -23,7 +23,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
             Assert.AreEqual("6.0", task.ParsedContainerTag);
 
             Assert.AreEqual("dotnet/testimage", task.NewContainerImageName);
-            Assert.AreEqual("5.0", task.NewContainerTag);
+            new[] { "5.0" }.SequenceEqual(task.NewContainerTags);
         }
 
         [TestMethod]
@@ -42,7 +42,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
 
             Assert.AreEqual("http://localhost:5010", task.NewContainerRegistry);
             Assert.AreEqual("dotnet/testimage", task.NewContainerImageName);
-            Assert.AreEqual("5.0", task.NewContainerTag);
+            new[] { "5.0" }.SequenceEqual(task.NewContainerTags);
         }
 
         [TestMethod]
@@ -61,7 +61,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
 
             Assert.AreEqual("https://localhost:5010", task.NewContainerRegistry);
             Assert.AreEqual("dotnet/testimage", task.NewContainerImageName);
-            Assert.AreEqual("5.0", task.NewContainerTag);
+            new[] { "5.0" }.SequenceEqual(task.NewContainerTags);
         }
 
         [TestMethod]
@@ -81,7 +81,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
             Assert.AreEqual("6-0", task.ParsedContainerTag);
 
             Assert.AreEqual("dotnet/testimage", task.NewContainerImageName);
-            Assert.AreEqual("5.0", task.NewContainerTag);
+            new[] { "5.0" }.SequenceEqual(task.NewContainerTags);
         }
 
         [TestMethod]
