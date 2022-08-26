@@ -29,7 +29,7 @@ steps:
     solution: '**/*.sln'
     msbuildArchitecture: 'x64'
     configuration: 'Release'
-    msbuildArguments: '-restore -bl:$(Build.StagingDirectory)\ContainersOfficialBuild.binlog -v:minimal'
+    msbuildArguments: '-restore -bl:$(Build.StagingDirectory)\ContainersOfficialBuild.binlog -v:minimal -p:SignType=${{ parameters.SignType }}'
     maximumCpuCount: true
 
 - task: PublishPipelineArtifact@1
