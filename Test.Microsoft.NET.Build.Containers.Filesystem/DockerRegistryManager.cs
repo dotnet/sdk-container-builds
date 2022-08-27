@@ -3,7 +3,6 @@ using Microsoft.Build.Locator;
 
 namespace Test.Microsoft.NET.Build.Containers.Filesystem;
 
-[TestClass]
 public class DockerRegistryManager
 {
     public const string BaseImage = "dotnet/runtime";
@@ -33,8 +32,7 @@ public class DockerRegistryManager
     [AssemblyInitialize]
     public static void StartAndPopulateDockerRegistry(TestContext context)
     {
-        Console.WriteLine(nameof(StartAndPopulateDockerRegistry));
-
+        context.WriteLine("Spawning local registry");
         ProcessStartInfo startRegistry = new("docker", "run --rm --publish 5010:5000 --detach registry:2")
         {
             RedirectStandardOutput = true,
@@ -50,7 +48,6 @@ public class DockerRegistryManager
         Assert.IsNotNull(registryContainerId);
         registryProcess.WaitForExit();
         Assert.AreEqual(0, registryProcess.ExitCode, $"Could not start Docker registry. Are you running one for manual testing?{Environment.NewLine}{errStream}");
-
         s_registryContainerId = registryContainerId;
 
         Exec("docker", $"pull {BaseImageSource}{BaseImage}:{BaseImageTag}");
@@ -59,7 +56,6 @@ public class DockerRegistryManager
         LocateMSBuild();
     }
 
-    [AssemblyCleanup]
     public static void ShutdownDockerRegistry()
     {
         Assert.IsNotNull(s_registryContainerId);
