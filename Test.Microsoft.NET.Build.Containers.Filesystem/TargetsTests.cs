@@ -1,7 +1,4 @@
-using Microsoft.Build.Evaluation;
-using Microsoft.Build.Framework;
-using Microsoft.Build.Locator;
-using static Test.Microsoft.NET.Build.Containers.KnownStrings;
+using static Microsoft.NET.Build.Containers.KnownStrings.Properties;
 
 namespace Test.Microsoft.NET.Build.Containers.Targets;
 

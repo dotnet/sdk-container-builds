@@ -1,6 +1,5 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.NET.Build.Containers.Tasks;
-using static Test.Microsoft.NET.Build.Containers.KnownStrings;
+using static Microsoft.NET.Build.Containers.KnownStrings;
+using static Microsoft.NET.Build.Containers.KnownStrings.Properties;
 
 namespace Test.Microsoft.NET.Build.Containers.Tasks
 {
