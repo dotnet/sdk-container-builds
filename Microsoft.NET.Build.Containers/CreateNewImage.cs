@@ -109,7 +109,7 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
                 var portString = portTy == null ? portNo : $"{portNo}/{portTy}";
                 if (errors.HasFlag(ContainerHelpers.ParsePortError.MissingPortNumber))
                 {
-                    Log.LogError("A ContainerPort item was provided without an Include metadata specifying the port number. Please provide a ContainerPort item with an ItemSpec: <ContainerPort Include=\"80\" />");
+                    Log.LogError("ContainerPort item '{0}' does not specify the port number. Please ensure the item's Include is a port number, for example '<ContainerPort Include=\"80\" />'", port.ItemSpec);
                 }
                 else
                 {
