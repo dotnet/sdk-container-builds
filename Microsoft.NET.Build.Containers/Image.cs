@@ -8,6 +8,8 @@ namespace Microsoft.NET.Build.Containers;
 
 record Label(string name, string value);
 
+// Explicitly lowercase to ease parsing - the incoming values are
+// lowercased by spec
 public enum PortType
 {
     tcp,
@@ -123,9 +125,9 @@ public class Image
             {
                 if (property.Key is { } propertyName
                     && property.Value is JsonObject propertyValue
-                    && ContainerHelpers.TryParsePort(propertyName) is { success: true } result)
+                    && ContainerHelpers.TryParsePort(propertyName, out var parsedPort, out var _))
                 {
-                    ports.Add(result.port!);
+                    ports.Add(parsedPort);
                 }
             }
             return ports;

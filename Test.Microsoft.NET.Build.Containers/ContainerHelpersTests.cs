@@ -85,17 +85,17 @@ public class ContainerHelpersTests
     [DataRow("a/b/c", false, null, null, ContainerHelpers.ParsePortError.UnknownPortFormat)]
     [DataRow("/tcp", false, null, null, ContainerHelpers.ParsePortError.MissingPortNumber)]
     public void CanParsePort(string input, bool shouldParse, int? expectedPortNumber, PortType? expectedType, ContainerHelpers.ParsePortError? expectedError) {
-        var parseSuccess = ContainerHelpers.TryParsePort(input);
-        Assert.AreEqual<bool>(shouldParse, parseSuccess.success, $"{(shouldParse ? "Should" : "Shouldn't")} have parsed {input} into a port");
-        if (!shouldParse) {
-            Assert.IsNull(parseSuccess.port);
-            Assert.IsNotNull(parseSuccess.parseErrors);
-            Assert.AreEqual(expectedError, parseSuccess.parseErrors);
-        }
+        var parseSuccess = ContainerHelpers.TryParsePort(input, out var port, out var errors);
+        Assert.AreEqual<bool>(shouldParse, parseSuccess, $"{(shouldParse ? "Should" : "Shouldn't")} have parsed {input} into a port");
+
         if (shouldParse) {
-            Assert.IsNotNull(parseSuccess.port);
-            Assert.AreEqual(parseSuccess.port.number, expectedPortNumber);
-            Assert.AreEqual(parseSuccess.port.type, expectedType);
+            Assert.IsNotNull(port);
+            Assert.AreEqual(port.number, expectedPortNumber);
+            Assert.AreEqual(port.type, expectedType);
+        } else {
+            Assert.IsNull(port);
+            Assert.IsNotNull(errors);
+            Assert.AreEqual(expectedError, errors);
         }
     }
 }

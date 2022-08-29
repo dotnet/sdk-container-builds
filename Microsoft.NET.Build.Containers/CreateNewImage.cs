@@ -102,12 +102,15 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
         {
             var portNo = port.ItemSpec;
             var portTy = port.GetMetadata("Type");
-            var parsePortResult = ContainerHelpers.ParsePort(portNo, portTy);
-            if (!parsePortResult.success)
+            if (ContainerHelpers.TryParsePort(portNo, portTy, out var parsedPort, out var errors))
             {
-                ContainerHelpers.ParsePortError errors = (ContainerHelpers.ParsePortError)parsePortResult.parseErrors!;
+                image.ExposePort(parsedPort.number, parsedPort.type);
+            }
+            else
+            {
+                ContainerHelpers.ParsePortError parsedErrors = (ContainerHelpers.ParsePortError)errors!;
                 var portString = portTy == null ? portNo : $"{portNo}/{portTy}";
-                if (errors.HasFlag(ContainerHelpers.ParsePortError.MissingPortNumber))
+                if (parsedErrors.HasFlag(ContainerHelpers.ParsePortError.MissingPortNumber))
                 {
                     Log.LogError("ContainerPort item '{0}' does not specify the port number. Please ensure the item's Include is a port number, for example '<ContainerPort Include=\"80\" />'", port.ItemSpec);
                 }
@@ -115,18 +118,18 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
                 {
                     var message = "A ContainerPort item was provided with ";
                     var arguments = new List<string>(2);
-                    if (errors.HasFlag(ContainerHelpers.ParsePortError.InvalidPortNumber) && errors.HasFlag(ContainerHelpers.ParsePortError.InvalidPortNumber))
+                    if (parsedErrors.HasFlag(ContainerHelpers.ParsePortError.InvalidPortNumber) && parsedErrors.HasFlag(ContainerHelpers.ParsePortError.InvalidPortNumber))
                     {
                         message += "an invalid port number '{0}' and an invalid port type '{1}'";
                         arguments.Add(portNo);
                         arguments.Add(portTy!);
                     }
-                    else if (errors.HasFlag(ContainerHelpers.ParsePortError.InvalidPortNumber))
+                    else if (parsedErrors.HasFlag(ContainerHelpers.ParsePortError.InvalidPortNumber))
                     {
                         message += "an invalid port number '{0}'";
                         arguments.Add(portNo);
                     }
-                    else if (errors.HasFlag(ContainerHelpers.ParsePortError.InvalidPortNumber))
+                    else if (parsedErrors.HasFlag(ContainerHelpers.ParsePortError.InvalidPortNumber))
                     {
                         message += "an invalid port type '{0}'";
                         arguments.Add(portTy!);
@@ -135,10 +138,6 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
 
                     Log.LogError(message, arguments);
                 }
-            }
-            else
-            {
-                image.ExposePort(parsePortResult.port!.number, parsePortResult.port.type);
             }
         }
 
