@@ -15,7 +15,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
             task.FullyQualifiedBaseImageName = "https://mcr.microsoft.com/dotnet/runtime:6.0";
             task.ContainerRegistry = "http://localhost:5010";
             task.ContainerImageName = "dotnet/testimage";
-            task.ContainerImageTag = "5.0";
+            task.ContainerImageTag = new[] { "5.0" };
 
             Assert.IsTrue(task.Execute());
             Assert.AreEqual("https://mcr.microsoft.com", task.ParsedContainerRegistry);
@@ -33,7 +33,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
             task.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:6.0";
             task.ContainerRegistry = "http://localhost:5010";
             task.ContainerImageName = "dotnet/testimage";
-            task.ContainerImageTag = "5.0";
+            task.ContainerImageTag = new[] { "5.0" };
 
             Assert.IsTrue(task.Execute());
             Assert.AreEqual("https://mcr.microsoft.com", task.ParsedContainerRegistry);
@@ -52,7 +52,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
             task.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:6.0";
             task.ContainerRegistry = "localhost:5010";
             task.ContainerImageName = "dotnet/testimage";
-            task.ContainerImageTag = "5.0";
+            task.ContainerImageTag = new[] { "5.0" };
 
             Assert.IsTrue(task.Execute());
             Assert.AreEqual("https://mcr.microsoft.com", task.ParsedContainerRegistry);
@@ -73,7 +73,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
 
             // Spaces in the "new" container info don't pass the regex.
             task.ContainerImageName = "dotnet/testimage";
-            task.ContainerImageTag = "5.0";
+            task.ContainerImageTag = new[] { "5.0" };
 
             Assert.IsTrue(task.Execute());
             Assert.AreEqual("https://mcr-microsoft-com", task.ParsedContainerRegistry);
@@ -94,7 +94,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
 
             // Spaces in the "new" container info don't pass the regex.
             task.ContainerImageName = "dotnet testimage";
-            task.ContainerImageTag = "5.0";
+            task.ContainerImageTag = new[] { "5.0" };
 
             Assert.IsFalse(task.Execute());
             // To do: Verify output contains expected error
@@ -109,7 +109,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
             task.ContainerRegistry = "http://localhost:5010";
             // Spaces in the "new" container info don't pass the regex.
             task.ContainerImageName = "dotnet/testimage";
-            task.ContainerImageTag = "5 0";
+            task.ContainerImageTag = new[] { "5.0" };
 
             Assert.IsFalse(task.Execute());
             // To do: Verify output contains expected error
