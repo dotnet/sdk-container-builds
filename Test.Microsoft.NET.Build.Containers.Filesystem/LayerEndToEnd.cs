@@ -22,7 +22,7 @@ public class LayerEndToEnd
         Console.WriteLine(l.Descriptor);
 
         //Assert.AreEqual("application/vnd.oci.image.layer.v1.tar", l.Descriptor.MediaType); // TODO: configurability
-        Assert.IsTrue(l.Descriptor.Size is >= 136 and <= 138, $"'l.Descriptor.Size' should be between 136 and 138, but is {l.Descriptor.Size}"); // TODO: determinism!
+        Assert.IsTrue(l.Descriptor.Size is >= 135 and <= 200, $"'l.Descriptor.Size' should be between 135 and 200, but is {l.Descriptor.Size}"); // TODO: determinism!
         //Assert.AreEqual("sha256:26140bc75f2fcb3bf5da7d3b531d995c93d192837e37df0eb5ca46e2db953124", l.Descriptor.Digest); // TODO: determinism!
 
         VerifyDescriptorInfo(l);
@@ -51,7 +51,7 @@ public class LayerEndToEnd
         Console.WriteLine(l.Descriptor);
 
         //Assert.AreEqual("application/vnd.oci.image.layer.v1.tar", l.Descriptor.MediaType); // TODO: configurability
-        Assert.IsTrue(l.Descriptor.Size is >= 169 and <= 173, $"'l.Descriptor.Size' should be between 169 and 173, but is {l.Descriptor.Size}"); // TODO: determinism!
+        Assert.IsTrue(l.Descriptor.Size is >= 150 and <= 200, $"'l.Descriptor.Size' should be between 150 and 200, but is {l.Descriptor.Size}"); // TODO: determinism!
         //Assert.AreEqual("sha256:26140bc75f2fcb3bf5da7d3b531d995c93d192837e37df0eb5ca46e2db953124", l.Descriptor.Digest); // TODO: determinism!
 
         VerifyDescriptorInfo(l);
