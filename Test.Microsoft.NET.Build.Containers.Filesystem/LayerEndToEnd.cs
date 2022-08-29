@@ -28,10 +28,9 @@ public class LayerEndToEnd
 
         byte[] hashBytes;
 
-        using (SHA256 hasher = SHA256.Create())
         using (FileStream fs = File.OpenRead(l.BackingFile))
         {
-            hashBytes = hasher.ComputeHash(fs);
+            hashBytes = SHA256.HashData(fs);
         }
 
         Assert.AreEqual(Convert.ToHexString(hashBytes), l.Descriptor.Digest.Substring("sha256:".Length), ignoreCase: true);
@@ -67,10 +66,9 @@ public class LayerEndToEnd
 
         byte[] hashBytes;
 
-        using (SHA256 hasher = SHA256.Create())
         using (FileStream fs = File.OpenRead(l.BackingFile))
         {
-            hashBytes = hasher.ComputeHash(fs);
+            hashBytes = SHA256.HashData(fs);
         }
 
         Assert.AreEqual(Convert.ToHexString(hashBytes), l.Descriptor.Digest.Substring("sha256:".Length), ignoreCase: true);
