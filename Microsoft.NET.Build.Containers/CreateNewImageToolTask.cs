@@ -101,8 +101,16 @@ public class CreateNewImageToolTask : ToolTask
 
     protected override string GenerateCommandLineCommands()
     {
-        // Pass all parameters required for CreateNewImage. The task will call our API. This is that task...NO. We create a new project that calls
-        // calls the API
-        return "";
+        return PublishDirectory +
+               " --baseregistry " + BaseRegistry +
+               " --baseimagename " + BaseImageName +
+               " --baseimagetag " + BaseImageTag +
+               " --outputregistry " + OutputRegistry +
+               " --imagename " + ImageName +
+               " --imagetags " + ImageTags +
+               " --workingdirectory " + WorkingDirectory +
+               " --entrypoint " + Entrypoint +
+               " --entrypointargs " + EntrypointArgs +
+               " --labels " + Labels;
     }
 }
