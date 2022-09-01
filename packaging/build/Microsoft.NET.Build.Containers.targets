@@ -84,7 +84,12 @@
 
     <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)"
                                     Condition="'$(SomeVSFlag)' != 'true'">
+<<<<<<< HEAD
 
+||||||| parent of fab0192 (Starting testing flow in real builds)
+    <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)">
+=======
+>>>>>>> fab0192 (Starting testing flow in real builds)
         <CreateNewImage BaseRegistry="$(ContainerBaseRegistry)"
                         BaseImageName="$(ContainerBaseName)"
                         BaseImageTag="$(ContainerBaseTag)"
