@@ -9,9 +9,6 @@ using Microsoft.Build.Utilities;
 public class CreateNewImageToolTask : ToolTask
 {
     [Required]
-    public string ToolDirectory { get; set; }
-
-    [Required]
     public string BaseRegistry { get; set; }
 
     /// <summary>
@@ -43,7 +40,7 @@ public class CreateNewImageToolTask : ToolTask
     /// <summary>
     /// The tag to associate with the new image.
     /// </summary>
-    public string[] ImageTags { get; set; }
+    public ITaskItem[] ImageTags { get; set; }
 
     /// <summary>
     /// The directory for the build outputs to be published.
@@ -79,13 +76,12 @@ public class CreateNewImageToolTask : ToolTask
 
     public CreateNewImageToolTask()
     {
-        ToolDirectory = "";
         BaseRegistry = "";
         BaseImageName = "";
         BaseImageTag = "";
         OutputRegistry = "";
         ImageName = "";
-        ImageTags = Array.Empty<string>();
+        ImageTags = Array.Empty<ITaskItem>();
         PublishDirectory = "";
         WorkingDirectory = "";
         Entrypoint = Array.Empty<ITaskItem>();

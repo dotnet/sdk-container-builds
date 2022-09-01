@@ -82,7 +82,8 @@
         </PublishContainerDependsOn>
     </PropertyGroup>
 
-    <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)">
+    <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)"
+                                    Condition="'$(SomeVSFlag)' != 'true'">
         <CreateNewImage BaseRegistry="$(ContainerBaseRegistry)"
                         BaseImageName="$(ContainerBaseName)"
                         BaseImageTag="$(ContainerBaseTag)"
@@ -95,5 +96,21 @@
                         EntrypointArgs="@(ContainerEntrypointArgs)"
                         Labels="@(ContainerLabel)"
                         ExposedPorts="@(ContainerPort)" />
+    </Target>
+
+    <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)"
+                                    Condition="'$(SomeVSFlag)' == 'true'">
+
+        <CreateNewImageToolTask BaseRegistry="$(ContainerBaseRegistry)"
+                                BaseImageName="$(ContainerBaseName)"
+                                BaseImageTag="$(ContainerBaseTag)"
+                                OutputRegistry="$(ContainerRegistry)"
+                                ImageName="$(ContainerImageName)"
+                                ImageTags="@(ContainerImageTags)"
+                                PublishDirectory="$(PublishDir)"
+                                WorkingDirectory="$(ContainerWorkingDirectory)"
+                                Entrypoint="@(ContainerEntrypoint)"
+                                EntrypointArgs="@(ContainerEntrypointArgs)"
+                                Labels="@(ContainerLabel)"/>
     </Target>
 </Project>

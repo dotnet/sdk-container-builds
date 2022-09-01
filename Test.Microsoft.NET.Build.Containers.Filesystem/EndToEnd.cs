@@ -192,6 +192,7 @@ public class EndToEnd
                           $" /p:ContainerBaseImage={DockerRegistryManager.FullyQualifiedBaseImageDefault}" +
                           $" /p:ContainerRegistry=http://{DockerRegistryManager.LocalRegistry}" +
                           $" /p:ContainerImageName={NewImageName}" +
+                          $" /p:SomeVSFlag=true" +
                           $" /p:Version=1.0";
 
         // Build & publish the project
