@@ -44,7 +44,10 @@ var imageNameOpt = new Option<string>(
 
 var imageTagsOpt = new Option<string[]>(
     name: "--imagetags",
-    description: "The tags to associate with the new image.");
+    description: "The tags to associate with the new image.")
+{
+    AllowMultipleArgumentsPerToken = true
+};
 
 var workingDirectoryOpt = new Option<string>(
     name: "--workingdirectory",
@@ -57,12 +60,16 @@ var entrypointOpt = new Option<string[]>(
     name: "--entrypoint",
     description: "The entrypoint application of the container.")
 {
-    IsRequired = true
+    IsRequired = true,
+    AllowMultipleArgumentsPerToken = true
 };
 
 var entrypointArgsOpt = new Option<string[]>(
     name: "--entrypointargs",
-    description: "Arguments to pass alongside Entrypoint.");
+    description: "Arguments to pass alongside Entrypoint.")
+{
+    AllowMultipleArgumentsPerToken = true
+};
 
 var labelsOpt = new Option<string[]>(
     name: "--labels",
