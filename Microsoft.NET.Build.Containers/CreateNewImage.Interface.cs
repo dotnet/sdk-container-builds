@@ -93,6 +93,11 @@ partial class CreateNewImage
     /// </summary>
     public ITaskItem[] ContainerEnvironmentVariables { get; set; }
 
+    /// <summary>
+    /// The username for the container to use when running.
+    /// </summary>
+    public string ContainerUserName { get; set; }
+
     [Output]
     public string GeneratedContainerManifest { get; set; }
 
