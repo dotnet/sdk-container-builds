@@ -1,4 +1,4 @@
-namespace Microsoft.NET.Build.Containers;
+namespace Microsoft.NET.Build.Containers.Tasks;
 
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
