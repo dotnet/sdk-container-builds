@@ -9,6 +9,9 @@ using Microsoft.Build.Utilities;
 public class CreateNewImageToolTask : ToolTask
 {
     [Required]
+    public string ToolDirectory { get; set; }
+
+    [Required]
     public string BaseRegistry { get; set; }
 
     /// <summary>
@@ -76,6 +79,7 @@ public class CreateNewImageToolTask : ToolTask
 
     public CreateNewImageToolTask()
     {
+        ToolDirectory = "";
         BaseRegistry = "";
         BaseImageName = "";
         BaseImageTag = "";
@@ -91,8 +95,7 @@ public class CreateNewImageToolTask : ToolTask
 
     protected override string GenerateFullPathToTool()
     {
-        // For now, assume the tool lives next to us.
-        return ToolName;
+        return ToolDirectory + ToolName;
     }
 
     protected override string GenerateCommandLineCommands()
@@ -103,10 +106,10 @@ public class CreateNewImageToolTask : ToolTask
                " --baseimagetag " + BaseImageTag +
                " --outputregistry " + OutputRegistry +
                " --imagename " + ImageName +
-               " --imagetags " + ImageTags +
                " --workingdirectory " + WorkingDirectory +
-               " --entrypoint " + Entrypoint +
-               " --entrypointargs " + EntrypointArgs +
-               " --labels " + Labels;
+               (Entrypoint.Length > 0 ? " --entrypoint " + Entrypoint.Select((i) => i.ItemSpec).Aggregate((i, s) => s += i + " ") : "") +
+               (Labels.Length > 0 ? " --labels " + Labels.Select((i) => i.ItemSpec + "=" + i.GetMetadata("Value")).Aggregate((i, s) => s += i + " ") : "") +
+               (ImageTags.Length > 0 ? " --imagetags " + ImageTags.Select((i) => i.ItemSpec).Aggregate((i, s) => s += i + " ") : "") +
+               (EntrypointArgs.Length > 0 ? " --entrypointargs " + EntrypointArgs.Select((i) => i.ItemSpec).Aggregate((i, s) => s += i + " ") : "");
     }
 }
