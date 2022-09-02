@@ -2,10 +2,12 @@
     <PropertyGroup>
         <taskFoldername>tasks</taskFoldername>
         <taskFramework>net7.0</taskFramework>
+        <ContainerizeFolderName>containerize</ContainerizeFolderName>
         <!--The folder where the custom task will be present. It points to inside the nuget package. -->
-        <CustomTasksFolder>$(MSBuildThisFileDirectory)..\$(taskFoldername)\$(taskFramework)</CustomTasksFolder>
+        <CustomTasksFolder>$(MSBuildThisFileDirectory)..\$(taskFoldername)\$(taskFramework)\</CustomTasksFolder>
+        <ContainerizeFolder>$(MSBuildThisFileDirectory)..\$(ContainerizeFolderName)\</ContainerizeFolder>
         <!--Reference to the assembly which contains the MSBuild Task-->
-        <CustomTasksAssembly Condition="'$(CustomTasksAssembly)' == ''">$(CustomTasksFolder)\$(MSBuildThisFileName).dll</CustomTasksAssembly>
+        <CustomTasksAssembly Condition="'$(CustomTasksAssembly)' == ''">$(CustomTasksFolder)$(MSBuildThisFileName).dll</CustomTasksAssembly>
     </PropertyGroup>
 
     <!--Register our custom task-->

@@ -84,6 +84,7 @@
 
     <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)"
                                     Condition="'$(SomeVSFlag)' != 'true'">
+
         <CreateNewImage BaseRegistry="$(ContainerBaseRegistry)"
                         BaseImageName="$(ContainerBaseName)"
                         BaseImageTag="$(ContainerBaseTag)"
@@ -101,7 +102,8 @@
     <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)"
                                     Condition="'$(SomeVSFlag)' == 'true'">
 
-        <CreateNewImageToolTask BaseRegistry="$(ContainerBaseRegistry)"
+        <CreateNewImageToolTask ToolDirectory="$(ContainerizeFolder)"
+			                    BaseRegistry="$(ContainerBaseRegistry)"
                                 BaseImageName="$(ContainerBaseName)"
                                 BaseImageTag="$(ContainerBaseTag)"
                                 OutputRegistry="$(ContainerRegistry)"
