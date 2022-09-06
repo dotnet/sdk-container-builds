@@ -4,6 +4,20 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <IsPackable>true</IsPackable>
         <NoWarn>NU5100;NU5128</NoWarn>
+
+        <!-- MSBuild tasks shouldn't be referenced. This is by design. -->
+        <NoWarn>NU5100;NU5128</NoWarn>
+        <Authors>Microsoft</Authors>
+        <Company>Microsoft</Company>
+        <Packageid>Microsoft.NET.Build.Containers</Packageid>
+        <Description>Tasks and targets to natively publish .NET applications as containers.</Description>
+        <Copyright>&#169; Microsoft Corporation. All rights reserved.</Copyright>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/dotnet/sdk-container-builds</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/dotnet/sdk-container-builds</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>containers;docker;Microsoft.NET.Build.Containers</PackageTags>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
 
     <ItemGroup>
@@ -19,16 +33,16 @@
             <Content Include="bin/debug/$(TargetFramework)/containerize.exe" Pack="true" PackagePath="containerize\" />
             <Content Include="bin/debug/$(TargetFramework)/containerize.runtimeconfig.json" Pack="true" PackagePath="containerize\" />
             <Content Include="bin/debug/$(TargetFramework)/System.CommandLine.dll" Pack="true" PackagePath="containerize\" />
+            <Content Include="bin/debug/$(TargetFramework)/Microsoft.NET.Build.Containers.dll" Pack="true" PackagePath="containerize\" />
 
             <Content Include="bin/debug/$(TargetFramework)/Microsoft.NET.Build.Containers.dll" Pack="true" PackagePath="tasks\" />
             <Content Include="../Microsoft.NET.Build.Containers/bin/debug/$(TargetFramework)/Microsoft.NET.Build.Containers.deps.json" Pack="true" PackagePath="tasks\" />
 
-
             <Content Include="../Microsoft.NET.Build.Containers/build\Microsoft.NET.Build.Containers.props" Pack="true" PackagePath="build\" />
             <Content Include="../Microsoft.NET.Build.Containers/build\Microsoft.NET.Build.Containers.targets" Pack="true" PackagePath="build\" />
 
+            <Content Include="README.md" Pack="true" PackagePath="" />
 
-            <Content Include="../Microsoft.NET.Build.Containers/bin/" Pack="true" PackagePath="build\" />
         </ItemGroup>
     </Target>
 
