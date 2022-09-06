@@ -22,24 +22,23 @@
 
     <ItemGroup>
         <ProjectReference Include="../containerize/containerize.csproj" ReferenceOutputAssembly="true" />
-        <ProjectReference Include="../Microsoft.NET.Build.Containers/Microsoft.NET.Build.Containers.csproj"/>
+        <ProjectReference Include="../Microsoft.NET.Build.Containers/Microsoft.NET.Build.Containers.csproj" OutputItemType="ContainerLibOutput"/>
         <PackageReference Include="System.CommandLine" IncludeAssets="runtime"/>
     </ItemGroup>
 
 
     <Target Name="DoThePackaging" AfterTargets="Build">
         <ItemGroup>
-            <Content Include="bin/debug/$(TargetFramework)/containerize.dll" Pack="true" PackagePath="containerize\" />
-            <Content Include="bin/debug/$(TargetFramework)/containerize.exe" Pack="true" PackagePath="containerize\" />
-            <Content Include="bin/debug/$(TargetFramework)/containerize.runtimeconfig.json" Pack="true" PackagePath="containerize\" />
-            <Content Include="bin/debug/$(TargetFramework)/System.CommandLine.dll" Pack="true" PackagePath="containerize\" />
-            <Content Include="bin/debug/$(TargetFramework)/Microsoft.NET.Build.Containers.dll" Pack="true" PackagePath="containerize\" />
+            <Content Include="$(OutDir)containerize.dll" Pack="true" PackagePath="containerize\" />
+            <Content Include="$(OutDir)containerize.exe" Pack="true" PackagePath="containerize\" />
+            <Content Include="$(OutDir)containerize.runtimeconfig.json" Pack="true" PackagePath="containerize\" />
+            <Content Include="$(OutDir)System.CommandLine.dll" Pack="true" PackagePath="containerize\" />
+            <Content Include="@(ContainerLibOutput)" Pack="true" PackagePath="containerize\" />
 
-            <Content Include="bin/debug/$(TargetFramework)/Microsoft.NET.Build.Containers.dll" Pack="true" PackagePath="tasks\" />
+            <Content Include="@(ContainerLibOutput)" Pack="true" PackagePath="tasks\" />
             <Content Include="../Microsoft.NET.Build.Containers/bin/debug/$(TargetFramework)/Microsoft.NET.Build.Containers.deps.json" Pack="true" PackagePath="tasks\" />
 
-            <Content Include="../Microsoft.NET.Build.Containers/build\Microsoft.NET.Build.Containers.props" Pack="true" PackagePath="build\" />
-            <Content Include="../Microsoft.NET.Build.Containers/build\Microsoft.NET.Build.Containers.targets" Pack="true" PackagePath="build\" />
+            <Content Include="../Microsoft.NET.Build.Containers/build/**" Pack="true" PackagePath="build\" />
 
             <Content Include="README.md" Pack="true" PackagePath="" />
 
