@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.Build.NoTargets/3.5.6">
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <IsPackable>true</IsPackable>
+        <NoWarn>NU5100;NU5128</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="../containerize/containerize.csproj" ReferenceOutputAssembly="true" />
+        <ProjectReference Include="../Microsoft.NET.Build.Containers/Microsoft.NET.Build.Containers.csproj"/>
+        <PackageReference Include="System.CommandLine" IncludeAssets="runtime"/>
+    </ItemGroup>
+
+
+    <Target Name="DoThePackaging" AfterTargets="Build">
+        <ItemGroup>
+            <Content Include="bin/debug/$(TargetFramework)/containerize.dll" Pack="true" PackagePath="containerize\" />
+            <Content Include="bin/debug/$(TargetFramework)/containerize.exe" Pack="true" PackagePath="containerize\" />
+            <Content Include="bin/debug/$(TargetFramework)/containerize.runtimeconfig.json" Pack="true" PackagePath="containerize\" />
+            <Content Include="bin/debug/$(TargetFramework)/System.CommandLine.dll" Pack="true" PackagePath="containerize\" />
+
+            <Content Include="bin/debug/$(TargetFramework)/Microsoft.NET.Build.Containers.dll" Pack="true" PackagePath="tasks\" />
+            <Content Include="../Microsoft.NET.Build.Containers/bin/debug/$(TargetFramework)/Microsoft.NET.Build.Containers.deps.json" Pack="true" PackagePath="tasks\" />
+
+
+            <Content Include="../Microsoft.NET.Build.Containers/build\Microsoft.NET.Build.Containers.props" Pack="true" PackagePath="build\" />
+            <Content Include="../Microsoft.NET.Build.Containers/build\Microsoft.NET.Build.Containers.targets" Pack="true" PackagePath="build\" />
+
+
+            <Content Include="../Microsoft.NET.Build.Containers/bin/" Pack="true" PackagePath="build\" />
+        </ItemGroup>
+    </Target>
+
+</Project>

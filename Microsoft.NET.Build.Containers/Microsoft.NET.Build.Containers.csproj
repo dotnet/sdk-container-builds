@@ -4,7 +4,6 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 
     <IsPackable>true</IsPackable>
 
@@ -41,6 +40,11 @@
   <ItemGroup>
     <Content Include="build\Microsoft.NET.Build.Containers.props" Pack="true" PackagePath="build\" />
     <Content Include="build\Microsoft.NET.Build.Containers.targets" Pack="true" PackagePath="build\" />
+    <!-- <Content Include="..\containerize\bin\Debug\net7.0\containerize.exe" Pack="true" PackagePath="containerize\" />
+    <Content Include="..\containerize\bin\Debug\net7.0\containerize.dll" Pack="true" PackagePath="containerize\" />
+    <Content Include="..\containerize\bin\Debug\net7.0\Microsoft.NET.Build.Containers.dll" Pack="true" PackagePath="containerize\" />
+    <Content Include="..\containerize\bin\Debug\net7.0\System.Commandline.dll" Pack="true" PackagePath="containerize\" />
+    <Content Include="..\containerize\bin\Debug\net7.0\containerize.runtimeconfig.json" Pack="true" PackagePath="containerize\" /> -->
     <Content Include="README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
