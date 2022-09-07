@@ -4,7 +4,6 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <IsPackable>true</IsPackable>
         <NoWarn>NU5100;NU5128</NoWarn>
-
         <VSCompatTargetFramework>net472</VSCompatTargetFramework>
 
         <!-- MSBuild tasks shouldn't be referenced. This is by design. -->
@@ -23,9 +22,15 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="../Microsoft.NET.Build.Containers/Microsoft.NET.Build.Containers.csproj" 
+                          SetTargetFramework="TargetFramework=$(TargetFramework)" 
+                          OutputItemType="ContainerLibraryOutput"/>
+
+        <ProjectReference Include="../Microsoft.NET.Build.Containers/Microsoft.NET.Build.Containers.csproj" 
+                          SetTargetFramework="TargetFramework=$(VSCompatTargetFramework)" 
+                          OutputItemType="ContainerLibraryOutputNet472"/>
+
         <ProjectReference Include="../containerize/containerize.csproj" ReferenceOutputAssembly="true" />
-        <ProjectReference Include="../Microsoft.NET.Build.Containers/Microsoft.NET.Build.Containers.csproj" OutputItemType="ContainerLibraryOutput"/>
-        <ProjectReference Include="../Microsoft.NET.Build.Containers/Microsoft.NET.Build.Containers.csproj" SetTargetFramework="TargetFramework=$(VSCompatTargetFramework)" OutputItemType="ContainerLibraryOutputNet472"/>
         <PackageReference Include="System.CommandLine" IncludeAssets="runtime"/>
     </ItemGroup>
 
