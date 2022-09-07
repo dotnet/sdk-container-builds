@@ -26,11 +26,9 @@
         <PackageReference Include="System.CommandLine" IncludeAssets="runtime"/>
     </ItemGroup>
 
-
     <Target Name="DoThePackaging" AfterTargets="Build">
         <ItemGroup>
             <Content Include="$(OutDir)containerize.dll" Pack="true" PackagePath="containerize\" />
-            <Content Include="$(OutDir)containerize.exe" Pack="true" PackagePath="containerize\" />
             <Content Include="$(OutDir)containerize.runtimeconfig.json" Pack="true" PackagePath="containerize\" />
             <Content Include="$(OutDir)System.CommandLine.dll" Pack="true" PackagePath="containerize\" />
             <Content Include="@(ContainerLibOutput)" Pack="true" PackagePath="containerize\" />
