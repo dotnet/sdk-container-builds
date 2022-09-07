@@ -18,9 +18,10 @@ public class EndToEnd
 
         // Build the image
 
-        Registry registry = new Registry(new Uri($"http://{DockerRegistryManager.LocalRegistry}"));
+        Registry localRegistry = new Registry(new Uri($"http://{DockerRegistryManager.LocalRegistry}"));
+        Registry acr = new Registry(new Uri($"https://rainercontainer.azurecr.io"));
 
-        Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag);
+        Image x = await acr.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag);
 
         Layer l = Layer.FromDirectory(publishDirectory, "/app");
 
@@ -30,7 +31,7 @@ public class EndToEnd
 
         // Push the image back to the local registry
 
-        await registry.Push(x, NewImageName, "latest", DockerRegistryManager.BaseImage);
+        await localRegistry.Push(x, NewImageName, "latest", DockerRegistryManager.BaseImage);
 
         // pull it back locally
 
