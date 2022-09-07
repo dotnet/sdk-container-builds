@@ -10,7 +10,7 @@
         <NoWarn>NU5100;NU5128</NoWarn>
         <Authors>Microsoft</Authors>
         <Company>Microsoft</Company>
-        <Packageid>Microsoft.NET.Build.Containers</Packageid>
+        <PackageId>Microsoft.NET.Build.Containers</PackageId>
         <Description>Tasks and targets to natively publish .NET applications as containers.</Description>
         <Copyright>&#169; Microsoft Corporation. All rights reserved.</Copyright>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
