@@ -30,8 +30,8 @@
                           SetTargetFramework="TargetFramework=$(VSCompatTargetFramework)" 
                           OutputItemType="ContainerLibraryOutputNet472"/>
 
-        <ProjectReference Include="../containerize/containerize.csproj" ReferenceOutputAssembly="true" />
-        <PackageReference Include="System.CommandLine" IncludeAssets="runtime"/>
+        <ProjectReference Include="../containerize/containerize.csproj" PrivateAssets="all" ReferenceOutputAssembly="true" />
+        <PackageReference Include="System.CommandLine" PrivateAssets="all" IncludeAssets="runtime"/>
     </ItemGroup>
 
     <Target Name="DoThePackaging" AfterTargets="Build">
