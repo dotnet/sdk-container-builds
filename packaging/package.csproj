@@ -40,25 +40,25 @@
             <Content Include="README.md" Pack="true" PackagePath="" />
             
             <!-- containerize folder -->
-            <Content Include="$(OutDir)containerize.dll" Pack="true" PackagePath="containerize\" />
-            <Content Include="$(OutDir)containerize.runtimeconfig.json" Pack="true" PackagePath="containerize\" />
-            <Content Include="$(OutDir)System.CommandLine.dll" Pack="true" PackagePath="containerize\" />
-            <Content Include="@(ContainerLibraryOutput)" Pack="true" PackagePath="containerize\" />
+            <Content Include="$(OutDir)containerize.dll" Pack="true" PackagePath="containerize/" />
+            <Content Include="$(OutDir)containerize.runtimeconfig.json" Pack="true" PackagePath="containerize/" />
+            <Content Include="$(OutDir)System.CommandLine.dll" Pack="true" PackagePath="containerize/" />
+            <Content Include="@(ContainerLibraryOutput)" Pack="true" PackagePath="containerize/" />
 
             <!-- tasks folder -->
-            <Content Include="@(ContainerLibraryOutput)" Pack="true" PackagePath="tasks\$(TargetFramework)\" />
-            <Content Include="@(ContainerLibraryOutputNet472)" Pack="true" PackagePath="tasks\$(VSCompatTargetFramework)\" />
-            <Content Include="../Microsoft.NET.Build.Containers/bin/debug/$(TargetFramework)/Microsoft.NET.Build.Containers.deps.json" Pack="true" PackagePath="tasks\$(TargetFramework)" />
-            <Content Include="../Microsoft.NET.Build.Containers/bin/debug/$(VSCompatTargetFramework)/Microsoft.NET.Build.Containers.deps.json" Pack="true" PackagePath="tasks\$(VSCompatTargetFramework)" />
+            <Content Include="@(ContainerLibraryOutput)" Pack="true" PackagePath="tasks/$(TargetFramework)/" />
+            <Content Include="@(ContainerLibraryOutputNet472)" Pack="true" PackagePath="tasks/$(VSCompatTargetFramework)/" />
+            <Content Include="../Microsoft.NET.Build.Containers/bin/debug/$(TargetFramework)/Microsoft.NET.Build.Containers.deps.json" Pack="true" PackagePath="tasks/$(TargetFramework)" />
+            <Content Include="../Microsoft.NET.Build.Containers/bin/debug/$(VSCompatTargetFramework)/Microsoft.NET.Build.Containers.deps.json" Pack="true" PackagePath="tasks/$(VSCompatTargetFramework)" />
 
             <!-- build folder -->
-            <Content Include="build\**" Pack="true" PackagePath="build\" />
+            <Content Include="build/**" Pack="true" PackagePath="build/" />
         </ItemGroup>
     </Target>
 
     <!-- Hacky workaround for the fact that we don't publish the package yet. -->
     <Target Name="CopyNupkgToCustomFolder" AfterTargets="Pack">
-        <Copy SourceFiles="$(OutDir)..\Microsoft.NET.Build.Containers.$(Version).nupkg"
-            DestinationFiles="..\Test.Microsoft.NET.Build.Containers.Filesystem\package\Microsoft.NET.Build.Containers.$(Version).nupkg" />
+        <Copy SourceFiles="$(OutDir)../Microsoft.NET.Build.Containers.$(Version).nupkg"
+            DestinationFiles="../Test.Microsoft.NET.Build.Containers.Filesystem/package/Microsoft.NET.Build.Containers.$(Version).nupkg" />
     </Target>
 </Project>
