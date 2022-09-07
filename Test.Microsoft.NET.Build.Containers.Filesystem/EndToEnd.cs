@@ -182,7 +182,7 @@ public class EndToEnd
         }
 
         // Add package to the project
-        info.Arguments = $"add package Microsoft.NET.Build.Containers --prerelease";
+        info.Arguments = $"add package Microsoft.NET.Build.Containers --prerelease -f net7.0";
         Process dotnetPackageAdd = Process.Start(info);
         Assert.IsNotNull(dotnetPackageAdd);
         await dotnetPackageAdd.WaitForExitAsync();
