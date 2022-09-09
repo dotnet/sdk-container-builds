@@ -34,7 +34,7 @@
         <PackageReference Include="System.CommandLine" PrivateAssets="all" IncludeAssets="runtime"/>
     </ItemGroup>
 
-    <Target Name="DoThePackaging" AfterTargets="Build">
+    <Target Name="AddItemsForPackaging" AfterTargets="Build">
         <ItemGroup>
             <!-- root folder -->
             <Content Include="README.md" Pack="true" PackagePath="" />
