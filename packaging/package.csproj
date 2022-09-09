@@ -48,8 +48,8 @@
             <!-- tasks folder -->
             <Content Include="@(ContainerLibraryOutput)" Pack="true" PackagePath="tasks/$(TargetFramework)/" />
             <Content Include="@(ContainerLibraryOutputNet472)" Pack="true" PackagePath="tasks/$(VSCompatTargetFramework)/" />
-            <Content Include="../Microsoft.NET.Build.Containers/bin/debug/$(TargetFramework)/Microsoft.NET.Build.Containers.deps.json" Pack="true" PackagePath="tasks/$(TargetFramework)" />
-            <Content Include="../Microsoft.NET.Build.Containers/bin/debug/$(VSCompatTargetFramework)/Microsoft.NET.Build.Containers.deps.json" Pack="true" PackagePath="tasks/$(VSCompatTargetFramework)" />
+            <Content Include="../Microsoft.NET.Build.Containers/bin/Debug/$(TargetFramework)/Microsoft.NET.Build.Containers.deps.json" Pack="true" PackagePath="tasks/$(TargetFramework)" />
+            <Content Include="../Microsoft.NET.Build.Containers/bin/Debug/$(VSCompatTargetFramework)/Microsoft.NET.Build.Containers.deps.json" Pack="true" PackagePath="tasks/$(VSCompatTargetFramework)" />
 
             <!-- build folder -->
             <Content Include="build/**" Pack="true" PackagePath="build/" />
