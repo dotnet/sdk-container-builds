@@ -22,6 +22,6 @@ jobs:
           6.0.x
         global-json-file: 'global.json' # in addition to the 6.0 we need for tests, install "latest"
     - name: Release
-      run: dotnet build --configuration release
+      run: dotnet build packaging --configuration release
     - name: Publish
-      run: dotnet nuget push "Microsoft.NET.Build.Containers/bin/Release/Microsoft.NET.Build.Containers.*.nupkg" --api-key ${{ secrets.FEED_UPLOAD_TOKEN }} --source "https://nuget.pkg.github.com/dotnet/index.json"
+      run: dotnet nuget push "packaging/bin/Release/Microsoft.NET.Build.Containers.*.nupkg" --api-key ${{ secrets.FEED_UPLOAD_TOKEN }} --source "https://nuget.pkg.github.com/dotnet/index.json"
