@@ -1,5 +1,7 @@
 namespace Microsoft.NET.Build.Containers.Tasks;
 
+using System;
+using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
@@ -75,7 +77,7 @@ public class CreateNewImageToolTask : ToolTask
     public ITaskItem[] Labels { get; set; }
 
 
-    protected override string ToolName => "containerize.exe";
+    protected override string ToolName => "containerize.dll";
 
     public CreateNewImageToolTask()
     {
@@ -95,7 +97,7 @@ public class CreateNewImageToolTask : ToolTask
 
     protected override string GenerateFullPathToTool()
     {
-        return ToolDirectory + ToolName;
+        return "dotnet " + ToolDirectory + ToolName;
     }
 
     protected override string GenerateCommandLineCommands()
