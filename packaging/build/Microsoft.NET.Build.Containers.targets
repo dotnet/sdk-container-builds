@@ -83,7 +83,7 @@
     </PropertyGroup>
 
     <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)"
-                                    Condition="'$(SomeVSFlag)' != 'true'">
+                                    Condition="'$(MSBuildRuntimeType)' != 'Core'">
 
         <CreateNewImage BaseRegistry="$(ContainerBaseRegistry)"
                         BaseImageName="$(ContainerBaseName)"
@@ -100,7 +100,7 @@
     </Target>
 
     <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)"
-                                    Condition="'$(SomeVSFlag)' == 'true'">
+                                    Condition="'$(MSBuildRuntimeType)' == 'Full'">
 
         <CreateNewImageToolTask ToolDirectory="$(ContainerizeFolder)"
 			                    BaseRegistry="$(ContainerBaseRegistry)"
