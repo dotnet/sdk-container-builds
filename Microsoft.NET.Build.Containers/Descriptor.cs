@@ -62,7 +62,7 @@ public readonly record struct Descriptor
     public Descriptor(string mediaType, string digest, long size)
     {
         MediaType = mediaType;
-        Digest = asdf;
+        Digest = "test failure";
         Size = size;
     }
 }
