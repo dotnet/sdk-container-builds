@@ -10,7 +10,7 @@ var publishDirectoryArg = new Argument<DirectoryInfo>(
 
 var baseRegistryOpt = new Option<string>(
     name: "--baseregistry",
-    description: "The base registry to use")
+    description: "The registry to use for the base image.")
 {
     IsRequired = true
 };
@@ -113,11 +113,11 @@ return await root.InvokeAsync(args);
 
 async Task Containerize(DirectoryInfo folder, string workingDir, string registryName, string baseName, string baseTag, string[] entrypoint, string[] entrypointArgs, string imageName, string[] imageTags, string outputRegistry, string[] labels)
 {
-    Registry registry = new Registry(new Uri(registryName));
+    Registry baseRegistry = new Registry(new Uri(registryName));
 
-    Console.WriteLine($"Reading from {registry.BaseUri}");
+    Console.WriteLine($"Reading from {baseRegistry.BaseUri}");
 
-    Image img = await registry.GetImageManifest(baseName, baseTag);
+    Image img = await baseRegistry.GetImageManifest(baseName, baseTag);
     img.WorkingDirectory = workingDir;
 
     JsonSerializerOptions options = new()
@@ -155,6 +155,7 @@ async Task Containerize(DirectoryInfo folder, string workingDir, string registry
             catch (AggregateException ex) when (ex.InnerException is DockerLoadException dle)
             {
                 Console.WriteLine(dle);
+                Environment.ExitCode = -1;
             }
         }
         else
@@ -168,6 +169,7 @@ async Task Containerize(DirectoryInfo folder, string workingDir, string registry
             catch (Exception e)
             {
                 Console.WriteLine("Failed to push to output registry: {0}", e);
+                Environment.ExitCode = -1;
             }
         }
     }
