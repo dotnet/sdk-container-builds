@@ -1,5 +1,6 @@
 namespace Microsoft.NET.Build.Containers;
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -96,9 +97,15 @@ public static class ContainerHelpers
     /// <param name="containerTag"></param>
     /// <returns>True if the parse was successful. When false is returned, all out vars are set to empty strings.</returns>
     public static bool TryParseFullyQualifiedContainerName(string fullyQualifiedContainerName,
+#if NET7_0_OR_GREATER
                                                             [NotNullWhen(true)] out string? containerRegistry,
                                                             [NotNullWhen(true)] out string? containerName,
                                                             [NotNullWhen(true)] out string? containerTag)
+#else
+                                                            out string? containerRegistry,
+                                                            out string? containerName,
+                                                            out string? containerTag)
+#endif
     {
         Uri? uri = ContainerImageToUri(fullyQualifiedContainerName);
 
@@ -125,7 +132,12 @@ public static class ContainerHelpers
     /// <summary>
     /// Checks if a given container image name adheres to the image name spec. If not, and recoverable, then normalizes invalid characters.
     /// </summary>
-    public static bool NormalizeImageName(string containerImageName, [NotNullWhen(false)] out string? normalizedImageName)
+    public static bool NormalizeImageName(string containerImageName,
+#if NET7_0_OR_GREATER
+                                         [NotNullWhen(false)] out string? normalizedImageName)
+#else
+                                         out string? normalizedImageName)
+#endif
     {
         if (IsValidImageName(containerImageName))
         {

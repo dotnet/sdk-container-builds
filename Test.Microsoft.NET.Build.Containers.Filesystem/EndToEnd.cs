@@ -192,14 +192,13 @@ public class EndToEnd
                           $" /p:ContainerBaseImage={DockerRegistryManager.FullyQualifiedBaseImageDefault}" +
                           $" /p:ContainerRegistry=http://{DockerRegistryManager.LocalRegistry}" +
                           $" /p:ContainerImageName={NewImageName}" +
-                          $" /p:MSBuildRuntimeType=Full" +
                           $" /p:Version=1.0";
 
         // Build & publish the project
         Process publish = Process.Start(info);
         Assert.IsNotNull(publish);
         await publish.WaitForExitAsync();
-        Assert.AreEqual(0, publish.ExitCode, await publish.StandardOutput.ReadToEndAsync());
+        Assert.AreEqual(0, publish.ExitCode, publish.StandardOutput.ReadToEnd());
 
         Process pull = Process.Start("docker", $"pull {DockerRegistryManager.LocalRegistry}/{NewImageName}:latest");
         Assert.IsNotNull(pull);
