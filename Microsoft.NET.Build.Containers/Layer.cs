@@ -19,7 +19,7 @@ public record struct Layer
                         string destinationPath = Path.Join(containerPath, Path.GetRelativePath(directory, fsi.FullName)).Replace(Path.DirectorySeparatorChar, '/');
                         return (fsi.FullName, destinationPath);
                     });
-        return FromFiles(fileList);
+        return FromFiles(fileList)
     }
 
     public static Layer FromFiles(IEnumerable<(string path, string containerPath)> fileList)
