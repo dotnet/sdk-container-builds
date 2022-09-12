@@ -24,7 +24,7 @@ public static class Evaluator {
     public static void LocateMSBuild(TestContext ctx)
     {
         var instances = MSBuildLocator.RegisterDefaults();
-        var relativePath = Path.Combine("..", "Microsoft.NET.Build.Containers", "build", "Microsoft.NET.Build.Containers.targets");
+        var relativePath = Path.Combine("..", "packaging", "build", "Microsoft.NET.Build.Containers.targets");
         var targetsFile = CurrentFile.Relative(relativePath);
         var propsFile = Path.ChangeExtension(targetsFile, ".props");
         CombinedTargetsLocation = CombineFiles(propsFile, targetsFile);
@@ -46,7 +46,7 @@ public static class Evaluator {
         props["Version"] = "1.0.0"; // TODO: need to test non-compliant version strings here
 
         // test setup parameters so that we can load the props/targets/tasks 
-        props["CustomTasksAssembly"] = Path.GetFullPath(Path.Combine(".", "Microsoft.NET.Build.Containers.dll"));
+        props["ContainerCustomTasksAssembly"] = Path.GetFullPath(Path.Combine(".", "Microsoft.NET.Build.Containers.dll"));
         props["_IsTest"] = "true";
         var loggers = new List<ILogger>
         {
