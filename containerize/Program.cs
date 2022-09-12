@@ -106,73 +106,7 @@ root.SetHandler(async (context) =>
     string[] _entrypointArgs = context.ParseResult.GetValueForOption(entrypointArgsOpt) ?? Array.Empty<string>();
     string[] _labels = context.ParseResult.GetValueForOption(labelsOpt) ?? Array.Empty<string>();
 
-    await Containerize(_publishDir, _workingDir, _baseReg, _baseName, _baseTag, _entrypoint, _entrypointArgs, _name, _tags, _outputReg, _labels);
+    await ContainerHelpers.Containerize(_publishDir, _workingDir, _baseReg, _baseName, _baseTag, _entrypoint, _entrypointArgs, _name, _tags, _outputReg, _labels);
 });
 
 return await root.InvokeAsync(args);
-
-async Task Containerize(DirectoryInfo folder, string workingDir, string registryName, string baseName, string baseTag, string[] entrypoint, string[] entrypointArgs, string imageName, string[] imageTags, string outputRegistry, string[] labels)
-{
-    Registry baseRegistry = new Registry(new Uri(registryName));
-
-    Console.WriteLine($"Reading from {baseRegistry.BaseUri}");
-
-    Image img = await baseRegistry.GetImageManifest(baseName, baseTag);
-    img.WorkingDirectory = workingDir;
-
-    JsonSerializerOptions options = new()
-    {
-        WriteIndented = true,
-    };
-
-    Console.WriteLine($"Copying from {folder.FullName} to {workingDir}");
-    Layer l = Layer.FromDirectory(folder.FullName, workingDir);
-
-    img.AddLayer(l);
-
-    img.SetEntrypoint(entrypoint, entrypointArgs);
-
-    var isDockerPush = outputRegistry.StartsWith("docker://");
-    Registry? outputReg = isDockerPush ? null : new Registry(new Uri(outputRegistry));
-
-    foreach (var label in labels)
-    {
-        string[] labelPieces = label.Split('=');
-
-        // labels are validated by System.Commandline API
-        img.Label(labelPieces[0], labelPieces[1]);
-    }
-
-    foreach (var tag in imageTags)
-    {
-        if (isDockerPush)
-        {
-            try
-            {
-                LocalDocker.Load(img, imageName, tag, baseName).Wait();
-                Console.WriteLine("Pushed container '{0}:{1}' to Docker daemon", imageName, tag);
-            }
-            catch (AggregateException ex) when (ex.InnerException is DockerLoadException dle)
-            {
-                Console.WriteLine(dle);
-                Environment.ExitCode = -1;
-            }
-        }
-        else
-        {
-            try
-            {
-                Console.WriteLine($"Trying to push container '{imageName}:{tag}' to registry '{outputRegistry}'");
-                outputReg?.Push(img, imageName, tag, imageName).Wait();
-                Console.WriteLine($"Pushed container '{imageName}:{tag}' to registry '{outputRegistry}'");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Failed to push to output registry: {0}", e);
-                Environment.ExitCode = -1;
-            }
-        }
-    }
-
-    //Console.WriteLine($"Loaded image into local Docker daemon. Use 'docker run --rm -it --name {imageName} {registryName}/{imageName}:{imageTag}' to run the application.");
-}
