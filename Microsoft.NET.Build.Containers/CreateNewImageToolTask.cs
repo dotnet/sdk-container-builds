@@ -97,12 +97,12 @@ public class CreateNewImageToolTask : ToolTask
 
     protected override string GenerateFullPathToTool()
     {
-        return "dotnet " + ToolDirectory + ToolName;
+        return "dotnet";
     }
 
     protected override string GenerateCommandLineCommands()
     {
-        return PublishDirectory +
+        return ToolDirectory + ToolName + " " + PublishDirectory +
                " --baseregistry " + BaseRegistry +
                " --baseimagename " + BaseImageName +
                " --baseimagetag " + BaseImageTag +
