@@ -1,4 +1,5 @@
 using Microsoft.NET.Build.Containers;
+using System.IO.Compression;
 using System.Security.Cryptography;
 
 namespace Test.Microsoft.NET.Build.Containers.Filesystem;
@@ -21,19 +22,10 @@ public class LayerEndToEnd
         Console.WriteLine(l.Descriptor);
 
         //Assert.AreEqual("application/vnd.oci.image.layer.v1.tar", l.Descriptor.MediaType); // TODO: configurability
-        Assert.AreEqual(2048, l.Descriptor.Size);
+        Assert.IsTrue(l.Descriptor.Size is >= 135 and <= 200, $"'l.Descriptor.Size' should be between 135 and 200, but is {l.Descriptor.Size}"); // TODO: determinism!
         //Assert.AreEqual("sha256:26140bc75f2fcb3bf5da7d3b531d995c93d192837e37df0eb5ca46e2db953124", l.Descriptor.Digest); // TODO: determinism!
 
-        Assert.AreEqual(l.Descriptor.Size, new FileInfo(l.BackingFile).Length);
-
-        byte[] hashBytes;
-
-        using (FileStream fs = File.OpenRead(l.BackingFile))
-        {
-            hashBytes = SHA256.HashData(fs);
-        }
-
-        Assert.AreEqual(Convert.ToHexString(hashBytes), l.Descriptor.Digest.Substring("sha256:".Length), ignoreCase: true);
+        VerifyDescriptorInfo(l);
     }
 
     [TestMethod]
@@ -59,19 +51,33 @@ public class LayerEndToEnd
         Console.WriteLine(l.Descriptor);
 
         //Assert.AreEqual("application/vnd.oci.image.layer.v1.tar", l.Descriptor.MediaType); // TODO: configurability
-        Assert.AreEqual(3072, l.Descriptor.Size);
+        Assert.IsTrue(l.Descriptor.Size is >= 150 and <= 200, $"'l.Descriptor.Size' should be between 150 and 200, but is {l.Descriptor.Size}"); // TODO: determinism!
         //Assert.AreEqual("sha256:26140bc75f2fcb3bf5da7d3b531d995c93d192837e37df0eb5ca46e2db953124", l.Descriptor.Digest); // TODO: determinism!
 
+        VerifyDescriptorInfo(l);
+    }
+
+    private static void VerifyDescriptorInfo(Layer l)
+    {
         Assert.AreEqual(l.Descriptor.Size, new FileInfo(l.BackingFile).Length);
 
         byte[] hashBytes;
+        byte[] uncompressedHashBytes;
 
         using (FileStream fs = File.OpenRead(l.BackingFile))
         {
             hashBytes = SHA256.HashData(fs);
+
+            fs.Position = 0;
+
+            using (GZipStream decompressionStream = new GZipStream(fs, CompressionMode.Decompress))
+            {
+                uncompressedHashBytes = SHA256.HashData(decompressionStream);
+            }
         }
 
         Assert.AreEqual(Convert.ToHexString(hashBytes), l.Descriptor.Digest.Substring("sha256:".Length), ignoreCase: true);
+        Assert.AreEqual(Convert.ToHexString(uncompressedHashBytes), l.Descriptor.UncompressedDigest.Substring("sha256:".Length), ignoreCase: true);
     }
 
     TransientTestFolder testSpecificArtifactRoot;
