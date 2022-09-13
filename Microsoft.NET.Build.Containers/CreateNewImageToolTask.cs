@@ -2,6 +2,7 @@ namespace Microsoft.NET.Build.Containers.Tasks;
 
 using System;
 using System.Linq;
+using System.IO;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
@@ -10,6 +11,9 @@ using Microsoft.Build.Utilities;
 /// </summary>
 public class CreateNewImageToolTask : ToolTask
 {
+    /// <summary>
+    /// The path to the folder containing `containerize.dll`.
+    /// </summary>
     [Required]
     public string ToolDirectory { get; set; }
 
@@ -76,11 +80,35 @@ public class CreateNewImageToolTask : ToolTask
     /// </summary>
     public ITaskItem[] Labels { get; set; }
 
+    private string _dotnetPath;
+    private string DotNetPath
+    {
+        get
+        {
+            if (!string.IsNullOrEmpty(_dotnetPath))
+            {
+                return _dotnetPath;
+            }
 
-    protected override string ToolName => "containerize.dll";
+            _dotnetPath = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "";
+            if (string.IsNullOrEmpty(_dotnetPath))
+            {
+                if (BuildEngine != null)
+                {
+                    Log.LogError("Environment variable DOTNET_HOST_PATH not set.");
+                }
+            }
+
+            return _dotnetPath;
+        }
+    }
+
+
+    protected override string ToolName => Path.GetDirectoryName(DotNetPath) ?? "";
 
     public CreateNewImageToolTask()
     {
+        _dotnetPath = "";
         ToolDirectory = "";
         BaseRegistry = "";
         BaseImageName = "";
@@ -102,7 +130,8 @@ public class CreateNewImageToolTask : ToolTask
 
     protected override string GenerateCommandLineCommands()
     {
-        return ToolDirectory + ToolName + " " + PublishDirectory +
+        return ToolDirectory + "containerize.dll " +
+               PublishDirectory +
                " --baseregistry " + BaseRegistry +
                " --baseimagename " + BaseImageName +
                " --baseimagetag " + BaseImageTag +
