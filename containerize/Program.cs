@@ -22,7 +22,6 @@ var baseImageNameOpt = new Option<string>(
     IsRequired = true
 };
 
-// // Add validator here
 var baseImageTagOpt = new Option<string>(
     name: "--baseimagetag",
     description: "The base image tag. Ex: 6.0",
@@ -69,12 +68,17 @@ var labelsOpt = new Option<string[]>(
     description: "Labels that the image configuration will include in metadata.",
     parseArgument: result =>
     {
-        if (result.Tokens.Where((v) => v.Value.Split('=').Length != 2).Count() != 0)
+        var labels = result.Tokens.Select(x => x.Value).ToArray();
+        var badLabels = labels.Where((v) => v.Split('=').Length != 2);
+
+        // Is there a non-zero number of Labels that didn't split into two elements? If so, assume invalid input and error out
+        if (badLabels.Count() != 0)
         {
-            result.ErrorMessage = "Incorrectly formatted label. Format: x=y";
+            result.ErrorMessage = "Incorrectly formatted labels: " + badLabels.Aggregate((x, y) => x = x + ";"+ y);
+
             return new string[] { };
         }
-        return result.Tokens.Select(v => v.Value).ToArray<string>();
+        return labels;
     });
 
 RootCommand root = new RootCommand("Containerize an application without Docker.")
