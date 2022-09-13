@@ -74,12 +74,15 @@ var labelsOpt = new Option<string[]>(
         // Is there a non-zero number of Labels that didn't split into two elements? If so, assume invalid input and error out
         if (badLabels.Count() != 0)
         {
-            result.ErrorMessage = "Incorrectly formatted labels: " + badLabels.Aggregate((x, y) => x = x + ";"+ y);
+            result.ErrorMessage = "Incorrectly formatted labels: " + badLabels.Aggregate((x, y) => x = x + ";" + y);
 
             return new string[] { };
         }
         return labels;
-    });
+    })
+{
+    AllowMultipleArgumentsPerToken = true
+};
 
 RootCommand root = new RootCommand("Containerize an application without Docker.")
 {
