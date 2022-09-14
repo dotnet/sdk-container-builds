@@ -110,7 +110,7 @@
 
         <CreateNewImageToolTask ContainerizeDirectory="$(ContainerizeFolder)"
                                 ToolPath="$(DotNetHostDirectory)"
-                                ToolName="$(DotNetHostFileName)"
+                                ToolExe="$(DotNetHostFileName)"
 			                    BaseRegistry="$(ContainerBaseRegistry)"
                                 BaseImageName="$(ContainerBaseName)"
                                 BaseImageTag="$(ContainerBaseTag)"

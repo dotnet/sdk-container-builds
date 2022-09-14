@@ -79,9 +79,9 @@ public class CreateNewImageToolTask : ToolTask
     /// Labels that the image configuration will include in metadata
     /// </summary>
     public ITaskItem[] Labels { get; set; }
-
-    protected override string ToolName { get; }
-
+ 
+    // Unused, ToolExe is set via targets and overrides this.
+    protected override string ToolName => "dotnet";
 
     private string DotNetPath
     {
@@ -100,7 +100,6 @@ public class CreateNewImageToolTask : ToolTask
     public CreateNewImageToolTask()
     {
         ContainerizeDirectory = "";
-        ToolName = "";
         BaseRegistry = "";
         BaseImageName = "";
         BaseImageTag = "";
@@ -114,7 +113,7 @@ public class CreateNewImageToolTask : ToolTask
         Labels = Array.Empty<ITaskItem>();
     }
 
-    protected override string GenerateFullPathToTool() => DotNetPath + ToolName;
+    protected override string GenerateFullPathToTool() => DotNetPath + ToolExe;
 
     protected override string GenerateCommandLineCommands()
     {
