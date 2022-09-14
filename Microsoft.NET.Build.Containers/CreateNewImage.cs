@@ -97,6 +97,10 @@ public partial class CreateNewImage : Microsoft.Build.Utilities.Task
 
         SafeLog("Building image '{0}' with tags {1} on top of base image {2}/{3}:{4}", ImageName, String.Join(",", ImageTags), BaseRegistry, BaseImageName, BaseImageTag);
 
+        if (!String.IsNullOrEmpty(ExecutionUserName)) {
+            image.User = ExecutionUserName;
+        }
+
         Layer newLayer = Layer.FromDirectory(PublishDirectory, WorkingDirectory);
         image.AddLayer(newLayer);
         image.WorkingDirectory = WorkingDirectory;

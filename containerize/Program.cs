@@ -131,26 +131,36 @@ var portsOpt = new Option<Port[]>(
     AllowMultipleArgumentsPerToken = true
 };
 
-var envVarsOpt = new Option<string[]>(
+var envVarsOpt = new Option<(string key, string value)[]>(
     name: "--environmentvariables",
     description: "Container environment variables to set.",
     parseArgument: result =>
     {
         var envVars = result.Tokens.Select(x => x.Value).ToArray();
-        var badEnvVars = envVars.Where((v) => v.Split('=').Length != 2);
-
-        if (badEnvVars.Count() != 0)
-        {
-            result.ErrorMessage = "Incorrectly formatted environment variables: " + badEnvVars.Aggregate((x, y) => x = x + ";" + y);
-
-            return new string[] { };
+        var (goodEnvVars, badEnvVars) = (new List<(string, string)>(), new List<string>());
+        
+        foreach (var envVar in envVars) {
+            var split = envVar.Split('=', 2);
+            if (split.Length != 2) {
+                badEnvVars.Add(envVar);
+                continue;
+            }
+            goodEnvVars.Add((split[0], split[1]));
         }
-        return envVars;
+        if(badEnvVars.Count != 0) {
+            result.ErrorMessage = "Incorrectly formatted environment variables: " + badEnvVars.Aggregate((x, y) => x = x + ";" + y);
+            return new (string, string)[] { };
+        }
+        return goodEnvVars.ToArray();
     })
 {
     AllowMultipleArgumentsPerToken = true
 };
 
+
+var userOpt = new Option<string>(
+    name: "--user",
+    description: "The user name to use when running the image.");
 
 RootCommand root = new RootCommand("Containerize an application without Docker.")
 {
@@ -183,8 +193,9 @@ root.SetHandler(async (context) =>
     string[] _entrypointArgs = context.ParseResult.GetValueForOption(entrypointArgsOpt) ?? Array.Empty<string>();
     string[] _labels = context.ParseResult.GetValueForOption(labelsOpt) ?? Array.Empty<string>();
     Port[] _ports = context.ParseResult.GetValueForOption(portsOpt) ?? Array.Empty<Port>();
-    string[] _envVars = context.ParseResult.GetValueForOption(envVarsOpt) ?? Array.Empty<string>();
-    await ContainerBuilder.Containerize(_publishDir, _workingDir, _baseReg, _baseName, _baseTag, _entrypoint, _entrypointArgs, _name, _tags, _outputReg, _labels, _ports, _envVars);
+    var _envVars = context.ParseResult.GetValueForOption(envVarsOpt) ?? Array.Empty<(string, string)>();
+    string? _user = context.ParseResult.GetValueForOption(userOpt);
+    await ContainerHelpers.Containerize(_publishDir, _workingDir, _baseReg, _baseName, _baseTag, _entrypoint, _entrypointArgs, _name, _user, _tags, _outputReg, _labels, _ports, _envVars);
 });
 
 return await root.InvokeAsync(args);
