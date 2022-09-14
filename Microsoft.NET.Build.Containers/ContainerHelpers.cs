@@ -1,8 +1,8 @@
 namespace Microsoft.NET.Build.Containers;
 
 using System;
+using System.IO.Ports;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 
 public static class ContainerHelpers
@@ -206,89 +206,22 @@ public static class ContainerHelpers
     public static bool TryParsePort(string input, [NotNullWhen(true)] out Port? port, [NotNullWhen(false)] out ParsePortError? error)
     {
         var parts = input.Split('/');
-        if (parts is [var portNumber, var type])
+        if (parts.Length == 2)
         {
+            string portNumber = parts[0];
+            string type = parts[1];
             return TryParsePort(portNumber, type, out port, out error);
         }
-        else if (parts is [var portNo])
+        else if (parts.Length == 1)
         {
-            return TryParsePort(portNo, null, out port, out error);
+            string portNum = parts[0];
+            return TryParsePort(portNum, null, out port, out error);
         }
         else
         {
             error = ParsePortError.UnknownPortFormat;
             port = null;
             return false;
-        }
-    }
-
-    public static async Task Containerize(DirectoryInfo folder, string workingDir, string registryName, string baseName, string baseTag, string[] entrypoint, string[] entrypointArgs, string imageName, string[] imageTags, string outputRegistry, string[] labels, Port[] exposedPorts)
-    {
-        Registry baseRegistry = new Registry(new Uri(registryName));
-
-        Console.WriteLine($"Reading from {baseRegistry.BaseUri}");
-
-        Image img = await baseRegistry.GetImageManifest(baseName, baseTag);
-        img.WorkingDirectory = workingDir;
-
-        JsonSerializerOptions options = new()
-        {
-            WriteIndented = true,
-        };
-
-        Console.WriteLine($"Copying from {folder.FullName} to {workingDir}");
-        Layer l = Layer.FromDirectory(folder.FullName, workingDir);
-
-        img.AddLayer(l);
-
-        img.SetEntrypoint(entrypoint, entrypointArgs);
-
-        var isDockerPush = outputRegistry.StartsWith("docker://");
-        Registry? outputReg = isDockerPush ? null : new Registry(new Uri(outputRegistry));
-
-        foreach (var label in labels)
-        {
-            string[] labelPieces = label.Split('=');
-
-            // labels are validated by System.CommandLine API
-            img.Label(labelPieces[0], labelPieces[1]);
-        }
-
-        foreach (var (number, type) in exposedPorts)
-        {
-            // ports are validated by System.CommandLine API
-            img.ExposePort(number, type);
-        }
-
-        foreach (var tag in imageTags)
-        {
-            if (isDockerPush)
-            {
-                try
-                {
-                    LocalDocker.Load(img, imageName, tag, baseName).Wait();
-                    Console.WriteLine("Pushed container '{0}:{1}' to Docker daemon", imageName, tag);
-                }
-                catch (AggregateException ex) when (ex.InnerException is DockerLoadException dle)
-                {
-                    Console.WriteLine(dle);
-                    Environment.ExitCode = -1;
-                }
-            }
-            else
-            {
-                try
-                {
-                    Console.WriteLine($"Trying to push container '{imageName}:{tag}' to registry '{outputRegistry}'");
-                    outputReg?.Push(img, imageName, tag, imageName).Wait();
-                    Console.WriteLine($"Pushed container '{imageName}:{tag}' to registry '{outputRegistry}'");
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Failed to push to output registry: {0}", e);
-                    Environment.ExitCode = -1;
-                }
-            }
         }
     }
 }
