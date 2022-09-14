@@ -210,7 +210,7 @@ public static class ContainerHelpers
         }
     }
 
-    public static async Task Containerize(DirectoryInfo folder, string workingDir, string registryName, string baseName, string baseTag, string[] entrypoint, string[] entrypointArgs, string imageName, string[] imageTags, string outputRegistry, string[] labels, string[] exposedPorts)
+    public static async Task Containerize(DirectoryInfo folder, string workingDir, string registryName, string baseName, string baseTag, string[] entrypoint, string[] entrypointArgs, string imageName, string[] imageTags, string outputRegistry, string[] labels, Port[] exposedPorts)
     {
         Registry baseRegistry = new Registry(new Uri(registryName));
 
@@ -238,16 +238,14 @@ public static class ContainerHelpers
         {
             string[] labelPieces = label.Split('=');
 
-            // labels are validated by System.Commandline API
+            // labels are validated by System.CommandLine API
             img.Label(labelPieces[0], labelPieces[1]);
         }
 
-        foreach (var exposedPort in exposedPorts)
+        foreach (var (number, type) in exposedPorts)
         {
-            if (TryParsePort(exposedPort, out var port))
-            {
-                img.ExposePort(port.number, port.type);
-            }
+            // ports are validated by System.CommandLine API
+            img.ExposePort(number, type);
         }
 
         foreach (var tag in imageTags)
