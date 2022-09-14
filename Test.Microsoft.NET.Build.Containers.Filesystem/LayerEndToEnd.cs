@@ -17,7 +17,7 @@ public class LayerEndToEnd
 
         File.WriteAllText(testFilePath, testString);
 
-        Layer l = Layer.FromDirectory(directory: folder.Path, containerPath: "/app");
+        Layer l = Layer.FromDirectory(directory: folder.Path, containerUser: "root", containerPath: "/app");
 
         Console.WriteLine(l.Descriptor);
 
@@ -42,7 +42,7 @@ public class LayerEndToEnd
         string testString2 = $"Test content 2 for {nameof(TwoFilesInTwoFolders)}";
         File.WriteAllText(testFilePath2, testString2);
 
-        Layer l = Layer.FromFiles("/app",
+        Layer l = Layer.FromFiles("/app", "root",
         new[]
         {
             (testFilePath,  "TestFile.txt"),
