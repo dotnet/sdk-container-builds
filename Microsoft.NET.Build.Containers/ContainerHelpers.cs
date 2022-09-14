@@ -1,7 +1,6 @@
 namespace Microsoft.NET.Build.Containers;
 
 using System;
-using System.IO.Ports;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
