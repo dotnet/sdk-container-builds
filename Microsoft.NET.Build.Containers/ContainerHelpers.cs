@@ -16,6 +16,26 @@ public static class ContainerHelpers
     /// </summary>
     private static Regex imageNameCharacters = new Regex(@"[^a-z0-9._\-/]");
 
+#if !NET7_0_OR_GREATER
+    // Taken straight from dotnet/runtime for net472 visibility
+
+    /// <summary>
+    /// Specifies that when a method returns <see cref="ReturnValue"/>, the parameter will not be null even if the corresponding type allows it.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+    sealed class NotNullWhenAttribute : Attribute
+    {
+        /// <summary>Initializes the attribute with the specified return value condition.</summary>
+        /// <param name="returnValue">
+        /// The return value condition. If the method returns this value, the associated parameter will not be null.
+        /// </param>
+        public NotNullWhenAttribute(bool returnValue) => ReturnValue = returnValue;
+
+        /// <summary>Gets the return value condition.</summary>
+        public bool ReturnValue { get; }
+    }
+#endif
+
     /// <summary>
     /// Given some "fully qualified" image name (e.g. mcr.microsoft.com/dotnet/runtime), return
     /// a valid UriBuilder. This means appending 'https' if the URI is not absolute, otherwise UriBuilder will throw.
@@ -97,15 +117,9 @@ public static class ContainerHelpers
     /// <param name="containerTag"></param>
     /// <returns>True if the parse was successful. When false is returned, all out vars are set to empty strings.</returns>
     public static bool TryParseFullyQualifiedContainerName(string fullyQualifiedContainerName,
-#if NET7_0_OR_GREATER
                                                             [NotNullWhen(true)] out string? containerRegistry,
                                                             [NotNullWhen(true)] out string? containerName,
                                                             [NotNullWhen(true)] out string? containerTag)
-#else
-                                                            out string? containerRegistry,
-                                                            out string? containerName,
-                                                            out string? containerTag)
-#endif
     {
         Uri? uri = ContainerImageToUri(fullyQualifiedContainerName);
 
@@ -133,11 +147,7 @@ public static class ContainerHelpers
     /// Checks if a given container image name adheres to the image name spec. If not, and recoverable, then normalizes invalid characters.
     /// </summary>
     public static bool NormalizeImageName(string containerImageName,
-#if NET7_0_OR_GREATER
                                          [NotNullWhen(false)] out string? normalizedImageName)
-#else
-                                         out string? normalizedImageName)
-#endif
     {
         if (IsValidImageName(containerImageName))
         {
