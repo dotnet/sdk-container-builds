@@ -115,7 +115,19 @@ public record struct Layer
 
                         // Docker treats a COPY instruction that copies to a path like `/app` by
                         // including `app/` as a directory, with no leading slash. Emulate that here.
-                        WriteFile(writer, new FileInfo(item.localFullPath), destinationPath, user, group);
+                        var localFile = new FileInfo(item.localFullPath);
+                        var entry = new PaxTarEntry(TarEntryType.RegularFile, destinationPath.TrimStart('/'));
+                        entry.Mode = UnixFileMode.UserRead | UnixFileMode.UserWrite
+                                    | UnixFileMode.GroupRead
+                                    | UnixFileMode.OtherRead;
+                        if (localFile.Extension == ".exe" || localFile.Extension == "") {
+                            entry.Mode = entry.Mode | UnixFileMode.UserExecute;
+                        }
+                        entry.ModificationTime = localFile.LastWriteTimeUtc;
+                        entry.UserName = user;
+                        entry.GroupName = group;
+                        entry.DataStream = localFile.OpenRead();
+                        writer.WriteEntry(entry);
                     }
                 } // Dispose of the TarWriter before getting the hash so the final data get written to the tar stream
 
