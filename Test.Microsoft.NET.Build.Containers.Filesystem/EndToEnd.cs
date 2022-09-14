@@ -33,7 +33,7 @@ public class EndToEnd
 
         Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag);
 
-        Layer l = Layer.FromDirectory(publishDirectory, "/app", x.User);
+        Layer l = Layer.FromDirectory(publishDirectory, "/app");
 
         x.AddLayer(l);
 
@@ -71,7 +71,7 @@ public class EndToEnd
 
         Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag);
 
-        Layer l = Layer.FromDirectory(publishDirectory, "/app", x.User);
+        Layer l = Layer.FromDirectory(publishDirectory, "/app");
 
         x.AddLayer(l);
 
@@ -100,11 +100,11 @@ public class EndToEnd
         Registry registry = new Registry(new Uri($"http://{DockerRegistryManager.LocalRegistry}"));
 
         Image x = await registry.GetImageManifest(DockerRegistryManager.ChiseledImage, DockerRegistryManager.ChiseledImageTag);
+        x.WorkingDirectory = "/app";
 
-        Layer l = Layer.FromDirectory(publishDirectory, "/app", x.User);
+        Layer l = Layer.FromDirectory(publishDirectory, "/app");
 
         x.AddLayer(l);
-
         x.SetEntrypoint(new [] { "/app/MinimalTestApp" });
 
         // Load the image into the local Docker daemon
@@ -131,7 +131,7 @@ public class EndToEnd
             d.Delete(recursive: true);
         }
 
-        ProcessStartInfo psi = new("dotnet", "new mvc -f net6.0 -o MinimalTestApp")
+        ProcessStartInfo psi = new("dotnet", "new console -f net6.0 -o MinimalTestApp")
         {
             RedirectStandardOutput = true,
             RedirectStandardError = true,
