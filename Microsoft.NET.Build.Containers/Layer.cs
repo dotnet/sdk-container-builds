@@ -85,15 +85,15 @@ public record struct Layer
     {
         long fileSize;
         Span<byte> hash = stackalloc byte[SHA256.HashSizeInBytes];
-        byte[] uncompressedHash;
+        // byte[] uncompressedHash;
 
         string tempTarballPath = ContentStore.GetTempFile();
         var knownDirectories = new HashSet<string>();
         using (FileStream fs = File.Create(tempTarballPath))
         {
-            using (HashDigestGZipStream gz = new(fs, leaveOpen: true))
-            {
-                using (TarWriter writer = new(gz, TarEntryFormat.Pax, leaveOpen: true))
+            // using (HashDigestGZipStream gz = new(fs, leaveOpen: true))
+            // {
+                using (TarWriter writer = new(fs, TarEntryFormat.Pax, leaveOpen: true))
                 {
                     foreach(var rootDirectory in WalkDirectories(containerRoot).Reverse())
                     {
@@ -131,8 +131,8 @@ public record struct Layer
                     }
                 } // Dispose of the TarWriter before getting the hash so the final data get written to the tar stream
 
-                uncompressedHash = gz.GetHash();
-            }
+                // uncompressedHash = gz.GetHash();
+            // }
 
             fileSize = fs.Length;
 
@@ -142,14 +142,14 @@ public record struct Layer
         }
 
         string contentHash = Convert.ToHexString(hash).ToLowerInvariant();
-        string uncompressedContentHash = Convert.ToHexString(uncompressedHash).ToLowerInvariant();
+        // string uncompressedContentHash = Convert.ToHexString(uncompressedHash).ToLowerInvariant();
 
         Descriptor descriptor = new()
         {
             MediaType = "application/vnd.docker.image.rootfs.diff.tar.gzip", // TODO: configurable? gzip always?
             Size = fileSize,
             Digest = $"sha256:{contentHash}",
-            UncompressedDigest = $"sha256:{uncompressedContentHash}",
+            UncompressedDigest = $"sha256:{contentHash}",
         };
 
         string storedContent = ContentStore.PathForDescriptor(descriptor);
