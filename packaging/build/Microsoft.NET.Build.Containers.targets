@@ -34,7 +34,7 @@
             <ContainerBaseImage Condition="'$(ContainerBaseImage)' == ''">$(_ContainerBaseRegistry)/$(_ContainerBaseImageName):$(_ContainerBaseImageTag)</ContainerBaseImage>
             <ContainerRegistry Condition="'$(ContainerRegistry)' == ''">docker://</ContainerRegistry>
             <!-- Note: spaces will be replaced with '-' in ContainerImageName and ContainerImageTag -->
-            <ContainerImageName Condition="'$(ContainerImageName)' == ''">$(AssemblyName)</ContainerImageName>
+            <ContainerImageName Condition="'$(ContainerImageName)' == ''">$(AssemblyName.ToLowerInvariant())</ContainerImageName>
             <!-- Only default a tag name if no tag names at all are provided -->
             <ContainerImageTag Condition="'$(ContainerImageTag)' == '' and '$(ContainerImageTags)' == ''">$(Version)</ContainerImageTag>
             <ContainerWorkingDirectory Condition="'$(ContainerWorkingDirectory)' == ''">/app</ContainerWorkingDirectory>
