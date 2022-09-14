@@ -15,7 +15,7 @@ public class CreateNewImageToolTask : ToolTask
     /// The path to the folder containing `containerize.dll`.
     /// </summary>
     [Required]
-    public string ToolDirectory { get; set; }
+    public string ContainerizeDirectory { get; set; }
 
     [Required]
     public string BaseRegistry { get; set; }
@@ -80,36 +80,27 @@ public class CreateNewImageToolTask : ToolTask
     /// </summary>
     public ITaskItem[] Labels { get; set; }
 
-    private string _dotnetPath;
+    protected override string ToolName { get; }
+
+
     private string DotNetPath
     {
         get
         {
-            if (!string.IsNullOrEmpty(_dotnetPath))
+            string path = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "";
+            if (string.IsNullOrEmpty(path))
             {
-                return _dotnetPath;
+                path = string.IsNullOrEmpty(ToolPath) ? "" : ToolPath;
             }
 
-            _dotnetPath = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "";
-            if (string.IsNullOrEmpty(_dotnetPath))
-            {
-                if (BuildEngine != null)
-                {
-                    Log.LogError("Environment variable DOTNET_HOST_PATH not set.");
-                }
-            }
-
-            return _dotnetPath;
+            return path;
         }
     }
 
-
-    protected override string ToolName => Path.GetDirectoryName(DotNetPath) ?? "";
-
     public CreateNewImageToolTask()
     {
-        _dotnetPath = "";
-        ToolDirectory = "";
+        ContainerizeDirectory = "";
+        ToolName = "";
         BaseRegistry = "";
         BaseImageName = "";
         BaseImageTag = "";
@@ -123,14 +114,11 @@ public class CreateNewImageToolTask : ToolTask
         Labels = Array.Empty<ITaskItem>();
     }
 
-    protected override string GenerateFullPathToTool()
-    {
-        return "dotnet";
-    }
+    protected override string GenerateFullPathToTool() => DotNetPath + ToolName;
 
     protected override string GenerateCommandLineCommands()
     {
-        return ToolDirectory + "containerize.dll " +
+        return ContainerizeDirectory + "containerize.dll " +
                PublishDirectory +
                " --baseregistry " + BaseRegistry +
                " --baseimagename " + BaseImageName +

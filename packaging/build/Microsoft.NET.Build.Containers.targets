@@ -102,7 +102,15 @@
     <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)"
                                     Condition="'$(MSBuildRuntimeType)' == 'Full'">
 
-        <CreateNewImageToolTask ToolDirectory="$(ContainerizeFolder)"
+        <PropertyGroup Condition="'$(DOTNET_HOST_PATH)' == ''">
+            <DotNetHostDirectory>$(NetCoreRoot)</DotNetHostDirectory>
+            <DotNetHostFileName>dotnet</DotNetHostFileName>
+            <DotNetHostFileName Condition="'$(OS)' == 'Windows_NT'">dotnet.exe</DotNetHostFileName  >
+        </PropertyGroup>
+
+        <CreateNewImageToolTask ContainerizeDirectory="$(ContainerizeFolder)"
+                                ToolPath="$(DotNetHostDirectory)"
+                                ToolName="$(DotNetHostFileName)"
 			                    BaseRegistry="$(ContainerBaseRegistry)"
                                 BaseImageName="$(ContainerBaseName)"
                                 BaseImageTag="$(ContainerBaseTag)"
