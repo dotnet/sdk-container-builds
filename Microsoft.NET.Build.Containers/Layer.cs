@@ -26,32 +26,92 @@ public record struct Layer
             .EnumerateFiles("*", SearchOption.AllDirectories)
             .Select(fsi =>
                     {
-                        string destinationPath = Path.Join(containerPath, Path.GetRelativePath(directory, fsi.FullName)).Replace(Path.DirectorySeparatorChar, '/');
-                        return (fsi.FullName, destinationPath);
+                        return (fsi.FullName, Path.GetRelativePath(directory, fsi.FullName));
                     });
-        return FromFiles(fileList);
+        return FromFiles(containerPath, fileList);
     }
 
-    public static Layer FromFiles(IEnumerable<(string path, string containerPath)> fileList)
+    /// <summary>
+    /// Convert a windows rooted directory path to a unix rooted directory path.
+    /// </summary>
+    private static string NormalizeDirectoryPath(string directoryPath)
+    {
+        if (directoryPath.StartsWith('/')) {
+            return directoryPath;
+        } else if (Char.IsAsciiLetter(directoryPath[0]) && directoryPath.IndexOf(':') is var colonIndex && colonIndex > 0) {
+            return "/" + directoryPath.Substring(colonIndex + 2); // skip everything up to :\\ in the windows path
+        } else {
+            throw new ArgumentException("Invalid directory path", nameof(directoryPath));
+        }
+    }
+
+    private static void WriteDirectory(TarWriter writer, DirectoryInfo containerDirectory) {
+        var directoryPath = NormalizeDirectoryPath(containerDirectory.FullName);
+        var entry = new GnuTarEntry(TarEntryType.Directory, directoryPath);
+        entry.Mode = UnixFileMode.UserExecute | UnixFileMode.UserRead | UnixFileMode.UserWrite
+                    | UnixFileMode.GroupExecute | UnixFileMode.GroupRead
+                    | UnixFileMode.OtherExecute | UnixFileMode.OtherRead;
+        writer.WriteEntry(entry);
+    }
+
+    private static void WriteFile(TarWriter writer, FileInfo localFile, string destinationPath) {
+        var entry = new GnuTarEntry(TarEntryType.RegularFile, destinationPath);
+        entry.Mode = UnixFileMode.UserRead | UnixFileMode.UserWrite
+                    | UnixFileMode.GroupRead
+                    | UnixFileMode.OtherRead;
+        if (localFile.Extension == ".exe" || localFile.Extension == "") {
+            entry.Mode = entry.Mode | UnixFileMode.UserExecute;
+        }
+        entry.AccessTime = localFile.LastAccessTimeUtc;
+        entry.ModificationTime = localFile.LastWriteTimeUtc;
+        entry.ChangeTime = localFile.LastWriteTimeUtc;
+        entry.DataStream = localFile.OpenRead();
+        writer.WriteEntry(entry);
+    }
+
+    private static IEnumerable<DirectoryInfo> WalkDirectories(string root) {
+        var currentDir = new DirectoryInfo(root);
+        while (currentDir != null) {
+            yield return currentDir;
+            currentDir = currentDir.Parent;
+        }
+    }
+
+    public static Layer FromFiles(string containerRoot, IEnumerable<(string localFullPath, string containerRelativePath)> fileList)
     {
         long fileSize;
         Span<byte> hash = stackalloc byte[SHA256.HashSizeInBytes];
         byte[] uncompressedHash;
 
         string tempTarballPath = ContentStore.GetTempFile();
+        var knownDirectories = new HashSet<string>();
         using (FileStream fs = File.Create(tempTarballPath))
         {
             using (HashDigestGZipStream gz = new(fs, leaveOpen: true))
             {
                 using (TarWriter writer = new(gz, TarEntryFormat.Gnu, leaveOpen: true))
                 {
+                    foreach(var rootDirectory in WalkDirectories(containerRoot).Reverse())
+                    {
+                        WriteDirectory(writer, rootDirectory);
+                        knownDirectories.Add(rootDirectory.FullName);
+                    }
                     foreach (var item in fileList)
                     {
+                        string destinationPath = Path.Join(containerRoot, item.containerRelativePath).Replace(Path.DirectorySeparatorChar, '/');
+                        var directoriesInPath = WalkDirectories(new FileInfo(destinationPath).DirectoryName!).Reverse();
+                        foreach (var directory in directoriesInPath)
+                        {
+                            if (!knownDirectories.Contains(directory.FullName))
+                            {
+                                WriteDirectory(writer, directory);
+                                knownDirectories.Add(directory.FullName);
+                            }
+                        }
+
                         // Docker treats a COPY instruction that copies to a path like `/app` by
                         // including `app/` as a directory, with no leading slash. Emulate that here.
-                        string containerPath = item.containerPath.TrimStart(PathSeparators);
-
-                        writer.WriteEntry(item.path, containerPath);
+                        WriteFile(writer, new FileInfo(item.localFullPath), destinationPath.TrimStart(PathSeparators));
                     }
                 } // Dispose of the TarWriter before getting the hash so the final data get written to the tar stream
 

@@ -42,10 +42,11 @@ public class LayerEndToEnd
         string testString2 = $"Test content 2 for {nameof(TwoFilesInTwoFolders)}";
         File.WriteAllText(testFilePath2, testString2);
 
-        Layer l = Layer.FromFiles(new[]
+        Layer l = Layer.FromFiles("/app",
+        new[]
         {
-            (testFilePath,  "/app/TestFile.txt"),
-            (testFilePath2, "/app/subfolder/TestFile.txt"),
+            (testFilePath,  "TestFile.txt"),
+            (testFilePath2, "subfolder/TestFile.txt"),
         });
 
         Console.WriteLine(l.Descriptor);
