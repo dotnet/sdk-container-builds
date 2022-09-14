@@ -9,8 +9,15 @@ public class DockerRegistryManager
     public const string BaseImage = "dotnet/runtime";
     public const string BaseImageSource = "mcr.microsoft.com/";
     public const string BaseImageTag = "6.0";
+
+    public const string ChiseledImage = "dotnet/nightly/aspnet";
+    public const string ChiseledImageTag = "6.0-jammy-chiseled";
+
     public const string LocalRegistry = "localhost:5010";
-    public const string FullyQualifiedBaseImageDefault = $"{BaseImageSource}{BaseImage}:{BaseImageTag}";
+
+    public static readonly string FullyQualifiedBaseImageDefault = FullImageUrl(BaseImageSource, BaseImage, BaseImageTag);
+    public static string FullImageUrl(string source, string image, string tag) => $"{source.TrimEnd('/')}/{image}:{tag}";
+
     private static string s_registryContainerId;
 
     private static void Exec(string command, string args) {
@@ -28,6 +35,12 @@ public class DockerRegistryManager
     {
         var instances = MSBuildLocator.QueryVisualStudioInstances(new() { DiscoveryTypes = DiscoveryType.DotNetSdk, WorkingDirectory = Environment.CurrentDirectory });
         MSBuildLocator.RegisterInstance(instances.First());
+    }
+
+    public static void Pull(string sourceRegistry, string image, string tag, string targetRegistry) {
+        Exec("docker", $"pull {sourceRegistry}{image}:{tag}");
+        Exec("docker", $"tag {sourceRegistry}{image}:{tag} {targetRegistry}/{image}:{tag}");
+        Exec("docker", $"push {targetRegistry}/{image}:{tag}");
     }
 
     [AssemblyInitialize]
@@ -53,9 +66,8 @@ public class DockerRegistryManager
 
         s_registryContainerId = registryContainerId;
 
-        Exec("docker", $"pull {BaseImageSource}{BaseImage}:{BaseImageTag}");
-        Exec("docker", $"tag {BaseImageSource}{BaseImage}:{BaseImageTag} {LocalRegistry}/{BaseImage}:{BaseImageTag}");
-        Exec("docker", $"push {LocalRegistry}/{BaseImage}:{BaseImageTag}");
+        Pull(BaseImageSource, BaseImage, BaseImageTag, LocalRegistry);
+        Pull(BaseImageSource, ChiseledImage, ChiseledImageTag, LocalRegistry);
         LocateMSBuild();
     }
 

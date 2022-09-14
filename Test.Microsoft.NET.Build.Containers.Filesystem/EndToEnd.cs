@@ -91,6 +91,35 @@ public class EndToEnd
         Assert.AreEqual(0, run.ExitCode);
     }
 
+    [TestMethod]
+    public async Task ApiBasedWebAppOnRootlessContainer(){
+        string publishDirectory = await BuildLocalApp();
+
+        // Build the image
+
+        Registry registry = new Registry(new Uri($"http://{DockerRegistryManager.LocalRegistry}"));
+
+        Image x = await registry.GetImageManifest(DockerRegistryManager.ChiseledImage, DockerRegistryManager.ChiseledImageTag);
+
+        Layer l = Layer.FromDirectory(publishDirectory, "/app");
+
+        x.AddLayer(l);
+
+        x.SetEntrypoint(new [] { "/app/MinimalTestApp" });
+
+        // Load the image into the local Docker daemon
+
+        await LocalDocker.Load(x, NewImageName(), "latest", DockerRegistryManager.ChiseledImage);
+
+        // Run the image
+        ProcessStartInfo runInfo = new("docker", $"run --rm --tty {NewImageName}:latest");
+        Process run = Process.Start(runInfo);
+        Assert.IsNotNull(run);
+        await run.WaitForExitAsync();
+
+        Assert.AreEqual(0, run.ExitCode, run.StandardOutput.ReadToEnd() + "\n" + run.StandardError.ReadToEnd());
+    }
+
     private static async Task<string> BuildLocalApp()
     {
         DirectoryInfo d = new DirectoryInfo("MinimalTestApp");
@@ -170,14 +199,14 @@ public class EndToEnd
         Process dotnetNew = Process.Start(info);
         Assert.IsNotNull(dotnetNew);
         await dotnetNew.WaitForExitAsync();
-        Assert.AreEqual(0, dotnetNew.ExitCode);
+        Assert.AreEqual(0, dotnetNew.ExitCode, dotnetNew.StandardOutput.ReadToEnd());
 
         // Give it a unique nugetconfig
         info.Arguments = "new nugetconfig";
         Process dotnetNewNugetConfig = Process.Start(info);
         Assert.IsNotNull(dotnetNewNugetConfig);
         await dotnetNewNugetConfig.WaitForExitAsync();
-        Assert.AreEqual(0, dotnetNewNugetConfig.ExitCode);
+        Assert.AreEqual(0, dotnetNewNugetConfig.ExitCode, dotnetNew.StandardOutput.ReadToEnd());
 
         info.Arguments = $"nuget add source {nupkgPath.FullName} --name local-temp";
 
@@ -185,7 +214,17 @@ public class EndToEnd
         Process dotnetNugetAddSource = Process.Start(info);
         Assert.IsNotNull(dotnetNugetAddSource);
         await dotnetNugetAddSource.WaitForExitAsync();
-        Assert.AreEqual(0, dotnetNugetAddSource.ExitCode);
+        Assert.AreEqual(0, dotnetNugetAddSource.ExitCode, dotnetNew.StandardOutput.ReadToEnd());
+
+        for (int i = 0; i < nupkgs.Length; i++)
+        {
+            // Push local nupkg to "nuget feed"
+            info.Arguments = $"nuget push {nupkgs[i].FullName} --source local-temp";
+            Process dotnetNugetPush = Process.Start(info);
+            Assert.IsNotNull(dotnetNugetPush);
+            await dotnetNugetPush.WaitForExitAsync();
+            Assert.AreEqual(0, dotnetNugetPush.ExitCode, dotnetNew.StandardOutput.ReadToEnd());
+        }
 
         // Add package to the project
         info.Arguments = $"add package Microsoft.NET.Build.Containers --prerelease -f net7.0";
