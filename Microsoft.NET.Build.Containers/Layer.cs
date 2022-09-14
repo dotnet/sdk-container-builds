@@ -124,8 +124,8 @@ public record struct Layer
                             entry.Mode = entry.Mode | UnixFileMode.UserExecute;
                         }
                         entry.ModificationTime = localFile.LastWriteTimeUtc;
-                        entry.UserName = user;
-                        entry.GroupName = group;
+                        entry.UserName = user ?? "";
+                        entry.GroupName = group ?? "";
                         entry.DataStream = localFile.OpenRead();
                         writer.WriteEntry(entry);
                     }
