@@ -17,7 +17,7 @@ public class LayerEndToEnd
 
         File.WriteAllText(testFilePath, testString);
 
-        Layer l = Layer.FromDirectory(directory: folder.Path, containerPath: "/app");
+        Layer l = Layer.FromDirectory(directory: folder.Path, containerPath: "/app", user: "", group: "");
 
         Console.WriteLine(l.Descriptor);
 
@@ -47,7 +47,7 @@ public class LayerEndToEnd
         {
             (testFilePath,  "TestFile.txt"),
             (testFilePath2, "subfolder/TestFile.txt"),
-        });
+        }, "", "");
 
         Console.WriteLine(l.Descriptor);
 

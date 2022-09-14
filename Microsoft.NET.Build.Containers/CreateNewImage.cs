@@ -101,7 +101,7 @@ public partial class CreateNewImage : Microsoft.Build.Utilities.Task
             image.User = ExecutionUserName;
         }
 
-        Layer newLayer = Layer.FromDirectory(PublishDirectory, WorkingDirectory);
+        Layer newLayer = Layer.FromDirectory(PublishDirectory, WorkingDirectory, image.User, image.Group);
         image.AddLayer(newLayer);
         image.WorkingDirectory = WorkingDirectory;
         image.SetEntrypoint(Entrypoint.Select(i => i.ItemSpec).ToArray(), EntrypointArgs.Select(i => i.ItemSpec).ToArray());

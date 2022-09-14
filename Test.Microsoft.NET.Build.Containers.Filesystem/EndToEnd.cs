@@ -33,7 +33,7 @@ public class EndToEnd
 
         Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag);
 
-        Layer l = Layer.FromDirectory(publishDirectory, "/app");
+        Layer l = Layer.FromDirectory(publishDirectory, "/app", "", "");
 
         x.AddLayer(l);
 
@@ -71,7 +71,7 @@ public class EndToEnd
 
         Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag);
 
-        Layer l = Layer.FromDirectory(publishDirectory, "/app");
+        Layer l = Layer.FromDirectory(publishDirectory, "/app", "", "");
 
         x.AddLayer(l);
 
@@ -102,7 +102,7 @@ public class EndToEnd
         Image x = await registry.GetImageManifest(DockerRegistryManager.ChiseledImage, DockerRegistryManager.ChiseledImageTag);
         x.WorkingDirectory = "/app";
 
-        Layer l = Layer.FromDirectory(publishDirectory, "/app");
+        Layer l = Layer.FromDirectory(publishDirectory, "/app", "app", "");
 
         x.AddLayer(l);
         x.SetEntrypoint(new [] { "/app/MinimalTestApp" });
