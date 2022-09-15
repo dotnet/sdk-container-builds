@@ -18,7 +18,7 @@ You can also always clone this repository, run `dotnet build`, and use the newly
 To use the package built from the CI pipeline:
 
 * add the github package source to your nuget.config of choice
-  * `dotnet nuget add source https://nuget.pkg.github.com/dotnet/index.json --name dotnet-org-github --username <your github username> --password <your github PAT with read:packages permission at minimum> --store-password-in-clear-text  --configfile <path to desired nuget config file>`
+  * `dotnet nuget add source https://nuget.pkg.github.com/dotnet/index.json --name dotnet-org-github --username <your github username> --password <your github PAT with read:packages permission at minimum> --configfile <path to desired nuget config file>`
 * add the package to a project
   * `dotnet add package Microsoft.NET.Build.Containers --prerelease` (or `--version <version number>`)
 
