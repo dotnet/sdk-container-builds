@@ -26,7 +26,6 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <Compile Remove="*.*" />
-    <!-- A separate PR will add the required CreateNewImageToolTask file. -->
     <Compile Include="ParseContainerProperties.cs" />
     <Compile Include="CreateNewImageToolTask.cs" />
     <Compile Include="ContainerHelpers.cs" />
