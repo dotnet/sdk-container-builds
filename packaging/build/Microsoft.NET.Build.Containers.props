@@ -1,5 +1,7 @@
 <Project>
     <PropertyGroup>
+         <!-- A flag representing this package existing in a project.  -->
+        <SDKContainerSupportEnabled>true</SDKContainerSupportEnabled>
         <taskFoldername>tasks</taskFoldername>
         <taskFramework Condition="'$(MSBuildRuntimeType)' == 'Core'">net7.0</taskFramework>
         <taskFramework Condition="'$(MSBuildRuntimeType)' == 'Full'">net472</taskFramework>
