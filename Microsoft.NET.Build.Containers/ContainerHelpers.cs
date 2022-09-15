@@ -13,7 +13,8 @@ public static class ContainerHelpers
     /// <summary>
     /// Matches if the string is not lowercase or numeric, or ., _, or -.
     /// </summary>
-    private static Regex imageNameCharacters = new Regex(@"[^a-z0-9._\-/]");
+    /// <remarks>Technically the period should be allowed as well, but due to inconsistent support between cloud providers we're removing it.</remarks>
+    private static Regex imageNameCharacters = new Regex(@"[^a-z0-9_\-/]");
 
 #if !NET7_0_OR_GREATER
     // Taken straight from dotnet/runtime for net472 visibility
