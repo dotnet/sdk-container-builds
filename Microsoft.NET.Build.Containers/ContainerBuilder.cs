@@ -51,9 +51,9 @@ public static class ContainerBuilder
                     LocalDocker.Load(img, imageName, tag, baseName).Wait();
                     Console.WriteLine("Containerize: Pushed container '{0}:{1}' to Docker daemon", imageName, tag);
                 }
-                catch (AggregateException ex) when (ex.InnerException is DockerLoadException dle)
+                catch (Exception e)
                 {
-                    Console.WriteLine($"Containerize: error CONTAINER001: Failed to push to local docker registry: {dle}");
+                    Console.WriteLine($"Containerize: error CONTAINER001: Failed to push to local docker registry: {e}");
                     Environment.ExitCode = -1;
                 }
             }
