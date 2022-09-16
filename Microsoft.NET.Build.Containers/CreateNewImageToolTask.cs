@@ -121,12 +121,12 @@ public class CreateNewImage : ToolTask
         ExposedPorts = Array.Empty<ITaskItem>();
     }
 
-    protected override string GenerateFullPathToTool() => DotNetPath + ToolExe;
+    protected override string GenerateFullPathToTool() => Quote(Path.Combine(DotNetPath, ToolExe));
 
     protected override string GenerateCommandLineCommands()
     {
         return Quote(ContainerizeDirectory + "containerize.dll") + " " +
-               Quote(PublishDirectory) + " " +
+               Quote(PublishDirectory.TrimEnd(new char[] {Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar})) +
                " --baseregistry " + BaseRegistry +
                " --baseimagename " + BaseImageName +
                " --baseimagetag " + BaseImageTag +
