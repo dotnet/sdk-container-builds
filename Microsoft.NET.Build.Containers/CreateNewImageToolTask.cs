@@ -125,8 +125,8 @@ public class CreateNewImage : ToolTask
 
     protected override string GenerateCommandLineCommands()
     {
-        return ContainerizeDirectory + "containerize.dll " +
-               PublishDirectory +
+        return Quote(ContainerizeDirectory + "containerize.dll") + " " +
+               Quote(PublishDirectory) + " " +
                " --baseregistry " + BaseRegistry +
                " --baseimagename " + BaseImageName +
                " --baseimagetag " + BaseImageTag +
@@ -138,5 +138,16 @@ public class CreateNewImage : ToolTask
                (ImageTags.Length > 0 ? " --imagetags " + ImageTags.Select((i) => i.ItemSpec).Aggregate((i, s) => s += i + " ") : "") +
                (EntrypointArgs.Length > 0 ? " --entrypointargs " + EntrypointArgs.Select((i) => i.ItemSpec).Aggregate((i, s) => s += i + " ") : "") +
                (ExposedPorts.Length > 0 ? " --ports " + ExposedPorts.Select((i) => i.ItemSpec + "/" + i.GetMetadata("Type")).Aggregate((i, s) => s += i + " ") : "");
+    }
+
+    private string Quote(string path)
+    {
+        if (string.IsNullOrEmpty(path) || (path[0] == '\"' && path[path.Length - 1] == '\"'))
+        {
+            // it's already quoted
+            return path;
+        }
+
+        return $"\"{path}\"";
     }
 }
