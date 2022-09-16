@@ -98,6 +98,9 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
 
     public CreateNewImage()
     {
+        ContainerizeDirectory = "";
+        ToolExe = "";
+        ToolPath = "";
         BaseRegistry = "";
         BaseImageName = "";
         BaseImageTag = "";
