@@ -118,6 +118,7 @@ public class CreateNewImage : ToolTask
         Entrypoint = Array.Empty<ITaskItem>();
         EntrypointArgs = Array.Empty<ITaskItem>();
         Labels = Array.Empty<ITaskItem>();
+        ExposedPorts = Array.Empty<ITaskItem>();
     }
 
     protected override string GenerateFullPathToTool() => DotNetPath + ToolExe;
@@ -135,7 +136,7 @@ public class CreateNewImage : ToolTask
                (Entrypoint.Length > 0 ? " --entrypoint " + Entrypoint.Select((i) => i.ItemSpec).Aggregate((i, s) => s += i + " ") : "") +
                (Labels.Length > 0 ? " --labels " + Labels.Select((i) => i.ItemSpec + "=" + i.GetMetadata("Value")).Aggregate((i, s) => s += i + " ") : "") +
                (ImageTags.Length > 0 ? " --imagetags " + ImageTags.Select((i) => i.ItemSpec).Aggregate((i, s) => s += i + " ") : "") +
-               (EntrypointArgs.Length > 0 ? " --entrypointargs " + EntrypointArgs.Select((i) => i.ItemSpec).Aggregate((i, s) => s += i + " ") : "");
-               // TODO: Add exposed ports
+               (EntrypointArgs.Length > 0 ? " --entrypointargs " + EntrypointArgs.Select((i) => i.ItemSpec).Aggregate((i, s) => s += i + " ") : "") +
+               (ExposedPorts.Length > 0 ? " --exposedports " + ExposedPorts.Select((i) => i.ItemSpec + "/" + i.GetMetadata("Type")) : "");
     }
 }
