@@ -33,6 +33,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'net472'">
+    <Compile Remove="CreateNewImageToolTask.cs" />
     <Compile Remove="net472Definitions.cs" />
   </ItemGroup>
 

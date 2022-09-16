@@ -9,7 +9,7 @@ using Microsoft.Build.Utilities;
 /// <summary>
 /// This task will shell out to the net7.0-targeted application for VS scenarios.
 /// </summary>
-public class CreateNewImageToolTask : ToolTask
+public class CreateNewImage : ToolTask
 {
     /// <summary>
     /// The path to the folder containing `containerize.dll`.
@@ -79,6 +79,13 @@ public class CreateNewImageToolTask : ToolTask
     /// Labels that the image configuration will include in metadata
     /// </summary>
     public ITaskItem[] Labels { get; set; }
+
+    /// <summary>
+    /// Ports that the application declares that it will use.
+    /// Note that this means nothing to container hosts, by default -
+    /// it's mostly documentation.
+    /// </summary>
+    public ITaskItem[] ExposedPorts { get; set; }
  
     // Unused, ToolExe is set via targets and overrides this.
     protected override string ToolName => "dotnet";
@@ -97,7 +104,7 @@ public class CreateNewImageToolTask : ToolTask
         }
     }
 
-    public CreateNewImageToolTask()
+    public CreateNewImage()
     {
         ContainerizeDirectory = "";
         BaseRegistry = "";
@@ -129,5 +136,6 @@ public class CreateNewImageToolTask : ToolTask
                (Labels.Length > 0 ? " --labels " + Labels.Select((i) => i.ItemSpec + "=" + i.GetMetadata("Value")).Aggregate((i, s) => s += i + " ") : "") +
                (ImageTags.Length > 0 ? " --imagetags " + ImageTags.Select((i) => i.ItemSpec).Aggregate((i, s) => s += i + " ") : "") +
                (EntrypointArgs.Length > 0 ? " --entrypointargs " + EntrypointArgs.Select((i) => i.ItemSpec).Aggregate((i, s) => s += i + " ") : "");
+               // TODO: Add exposed ports
     }
 }

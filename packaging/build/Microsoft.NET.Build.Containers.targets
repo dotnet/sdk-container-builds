@@ -82,10 +82,18 @@
         </PublishContainerDependsOn>
     </PropertyGroup>
 
-    <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)"
-                                    Condition="'$(MSBuildRuntimeType)' == 'Core'">
+    <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)">
 
-        <CreateNewImage BaseRegistry="$(ContainerBaseRegistry)"
+        <PropertyGroup Condition="'$(DOTNET_HOST_PATH)' == ''">
+            <DotNetHostDirectory>$(NetCoreRoot)</DotNetHostDirectory>
+            <DotNetHostFileName>dotnet</DotNetHostFileName>
+            <DotNetHostFileName Condition="'$(OS)' == 'Windows_NT'">dotnet.exe</DotNetHostFileName>
+        </PropertyGroup>
+
+        <CreateNewImage ContainerizeDirectory="$(ContainerizeFolder)"
+                        ToolPath="$(DotNetHostDirectory)"
+                        ToolExe="$(DotNetHostFileName)"
+                        BaseRegistry="$(ContainerBaseRegistry)"
                         BaseImageName="$(ContainerBaseName)"
                         BaseImageTag="$(ContainerBaseTag)"
                         OutputRegistry="$(ContainerRegistry)"
@@ -97,30 +105,5 @@
                         EntrypointArgs="@(ContainerEntrypointArgs)"
                         Labels="@(ContainerLabel)"
                         ExposedPorts="@(ContainerPort)" />
-    </Target>
-
-    <Target Name="PublishContainer" DependsOnTargets="$(PublishContainerDependsOn)"
-                                    Condition="'$(MSBuildRuntimeType)' == 'Full'">
-
-        <PropertyGroup Condition="'$(DOTNET_HOST_PATH)' == ''">
-            <DotNetHostDirectory>$(NetCoreRoot)</DotNetHostDirectory>
-            <DotNetHostFileName>dotnet</DotNetHostFileName>
-            <DotNetHostFileName Condition="'$(OS)' == 'Windows_NT'">dotnet.exe</DotNetHostFileName  >
-        </PropertyGroup>
-
-        <CreateNewImageToolTask ContainerizeDirectory="$(ContainerizeFolder)"
-                                ToolPath="$(DotNetHostDirectory)"
-                                ToolExe="$(DotNetHostFileName)"
-			                    BaseRegistry="$(ContainerBaseRegistry)"
-                                BaseImageName="$(ContainerBaseName)"
-                                BaseImageTag="$(ContainerBaseTag)"
-                                OutputRegistry="$(ContainerRegistry)"
-                                ImageName="$(ContainerImageName)"
-                                ImageTags="@(ContainerImageTags)"
-                                PublishDirectory="$(PublishDir)"
-                                WorkingDirectory="$(ContainerWorkingDirectory)"
-                                Entrypoint="@(ContainerEntrypoint)"
-                                EntrypointArgs="@(ContainerEntrypointArgs)"
-                                Labels="@(ContainerLabel)"/>
     </Target>
 </Project>
