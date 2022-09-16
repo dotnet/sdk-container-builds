@@ -11,8 +11,6 @@ public static class ContainerBuilder
     {
         Registry baseRegistry = new Registry(new Uri(registryName));
 
-        Console.WriteLine($"Reading from {baseRegistry.BaseUri}");
-
         Image img = await baseRegistry.GetImageManifest(baseName, baseTag);
         img.WorkingDirectory = workingDir;
 
@@ -21,7 +19,6 @@ public static class ContainerBuilder
             WriteIndented = true,
         };
 
-        Console.WriteLine($"Copying from {folder.FullName} to {workingDir}");
         Layer l = Layer.FromDirectory(folder.FullName, workingDir);
 
         img.AddLayer(l);
@@ -52,11 +49,11 @@ public static class ContainerBuilder
                 try
                 {
                     LocalDocker.Load(img, imageName, tag, baseName).Wait();
-                    Console.WriteLine("Pushed container '{0}:{1}' to Docker daemon", imageName, tag);
+                    Console.WriteLine("Containerize: Pushed container '{0}:{1}' to Docker daemon", imageName, tag);
                 }
                 catch (AggregateException ex) when (ex.InnerException is DockerLoadException dle)
                 {
-                    Console.WriteLine(dle);
+                    Console.WriteLine($"Containerize: error CONTAINER001: Failed to push to local docker registry: {dle}");
                     Environment.ExitCode = -1;
                 }
             }
@@ -64,13 +61,12 @@ public static class ContainerBuilder
             {
                 try
                 {
-                    Console.WriteLine($"Trying to push container '{imageName}:{tag}' to registry '{outputRegistry}'");
                     outputReg?.Push(img, imageName, tag, imageName).Wait();
-                    Console.WriteLine($"Pushed container '{imageName}:{tag}' to registry '{outputRegistry}'");
+                    Console.WriteLine($"Containerize: Pushed container '{imageName}:{tag}' to registry '{outputRegistry}'");
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Failed to push to output registry: {0}", e);
+                    Console.WriteLine($"Containerize: error CONTAINER001: Failed to push to output registry: {e}");
                     Environment.ExitCode = -1;
                 }
             }
