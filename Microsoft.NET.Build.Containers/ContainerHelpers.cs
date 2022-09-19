@@ -4,6 +4,18 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
+record Label(string name, string value);
+
+// Explicitly lowercase to ease parsing - the incoming values are
+// lowercased by spec
+public enum PortType
+{
+    tcp,
+    udp
+}
+
+public record Port(int number, PortType type);
+
 public static class ContainerHelpers
 {
     private static Regex imageTagRegex = new Regex(@"^[a-zA-Z0-9_][a-zA-Z0-9._-]{0,127}$");

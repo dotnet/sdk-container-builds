@@ -25,12 +25,4 @@ namespace Microsoft.NET.Build.Containers
         /// <summary>Gets the return value condition.</summary>
         public bool ReturnValue { get; }
     }
-
-    public enum PortType
-    {
-        tcp,
-        udp
-    }
-
-    public record Port(int number, PortType type);
 }
