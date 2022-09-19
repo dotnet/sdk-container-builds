@@ -26,7 +26,7 @@ var baseImageNameOpt = new Option<string>(
 var baseImageTagOpt = new Option<string>(
     name: "--baseimagetag",
     description: "The base image tag. Ex: 6.0",
-    getDefaultValue: () => "latest");
+    getDefaultValue: () => "latest")
 
 var outputRegistryOpt = new Option<string>(
     name: "--outputregistry",
