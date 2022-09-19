@@ -22,6 +22,6 @@ jobs:
           6.0.x
         global-json-file: 'global.json' # in addition to the 6.0 we need for tests, install "latest"
     - name: Build
-      run: dotnet build
+      run: dotnet build --consoleloggerparameters:NoSummary
     - name: Test
       run: dotnet test --no-build --logger GitHubActions
