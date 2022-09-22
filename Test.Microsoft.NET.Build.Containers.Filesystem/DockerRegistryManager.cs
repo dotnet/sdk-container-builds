@@ -14,6 +14,17 @@ public class DockerRegistryManager
 
     private static string s_registryContainerId;
 
+    private static void Exec(string command, string args) {
+        var startInfo = new ProcessStartInfo("docker", $"pull {BaseImageSource}{BaseImage}:{BaseImageTag}"){
+            RedirectStandardError = true,
+            RedirectStandardOutput = true
+        };
+        Process cmd = Process.Start(startInfo);
+        Assert.IsNotNull(cmd);
+        cmd.WaitForExit();
+        Assert.AreEqual(0, cmd.ExitCode, cmd.StandardOutput.ReadToEnd());
+    }
+
     [AssemblyInitialize]
     public static void StartAndPopulateDockerRegistry(TestContext context)
     {
@@ -37,20 +48,9 @@ public class DockerRegistryManager
 
         s_registryContainerId = registryContainerId;
 
-        Process pullBase = Process.Start("docker", $"pull {BaseImageSource}{BaseImage}:{BaseImageTag}");
-        Assert.IsNotNull(pullBase);
-        pullBase.WaitForExit();
-        Assert.AreEqual(0, pullBase.ExitCode);
-
-        Process tag = Process.Start("docker", $"tag {BaseImageSource}{BaseImage}:{BaseImageTag} {LocalRegistry}/{BaseImage}:{BaseImageTag}");
-        Assert.IsNotNull(tag);
-        tag.WaitForExit();
-        Assert.AreEqual(0, tag.ExitCode);
-
-        Process pushBase = Process.Start("docker", $"push {LocalRegistry}/{BaseImage}:{BaseImageTag}");
-        Assert.IsNotNull(pushBase);
-        pushBase.WaitForExit();
-        Assert.AreEqual(0, pushBase.ExitCode);
+        Exec("docker", $"pull {BaseImageSource}{BaseImage}:{BaseImageTag}");
+        Exec("docker", $"tag {BaseImageSource}{BaseImage}:{BaseImageTag} {LocalRegistry}/{BaseImage}:{BaseImageTag}");
+        Exec("docker", $"push {LocalRegistry}/{BaseImage}:{BaseImageTag}");
     }
 
     [AssemblyCleanup]

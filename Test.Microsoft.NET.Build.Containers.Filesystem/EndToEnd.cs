@@ -19,7 +19,7 @@ public class EndToEnd
         // Build the image
 
         Registry localRegistry = new Registry(new Uri($"http://{DockerRegistryManager.LocalRegistry}"));
-        Registry acr = new Registry(new Uri($"https://rainercontainer.azurecr.io"));
+        Registry acr = new Registry(new Uri($"https://ghcr.io"));
 
         Image x = await acr.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag);
 
@@ -89,7 +89,7 @@ public class EndToEnd
             d.Delete(recursive: true);
         }
 
-        ProcessStartInfo psi = new("dotnet", "new console -f net6.0 -o MinimalTestApp")
+        ProcessStartInfo psi = new("dotnet", "new console -f net7.0 -o MinimalTestApp")
         {
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -102,13 +102,18 @@ public class EndToEnd
         Assert.AreEqual(0, dotnetNew.ExitCode, await dotnetNew.StandardOutput.ReadToEndAsync() + await dotnetNew.StandardError.ReadToEndAsync());
 
         // Build project
-
-        Process publish = Process.Start("dotnet", "publish -bl MinimalTestApp -r linux-x64");
+        var info = new ProcessStartInfo("dotnet", "publish -c Release -o MinimalTestApp")
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            WorkingDirectory = d.FullName
+        };
+        Process publish = Process.Start(info);
         Assert.IsNotNull(publish);
         await publish.WaitForExitAsync();
-        Assert.AreEqual(0, publish.ExitCode);
+        Assert.AreEqual(0, publish.ExitCode, publish.StandardOutput.ReadToEnd());
 
-        string publishDirectory = Path.Join("MinimalTestApp", "bin", "Debug", "net6.0", "linux-x64", "publish");
+        string publishDirectory = Path.Join("MinimalTestApp", "bin", "Debug", "net7.0", "linux-x64", "publish");
         return publishDirectory;
     }
 
