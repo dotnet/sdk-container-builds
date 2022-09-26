@@ -9,19 +9,21 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
         [TestMethod]
         public void Baseline()
         {
-            ParseContainerProperties task = new ParseContainerProperties();
-            task.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:6.0";
-            task.ContainerRegistry = "localhost:5010";
-            task.ContainerImageName = "dotnet/testimage";
-            task.ContainerImageTags = new[] { "5.0", "latest" };
+            var (project, _) = Evaluator.InitProject(new () {
+                [ContainerBaseImage] = "mcr.microsoft.com/dotnet/runtime:7.0",
+                [ContainerRegistry] = "localhost:5010",
+                [ContainerImageName] = "dotnet/testimage",
+                [ContainerImageTags] = "7.0;latest"
+            });
+            var instance = project.CreateProjectInstance(global::Microsoft.Build.Execution.ProjectInstanceSettings.None);
+            Assert.IsTrue(instance.Build(new[]{ComputeContainerConfig}, null, null, out var outputs));
 
-            Assert.IsTrue(task.Execute());
-            Assert.AreEqual("mcr.microsoft.com", task.ParsedContainerRegistry);
-            Assert.AreEqual("dotnet/runtime", task.ParsedContainerImage);
-            Assert.AreEqual("6.0", task.ParsedContainerTag);
+            Assert.AreEqual("mcr.microsoft.com", instance.GetPropertyValue(ContainerBaseRegistry));
+            Assert.AreEqual("dotnet/runtime", instance.GetPropertyValue(ContainerBaseName));
+            Assert.AreEqual("7.0", instance.GetPropertyValue(ContainerBaseTag));
 
             Assert.AreEqual("dotnet/testimage", task.NewContainerImageName);
-            CollectionAssert.AreEquivalent(new[] { "5.0", "latest" }, task.NewContainerTags);
+            CollectionAssert.AreEquivalent(new[] { "7.0", "latest" }, task.NewContainerTags);
         }
 
         [TestMethod]
@@ -66,7 +68,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
         public void SpacesGetReplacedWithDashes()
         {
              var (project, _) = Evaluator.InitProject(new () {
-                [ContainerBaseImage] = "mcr microsoft com/dotnet runtime:6.0",
+                [ContainerBaseImage] = "mcr microsoft com/dotnet runtime:7.0",
                 [ContainerRegistry] = "localhost:5010"
             });
 
@@ -75,14 +77,14 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
 
             Assert.AreEqual("mcr-microsoft-com", instance.GetPropertyValue(ContainerBaseRegistry));
             Assert.AreEqual("dotnet-runtime", instance.GetPropertyValue(ContainerBaseName));
-            Assert.AreEqual("6.0", instance.GetPropertyValue(ContainerBaseTag));
+            Assert.AreEqual("7.0", instance.GetPropertyValue(ContainerBaseTag));
         }
 
         [TestMethod]
         public void RegexCatchesInvalidContainerNames()
         {
              var (project, logs) = Evaluator.InitProject(new () {
-                [ContainerBaseImage] = "mcr.microsoft.com/dotnet/runtime:6.0",
+                [ContainerBaseImage] = "mcr.microsoft.com/dotnet/runtime:7.0",
                 [ContainerRegistry] = "localhost:5010",
                 [ContainerImageName] = "dotnet testimage",
                 [ContainerImageTag] = "5.0"
@@ -98,7 +100,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
         public void RegexCatchesInvalidContainerTags()
         {
             var (project, logs) = Evaluator.InitProject(new () {
-                [ContainerBaseImage] = "mcr.microsoft.com/dotnet/runtime:6.0",
+                [ContainerBaseImage] = "mcr.microsoft.com/dotnet/runtime:7.0",
                 [ContainerRegistry] = "localhost:5010",
                 [ContainerImageName] = "dotnet/testimage",
                 [ContainerImageTag] = "5 0"
@@ -115,7 +117,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
         public void CanOnlySupplyOneOfTagAndTags()
         {
             var (project, logs) = Evaluator.InitProject(new () {
-                [ContainerBaseImage] = "mcr.microsoft.com/dotnet/runtime:6.0",
+                [ContainerBaseImage] = "mcr.microsoft.com/dotnet/runtime:7.0",
                 [ContainerRegistry] = "localhost:5010",
                 [ContainerImageName] = "dotnet/testimage",
                 [ContainerImageTag] = "5.0",

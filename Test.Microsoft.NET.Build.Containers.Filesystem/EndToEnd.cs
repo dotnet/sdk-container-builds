@@ -22,6 +22,23 @@ public class EndToEnd
         return callerMemberName;
     }
 
+    public static async Task Execute(string command, string args)
+    {
+        var psi = new ProcessStartInfo(command, args)
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+        };
+        var proc = Process.Start(psi);
+        Assert.IsNotNull(proc);
+        await proc.WaitForExitAsync();
+        var stdout = proc.StandardOutput.ReadToEnd();
+        var stderr = proc.StandardError.ReadToEnd();
+        var message = $"StdOut:\n{stdout}\nStdErr:\n{stderr}";
+        Assert.AreEqual(0, proc.ExitCode, message);
+
+    }
+
     [TestMethod]
     public async Task ApiEndToEndWithRegistryPushAndPull()
     {
@@ -99,26 +116,12 @@ public class EndToEnd
             d.Delete(recursive: true);
         }
 
-        ProcessStartInfo psi = new("dotnet", "new console -f net6.0 -o MinimalTestApp")
-        {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-        };
-
-        Process dotnetNew = Process.Start(psi);
-
-        Assert.IsNotNull(dotnetNew);
-        await dotnetNew.WaitForExitAsync();
-        Assert.AreEqual(0, dotnetNew.ExitCode, await dotnetNew.StandardOutput.ReadToEndAsync() + await dotnetNew.StandardError.ReadToEndAsync());
-
+        await Execute("dotnet", "new console -f net7.0 -o MinimalTestApp");
         // Build project
 
-        Process publish = Process.Start("dotnet", "publish -bl MinimalTestApp -r linux-x64");
-        Assert.IsNotNull(publish);
-        await publish.WaitForExitAsync();
-        Assert.AreEqual(0, publish.ExitCode);
-
-        string publishDirectory = Path.Join("MinimalTestApp", "bin", "Debug", "net6.0", "linux-x64", "publish");
+        await Execute("dotnet", "publish -bl MinimalTestApp -r linux-x64");
+        
+        string publishDirectory = Path.Join("MinimalTestApp", "bin", "Debug", "net7.0", "linux-x64", "publish");
         return publishDirectory;
     }
 

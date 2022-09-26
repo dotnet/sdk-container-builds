@@ -7,20 +7,24 @@ public class DockerRegistryManager
 {
     public const string BaseImage = "dotnet/runtime";
     public const string BaseImageSource = "mcr.microsoft.com/";
-    public const string BaseImageTag = "6.0";
+    public const string BaseImageTag = "7.0";
     public const string LocalRegistry = "localhost:5010";
     public const string FullyQualifiedBaseImageDefault = $"{BaseImageSource}{BaseImage}:{BaseImageTag}";
     private static string s_registryContainerId;
 
     private static void Exec(string command, string args) {
-        var startInfo = new ProcessStartInfo(command, args){
+        var psi = new ProcessStartInfo(command, args)
+        {
+            RedirectStandardOutput = true,
             RedirectStandardError = true,
-            RedirectStandardOutput = true
         };
-        Process cmd = Process.Start(startInfo);
-        Assert.IsNotNull(cmd);
-        cmd.WaitForExit();
-        Assert.AreEqual(0, cmd.ExitCode, cmd.StandardOutput.ReadToEnd());
+        var proc = Process.Start(psi);
+        Assert.IsNotNull(proc);
+        proc.WaitForExit();
+        var stdout = proc.StandardOutput.ReadToEnd();
+        var stderr = proc.StandardError.ReadToEnd();
+        var message = $"StdOut:\n{stdout}\nStdErr:\n{stderr}";
+        Assert.AreEqual(0, proc.ExitCode, message);
     }
 
     public static void LocateMSBuild()
