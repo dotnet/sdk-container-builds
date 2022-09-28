@@ -93,7 +93,7 @@ public class CreateNewImageTests
         pcp.FullyQualifiedBaseImageName = "https://mcr.microsoft.com/dotnet/runtime:6.0";
         pcp.ContainerRegistry = "http://localhost:5010";
         pcp.ContainerImageName = "dotnet/testimage";
-        pcp.ContainerImageTag = "5.0";
+        pcp.ContainerImageTags = new [] {"5.0", "latest"};
 
         Assert.IsTrue(pcp.Execute());
         Assert.AreEqual("https://mcr.microsoft.com", pcp.ParsedContainerRegistry);
@@ -101,7 +101,7 @@ public class CreateNewImageTests
         Assert.AreEqual("6.0", pcp.ParsedContainerTag);
 
         Assert.AreEqual("dotnet/testimage", pcp.NewContainerImageName);
-        Assert.AreEqual("5.0", pcp.NewContainerTag);
+        new []{ "5.0", "latest"}.SequenceEqual(pcp.NewContainerTags);
 
         CreateNewImage cni = new CreateNewImage();
         cni.BaseRegistry = pcp.ParsedContainerRegistry;
@@ -112,6 +112,7 @@ public class CreateNewImageTests
         cni.PublishDirectory = Path.Combine(newProjectDir.FullName, "bin", "release", "net7.0");
         cni.WorkingDirectory = "app/";
         cni.Entrypoint = new TaskItem[] { new("ParseContainerProperties_EndToEnd") };
+        cni.ImageTags = pcp.NewContainerTags;
 
         Assert.IsTrue(cni.Execute());
         newProjectDir.Delete(true);

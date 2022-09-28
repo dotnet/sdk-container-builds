@@ -27,7 +27,7 @@ public class TargetsTests
     {
         var instances = MSBuildLocator.QueryVisualStudioInstances(new() { DiscoveryTypes = DiscoveryType.DotNetSdk, WorkingDirectory = Environment.CurrentDirectory });
         MSBuildLocator.RegisterInstance(instances.First());
-        var relativePath = Path.Combine("..", "Microsoft.NET.Build.Containers", "build", "Microsoft.NET.Build.Containers.targets");
+        var relativePath = Path.Combine("..", "packaging", "build", "Microsoft.NET.Build.Containers.targets");
         var targetsFile = CurrentFile.Relative(relativePath);
         var propsFile = Path.ChangeExtension(targetsFile, ".props");
         CombinedTargetsLocation = CombineFiles(propsFile, targetsFile);
@@ -87,7 +87,7 @@ public class TargetsTests
     [DataRow("friendly-suspicious-alligator", "friendly-suspicious-alligator", true)]
     [DataRow("*friendly-suspicious-alligator", "", false)]
     [DataRow("web/app2+7", "web/app2-7", true)]
-    [DataRow("Microsoft.Apps.Demo.ContosoWeb", "microsoft.apps.demo.contosoweb", true)]
+    [DataRow("Microsoft.Apps.Demo.ContosoWeb", "microsoft-apps-demo-contosoweb", true)]
     [TestMethod]
     public void CanNormalizeInputContainerNames(string projectName, string expectedContainerImageName, bool shouldPass)
     {
