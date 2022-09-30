@@ -1,6 +1,7 @@
 ﻿using Microsoft.NET.Build.Containers;
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace Test.Microsoft.NET.Build.Containers.Filesystem;
@@ -9,7 +10,17 @@ namespace Test.Microsoft.NET.Build.Containers.Filesystem;
 [TestClass]
 public class EndToEnd
 {
-    private const string NewImageName = "dotnetcontainers/testimage";
+    public static string NewImageName([CallerMemberName] string callerMemberName = "")
+    {
+        bool normalized = ContainerHelpers.NormalizeImageName(callerMemberName, out string normalizedName);
+
+        if (!normalized)
+        {
+            return normalizedName;
+        }
+
+        return callerMemberName;
+    }
 
     [TestMethod]
     public async Task ApiEndToEndWithRegistryPushAndPull()
@@ -30,18 +41,18 @@ public class EndToEnd
 
         // Push the image back to the local registry
 
-        await registry.Push(x, NewImageName, "latest", DockerRegistryManager.BaseImage);
+        await registry.Push(x, NewImageName(), "latest", DockerRegistryManager.BaseImage);
 
         // pull it back locally
 
-        Process pull = Process.Start("docker", $"pull {DockerRegistryManager.LocalRegistry}/{NewImageName}:latest");
+        Process pull = Process.Start("docker", $"pull {DockerRegistryManager.LocalRegistry}/{NewImageName()}:latest");
         Assert.IsNotNull(pull);
         await pull.WaitForExitAsync();
         Assert.AreEqual(0, pull.ExitCode);
 
         // Run the image
 
-        ProcessStartInfo runInfo = new("docker", $"run --rm --tty {DockerRegistryManager.LocalRegistry}/{NewImageName}:latest");
+        ProcessStartInfo runInfo = new("docker", $"run --rm --tty {DockerRegistryManager.LocalRegistry}/{NewImageName()}:latest");
         Process run = Process.Start(runInfo);
         Assert.IsNotNull(run);
         await run.WaitForExitAsync();
@@ -68,11 +79,11 @@ public class EndToEnd
 
         // Load the image into the local Docker daemon
 
-        await LocalDocker.Load(x, NewImageName, "latest", DockerRegistryManager.BaseImage);
+        await LocalDocker.Load(x, NewImageName(), "latest", DockerRegistryManager.BaseImage);
 
         // Run the image
 
-        ProcessStartInfo runInfo = new("docker", $"run --rm --tty {NewImageName}:latest");
+        ProcessStartInfo runInfo = new("docker", $"run --rm --tty {NewImageName()}:latest");
         Process run = Process.Start(runInfo);
         Assert.IsNotNull(run);
         await run.WaitForExitAsync();
@@ -191,7 +202,7 @@ public class EndToEnd
         info.Arguments = $"publish /p:publishprofile=defaultcontainer /p:runtimeidentifier=linux-x64 /bl" +
                           $" /p:ContainerBaseImage={DockerRegistryManager.FullyQualifiedBaseImageDefault}" +
                           $" /p:ContainerRegistry=http://{DockerRegistryManager.LocalRegistry}" +
-                          $" /p:ContainerImageName={NewImageName}" +
+                          $" /p:ContainerImageName={NewImageName()}" +
                           $" /p:Version=1.0";
 
         // Build & publish the project
@@ -200,12 +211,12 @@ public class EndToEnd
         await publish.WaitForExitAsync();
         Assert.AreEqual(0, publish.ExitCode, publish.StandardOutput.ReadToEnd());
 
-        Process pull = Process.Start("docker", $"pull {DockerRegistryManager.LocalRegistry}/{NewImageName}:latest");
+        Process pull = Process.Start("docker", $"pull {DockerRegistryManager.LocalRegistry}/{NewImageName()}:latest");
         Assert.IsNotNull(pull);
         await pull.WaitForExitAsync();
         Assert.AreEqual(0, pull.ExitCode);
 
-        ProcessStartInfo runInfo = new("docker", $"run --rm --tty {DockerRegistryManager.LocalRegistry}/{NewImageName}:latest")
+        ProcessStartInfo runInfo = new("docker", $"run --rm --tty {DockerRegistryManager.LocalRegistry}/{NewImageName()}:latest")
         {
             RedirectStandardOutput = true,
             RedirectStandardError = true,
