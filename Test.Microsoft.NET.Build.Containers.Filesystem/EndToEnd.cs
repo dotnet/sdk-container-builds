@@ -18,10 +18,9 @@ public class EndToEnd
 
         // Build the image
 
-        Registry localRegistry = new Registry(new Uri($"http://{DockerRegistryManager.LocalRegistry}"));
-        Registry acr = new Registry(new Uri($"https://ghcr.io"));
+        Registry registry = new Registry(new Uri($"http://{DockerRegistryManager.LocalRegistry}"));
 
-        Image x = await acr.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag);
+        Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag);
 
         Layer l = Layer.FromDirectory(publishDirectory, "/app");
 
@@ -31,7 +30,7 @@ public class EndToEnd
 
         // Push the image back to the local registry
 
-        await localRegistry.Push(x, NewImageName, "latest", DockerRegistryManager.BaseImage);
+        await registry.Push(x, NewImageName, "latest", DockerRegistryManager.BaseImage);
 
         // pull it back locally
 
@@ -89,7 +88,7 @@ public class EndToEnd
             d.Delete(recursive: true);
         }
 
-        ProcessStartInfo psi = new("dotnet", "new console -f net7.0 -o MinimalTestApp")
+        ProcessStartInfo psi = new("dotnet", "new console -f net6.0 -o MinimalTestApp")
         {
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -102,18 +101,13 @@ public class EndToEnd
         Assert.AreEqual(0, dotnetNew.ExitCode, await dotnetNew.StandardOutput.ReadToEndAsync() + await dotnetNew.StandardError.ReadToEndAsync());
 
         // Build project
-        var info = new ProcessStartInfo("dotnet", "publish -c Release -o MinimalTestApp")
-        {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            WorkingDirectory = d.FullName
-        };
-        Process publish = Process.Start(info);
+
+        Process publish = Process.Start("dotnet", "publish -bl MinimalTestApp -r linux-x64");
         Assert.IsNotNull(publish);
         await publish.WaitForExitAsync();
-        Assert.AreEqual(0, publish.ExitCode, publish.StandardOutput.ReadToEnd());
+        Assert.AreEqual(0, publish.ExitCode);
 
-        string publishDirectory = Path.Join("MinimalTestApp", "bin", "Debug", "net7.0", "linux-x64", "publish");
+        string publishDirectory = Path.Join("MinimalTestApp", "bin", "Debug", "net6.0", "linux-x64", "publish");
         return publishDirectory;
     }
 
