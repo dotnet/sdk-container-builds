@@ -38,6 +38,7 @@
             <!-- Only default a tag name if no tag names at all are provided -->
             <ContainerImageTag Condition="'$(ContainerImageTag)' == '' and '$(ContainerImageTags)' == ''">$(Version)</ContainerImageTag>
             <ContainerImageTag Condition="'$(RunningInVisualStudio)' == 'true' and '$(PublishImageTag)' != ''">$(PublishImageTag)</ContainerImageTag>
+            <ContainerImageTag Condition="'$(RunningInVisualStudio)' == 'true' and '$(PublishImageTag)' == '' and '$(AutoGenerateImageTag)' == 'true'">$([System.DateTime]::UtcNow.ToString('yyyyMMddhhmmss'))</ContainerImageTag>
             <ContainerWorkingDirectory Condition="'$(ContainerWorkingDirectory)' == ''">/app</ContainerWorkingDirectory>
             <!-- Could be semicolon-delimited -->
         </PropertyGroup>
