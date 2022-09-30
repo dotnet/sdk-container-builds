@@ -13,7 +13,7 @@ public class DockerRegistryManager
     private static string s_registryContainerId;
 
     private static void Exec(string command, string args) {
-        var startInfo = new ProcessStartInfo("docker", $"pull {BaseImageSource}{BaseImage}:{BaseImageTag}"){
+        var startInfo = new ProcessStartInfo(command, args){
             RedirectStandardError = true,
             RedirectStandardOutput = true
         };
