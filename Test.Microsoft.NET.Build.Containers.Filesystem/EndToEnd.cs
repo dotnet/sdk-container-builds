@@ -115,20 +115,20 @@ public class EndToEnd
     public async Task EndToEnd_NoAPI()
     {
         DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "CreateNewImageTest"));
-        DirectoryInfo pathForLocalNugetSource = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "NuGetSource"));
+        DirectoryInfo privateNuGetAssets = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "ContainerNuGet"));
 
         if (newProjectDir.Exists)
         {
             newProjectDir.Delete(recursive: true);
         }
 
-        if (pathForLocalNugetSource.Exists)
+        if (privateNuGetAssets.Exists)
         {
-            pathForLocalNugetSource.Delete(recursive: true);
+            privateNuGetAssets.Delete(recursive: true);
         }
 
         newProjectDir.Create();
-        pathForLocalNugetSource.Create();
+        privateNuGetAssets.Create();
 
         // 🤢
         DirectoryInfo nupkgPath = new DirectoryInfo(Assembly.GetAssembly(this.GetType()).Location).Parent.Parent.Parent.Parent;
@@ -150,6 +150,9 @@ public class EndToEnd
             RedirectStandardError = true,
         };
 
+        // do not pollute the primary/global NuGet package store with the private package(s)
+        info.Environment["NUGET_PACKAGES"] = privateNuGetAssets.FullName;
+
         // Create the project to pack
         Process dotnetNew = Process.Start(info);
         Assert.IsNotNull(dotnetNew);
@@ -163,23 +166,13 @@ public class EndToEnd
         await dotnetNewNugetConfig.WaitForExitAsync();
         Assert.AreEqual(0, dotnetNewNugetConfig.ExitCode);
 
-        info.Arguments = $"nuget add source {pathForLocalNugetSource.FullName} --name local-temp";
+        info.Arguments = $"nuget add source {nupkgPath.FullName} --name local-temp";
 
         // Set up temp folder as "nuget feed"
         Process dotnetNugetAddSource = Process.Start(info);
         Assert.IsNotNull(dotnetNugetAddSource);
         await dotnetNugetAddSource.WaitForExitAsync();
         Assert.AreEqual(0, dotnetNugetAddSource.ExitCode);
-
-        for (int i = 0; i < nupkgs.Length; i++)
-        {
-            // Push local nupkg to "nuget feed"
-            info.Arguments = $"nuget push {nupkgs[i].FullName} --source local-temp";
-            Process dotnetNugetPush = Process.Start(info);
-            Assert.IsNotNull(dotnetNugetPush);
-            await dotnetNugetPush.WaitForExitAsync();
-            Assert.AreEqual(0, dotnetNugetPush.ExitCode);
-        }
 
         // Add package to the project
         info.Arguments = $"add package Microsoft.NET.Build.Containers --prerelease -f net7.0";
@@ -221,6 +214,6 @@ public class EndToEnd
 
         Assert.AreEqual(0, run.ExitCode);
         newProjectDir.Delete(true);
-        pathForLocalNugetSource.Delete(true);
+        privateNuGetAssets.Delete(true);
     }
 }
