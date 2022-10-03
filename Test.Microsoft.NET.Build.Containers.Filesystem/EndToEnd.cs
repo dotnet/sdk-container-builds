@@ -199,11 +199,14 @@ public class EndToEnd
         await dotnetPackageAdd.WaitForExitAsync();
         Assert.AreEqual(0, dotnetPackageAdd.ExitCode);
 
+        string imageName = NewImageName();
+        string imageTag = "1.0";
+
         info.Arguments = $"publish /p:publishprofile=defaultcontainer /p:runtimeidentifier=linux-x64 /bl" +
                           $" /p:ContainerBaseImage={DockerRegistryManager.FullyQualifiedBaseImageDefault}" +
                           $" /p:ContainerRegistry=http://{DockerRegistryManager.LocalRegistry}" +
-                          $" /p:ContainerImageName={NewImageName()}" +
-                          $" /p:Version=1.0";
+                          $" /p:ContainerImageName={imageName}" +
+                          $" /p:Version={imageTag}";
 
         // Build & publish the project
         Process publish = Process.Start(info);
@@ -211,12 +214,12 @@ public class EndToEnd
         await publish.WaitForExitAsync();
         Assert.AreEqual(0, publish.ExitCode, publish.StandardOutput.ReadToEnd());
 
-        Process pull = Process.Start("docker", $"pull {DockerRegistryManager.LocalRegistry}/{NewImageName()}:latest");
+        Process pull = Process.Start("docker", $"pull {DockerRegistryManager.LocalRegistry}/{imageName}:{imageTag}");
         Assert.IsNotNull(pull);
         await pull.WaitForExitAsync();
         Assert.AreEqual(0, pull.ExitCode);
 
-        ProcessStartInfo runInfo = new("docker", $"run --rm --tty {DockerRegistryManager.LocalRegistry}/{NewImageName()}:latest")
+        ProcessStartInfo runInfo = new("docker", $"run --rm --publish 5017:80 --detach {DockerRegistryManager.LocalRegistry}/{imageName}:{imageTag}")
         {
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -224,13 +227,45 @@ public class EndToEnd
 
         Process run = Process.Start(runInfo);
         Assert.IsNotNull(run);
-        string stdout = await run.StandardOutput.ReadToEndAsync();
         await run.WaitForExitAsync();
-
-        Console.WriteLine("stdout: " + stdout);
-        Console.WriteLine("stderr: " + await run.StandardError.ReadToEndAsync());
-
         Assert.AreEqual(0, run.ExitCode);
+
+        string appContainerId = (await run.StandardOutput.ReadToEndAsync()).Trim();
+
+        bool everSucceeded = false;
+
+        HttpClient client = new();
+
+        // Give the server a moment to catch up, but no more than necessary.
+        for (int retry = 0; retry < 10; retry++)
+        {
+            try
+            {
+                var response = await client.GetAsync("http://localhost:5017/weatherforecast");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    everSucceeded = true;
+                    break;
+                }
+            }
+            catch { }
+
+            await Task.Delay(TimeSpan.FromSeconds(1));
+        }
+
+        Assert.AreEqual(true, everSucceeded);
+
+        ProcessStartInfo stopPsi = new("docker", $"stop {appContainerId}")
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+        };
+        Process stop = Process.Start(stopPsi);
+        Assert.IsNotNull(stop);
+        await stop.WaitForExitAsync();
+        Assert.AreEqual(0, stop.ExitCode, stop.StandardOutput.ReadToEnd() + stop.StandardError.ReadToEnd());
+
         newProjectDir.Delete(true);
         pathForLocalNugetSource.Delete(true);
     }
