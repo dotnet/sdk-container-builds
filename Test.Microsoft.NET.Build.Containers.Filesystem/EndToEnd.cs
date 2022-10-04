@@ -202,7 +202,7 @@ public class EndToEnd
         string imageName = NewImageName();
         string imageTag = "1.0";
 
-        info.Arguments = $"publish /p:publishprofile=defaultcontainer /p:runtimeidentifier=linux-x64 /bl" +
+        info.Arguments = $"publish /p:publishprofile=DefaultContainer /p:runtimeidentifier=linux-x64 /bl" +
                           $" /p:ContainerBaseImage={DockerRegistryManager.FullyQualifiedBaseImageDefault}" +
                           $" /p:ContainerRegistry=http://{DockerRegistryManager.LocalRegistry}" +
                           $" /p:ContainerImageName={imageName}" +
