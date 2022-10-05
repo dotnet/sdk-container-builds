@@ -13,7 +13,7 @@
         <PackageVersion Include="coverlet.collector" Version="3.1.2" />
         <PackageVersion Include="GitHubActionsTestLogger" Version="2.0.1" />
         <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
-        <PackageVersion Include="Microsoft.Build.Locator" Version="1.4.6-g7150a203a1" />
+        <PackageVersion Include="Microsoft.Build.Locator" Version="1.5.5" />
 	    <PackageVersion Include="Valleysoft.DockerCredsProvider" Version="1.2.0" />
     </ItemGroup>
 </Project>
