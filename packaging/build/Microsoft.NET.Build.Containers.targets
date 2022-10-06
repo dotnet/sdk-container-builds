@@ -30,8 +30,8 @@
         </PropertyGroup>
 
         <PropertyGroup Label="VS defaults">
-            <!-- OutputRegistry is used by existing VS targets for Docker builds - this lets us fill that void -->
-            <ContainerRegistry Condition="'$(OutputRegistry)' != ''">$(OutputRegistry)</ContainerRegistry>
+            <!-- RegistryUrl is used by existing VS targets for Docker builds - this lets us fill that void -->
+            <ContainerRegistry Condition="'$(RegistryUrl)' != ''">$(RegistryUrl)</ContainerRegistry>
             <!-- PublishImageTag is used by existing VS targets for Docker builds - this lets us fill that void -->
             <ContainerImageTag Condition="'$(PublishImageTag)' != ''">$(PublishImageTag)</ContainerImageTag>
         </PropertyGroup>
