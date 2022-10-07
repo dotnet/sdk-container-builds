@@ -250,8 +250,6 @@ public class EndToEnd
             await Task.Delay(TimeSpan.FromSeconds(1));
         }
 
-        Assert.AreEqual(true, everSucceeded);
-
         ProcessStartInfo logsPsi = new("docker", $"logs {appContainerId}") {
             RedirectStandardOutput = true
         };
@@ -259,7 +257,9 @@ public class EndToEnd
         Process logs = Process.Start(logsPsi);
         Assert.IsNotNull(logs);
         await logs.WaitForExitAsync();
-        Console.WriteLine(logs.StandardOutput.ReadToEnd());
+
+        Assert.AreEqual(true, everSucceeded, logs.StandardOutput.ReadToEnd());
+
 
         ProcessStartInfo stopPsi = new("docker", $"stop {appContainerId}")
         {
