@@ -34,6 +34,7 @@ public class ContainerHelpersTests
     [DataRow("mcr.microsoft.com:/dotnet/runtime", false, null, null, null)]
     // no image = nothing resolves
     [DataRow("mcr.microsoft.com/", false, null, null, null)]
+    [DataRow("ubuntu:jammy", true, ContainerHelpers.DefaultRegistry, "ubuntu", "jammy")]
     public void TryParseFullyQualifiedContainerName(string fullyQualifiedName, bool expectedReturn, string expectedRegistry, string expectedImage, string expectedTag)
     {
         Assert.AreEqual(expectedReturn, ContainerHelpers.TryParseFullyQualifiedContainerName(fullyQualifiedName, out string? containerReg, out string? containerName, out string? containerTag));

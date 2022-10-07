@@ -114,7 +114,7 @@ public record Port(int number, PortType type);
 public static class ContainerHelpers
 {
 
-    public static string DefaultRegistry = "docker.io";
+    public const string DefaultRegistry = "docker.io";
 
     /// <summary>
     /// Matches if the string is not lowercase or numeric, or ., _, or -.
@@ -180,7 +180,7 @@ public static class ContainerHelpers
         var nameMatch = anchoredNameRegexp.Match(referenceMatch.Groups[1].Value);
         if (nameMatch is { Success: true }) {
             if (nameMatch.Groups.Count == 3) {
-                containerRegistry = nameMatch.Groups[1].Value;
+                containerRegistry = nameMatch.Groups[1].Success? nameMatch.Groups[1].Value : DefaultRegistry;
                 containerName = nameMatch.Groups[2].Value;
             } else {
                 containerRegistry = DefaultRegistry;
