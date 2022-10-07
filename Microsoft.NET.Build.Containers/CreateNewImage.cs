@@ -94,7 +94,7 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
     /// </summary>
     public ITaskItem[] Labels { get; set; }
 
-    private bool IsDockerPush { get => OutputRegistry == "docker://"; }
+    private bool IsDockerPush { get => OutputRegistry == ContainerHelpers.DefaultRegistry; }
 
     private bool IsDockerPull { get => BaseRegistry.StartsWith(ContainerHelpers.DefaultRegistry); }
 
@@ -206,11 +206,10 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
             return false;
         }
 
-        var isDockerPush = OutputRegistry.StartsWith("docker://");
-        Registry? outputReg = isDockerPush ? null : new Registry(ContainerHelpers.TryExpandRegistryToUri(OutputRegistry));
+        Registry? outputReg = IsDockerPush ? null : new Registry(ContainerHelpers.TryExpandRegistryToUri(OutputRegistry));
         foreach (var tag in ImageTags)
         {
-            if (isDockerPush)
+            if (IsDockerPush)
             {
                 try
                 {

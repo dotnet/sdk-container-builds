@@ -9,14 +9,15 @@ public class ContainerHelpersTests
     [TestMethod]
     // Valid Tests
     [DataRow("mcr.microsoft.com", true)]
-    [DataRow("mcr.microsoft.com/", true)]
     [DataRow("mcr.microsoft.com:5001", true)] // Registries can have ports
-    [DataRow("docker://", true)] // docker:// is considered valid
+    [DataRow("docker.io", true)] // default docker registry is considered valid
 
     // // Invalid tests
     [DataRow("mcr.mi-=crosoft.com", false)] // invalid url
+    [DataRow("mcr.microsoft.com/", false)] // invalid url
     public void IsValidRegistry(string registry, bool expectedReturn)
     {
+        Console.WriteLine($"Domain pattern is '{Patterns.AnchoredDomainRegexp.ToString()}'");
         Assert.AreEqual(expectedReturn, ContainerHelpers.IsValidRegistry(registry));
     }
 

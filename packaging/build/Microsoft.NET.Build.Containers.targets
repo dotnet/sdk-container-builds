@@ -39,7 +39,7 @@
         <!-- Container Defaults -->
         <PropertyGroup>
             <ContainerBaseImage Condition="'$(ContainerBaseImage)' == ''">$(_ContainerBaseRegistry)/$(_ContainerBaseImageName):$(_ContainerBaseImageTag)</ContainerBaseImage>
-            <ContainerRegistry Condition="'$(ContainerRegistry)' == ''">docker://</ContainerRegistry>
+            <ContainerRegistry Condition="'$(ContainerRegistry)' == ''">docker.io</ContainerRegistry>
             <!-- Note: spaces will be replaced with '-' in ContainerImageName and ContainerImageTag -->
             <ContainerImageName Condition="'$(ContainerImageName)' == ''">$(AssemblyName)</ContainerImageName>
             <!-- Only default a tag name if no tag names at all are provided -->

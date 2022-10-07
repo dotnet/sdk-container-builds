@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using static Patterns;
 
-static class Patterns {
+public static class Patterns {
     
     private static readonly string alphaNumeric = @"[a-z0-9]+";
     private static readonly string separator = @"(?:[._]|__|[-]*)";
@@ -31,6 +31,7 @@ static class Patterns {
     );
 
     public static readonly Regex DomainRegexp = new (domain);
+    public static readonly Regex AnchoredDomainRegexp = new(anchored(domain));
 
     private static readonly string tag = @"[\w][\w.-]{0,127}";
 
@@ -126,7 +127,7 @@ public static class ContainerHelpers
     /// </summary>
     /// <param name="registryName"></param>
     /// <returns></returns>
-    public static bool IsValidRegistry(string registryName) => NameRegexp.IsMatch(registryName);
+    public static bool IsValidRegistry(string registryName) => AnchoredDomainRegexp.IsMatch(registryName);
 
     /// <summary>
     /// Ensures the given image name is valid.

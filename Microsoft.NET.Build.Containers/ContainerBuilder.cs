@@ -29,7 +29,7 @@ public static class ContainerBuilder
 
         img.SetEntrypoint(entrypoint, entrypointArgs);
 
-        var isDockerPush = outputRegistry.StartsWith("docker://");
+        var isDockerPush = outputRegistry == ContainerHelpers.DefaultRegistry;
         Registry? outputReg = isDockerPush ? null : new Registry(ContainerHelpers.TryExpandRegistryToUri(outputRegistry));
 
         foreach (var label in labels)
