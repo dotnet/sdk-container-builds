@@ -37,56 +37,73 @@ public class LocalDocker
         }
     }
 
-    public static async Task<Image> Pull(string name, string reference) {
+    public static Image Pull(string name, string reference) {
         // call 'docker save' to save the tarball out to a stream
         // extract it to the relevant locations in the content store
         // locate the manifest and return it
-        ProcessStartInfo saveInfo = new("docker", "save ${name}:{reference}"){
+        var tempFile = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
+        File.Create(tempFile).Dispose();
+        Console.WriteLine($"running 'docker save {name}:{reference}'");
+        ProcessStartInfo saveInfo = new("docker", $"save --output \"{tempFile}\" {name}:{reference}"){
             RedirectStandardError = true,
-            RedirectStandardOutput = true,
-            RedirectStandardInput = true 
+            RedirectStandardOutput = true
         };
 
-        using Process? saveProcess = Process.Start(saveInfo);
+        Process? saveProcess = Process.Start(saveInfo);
         if(saveProcess is null) {
             throw new NotImplementedException("Failed creating docker save process");
         }
+        saveProcess.WaitForExit();
+        if (saveProcess.ExitCode != 0) {
+            throw new Exception($"error saving tarball:\n{saveProcess.StandardOutput.ReadToEnd()}\n{saveProcess.StandardError.ReadToEnd()}");
+        }
 
-        using var reader = new TarReader(saveProcess.StandardOutput.BaseStream, leaveOpen: true);
+        using var reader = new TarReader(File.OpenRead(tempFile), leaveOpen: false);
         JsonNode? manifest = null;
         JsonNode? config = null;
         HashSet<string> knownDirectories = new();
 
         void ReadManifest(TarEntry entry) {
-            using var dataStream = entry.DataStream;
+            Console.WriteLine($"Reading entry {entry.Name} as manifest");
+            var dataStream = entry.DataStream;
             manifest = JsonNode.Parse(dataStream);
         }
 
         void ReadConfig(TarEntry entry) {
-            using var dataStream = entry.DataStream;
+            Console.WriteLine($"Reading entry {entry.Name} as config");
+            var dataStream = entry.DataStream;
             config = JsonNode.Parse(dataStream);
         }
 
         void AddTrackedDirectory(TarEntry entry) {
-            knownDirectories.Add(entry.Name);
+            Console.WriteLine($"Tracking directory {entry.Name.TrimEnd('/')}");
+            knownDirectories.Add(entry.Name.TrimEnd('/'));
         }
 
-        async Task ExtractTarToContentStore(TarEntry entry) {
+        void ExtractTarToContentStore(TarEntry entry) {
+            
             var parentDir = Path.GetDirectoryName(entry.Name);
             // the descriptor hash is the parent dir
             var descriptorHash = Path.GetFileName(parentDir)!;
-            var tarSize = entry.DataStream.Length!;
-            var contentStorePath = ContentStore.PathForDescriptor(new Descriptor("application/vnd.docker.image.rootfs.diff.tar.gzip", descriptorHash, tarSize));
-            using var dataStream = entry.DataStream;
-            if(File.Exists(contentStorePath)) return;
-
-            using var layerFile = File.Create(contentStorePath); 
-            await dataStream.CopyToAsync(layerFile);
+            Console.WriteLine($"Extracting entry {descriptorHash}");
+            var contentStorePath = ContentStore.PathForDescriptor(new Descriptor("application/vnd.docker.image.rootfs.diff.tar", descriptorHash, 0));
+            Console.WriteLine($"Extracting entry {descriptorHash} to {contentStorePath}");
+            var dataStream = entry.DataStream;
+            if(File.Exists(contentStorePath)) {
+                Console.WriteLine($"Entry {descriptorHash} already existed");
+                return;
+            }
+            entry.ExtractToFile(contentStorePath, overwrite: true);
+            Console.WriteLine($"Copied entry {descriptorHash}");
         }
 
         while (true) {
-            var entry = await reader.GetNextEntryAsync();
-            if(entry is null) break;
+            var entry = reader.GetNextEntry(copyData: true);
+            if(entry is null) {
+                Console.WriteLine("done reading");
+                break;
+            }
+            Console.WriteLine($"Considering entry {entry.Name} of type {entry.EntryType}");
             if (entry is { EntryType: TarEntryType.RegularFile }) {
                 if (Path.GetFileName(entry.Name) == "manifest.json") {
                     ReadManifest(entry); 
@@ -95,13 +112,15 @@ public class LocalDocker
                 } else if (Path.GetFileName(entry.Name) == "layer.tar"
                             && Path.GetDirectoryName(entry.Name) is string parentDir
                             && knownDirectories.Contains(parentDir)) {
-                    await ExtractTarToContentStore(entry);
+                    ExtractTarToContentStore(entry);
                 }
             } else if (entry is { EntryType: TarEntryType.Directory }) { 
                 AddTrackedDirectory(entry);
             }
         }
-
+        
+        Console.WriteLine($"save process exited with code {saveProcess.ExitCode}");
+        reader.Dispose();
         if (manifest is not null && config is not null) {
             return new Image(manifest, config, name, null);
         } else {

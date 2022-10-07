@@ -13,7 +13,7 @@ public static class ContainerBuilder
         Image img;
         if (isDockerPull)
         {
-            img = await LocalDocker.Pull(baseName, baseTag);
+            img = LocalDocker.Pull(baseName, baseTag);
             throw new ArgumentException("Don't know how to pull images from local daemons at the moment");
         } else {
             Registry baseRegistry = new Registry(ContainerHelpers.TryExpandRegistryToUri(registryName));
