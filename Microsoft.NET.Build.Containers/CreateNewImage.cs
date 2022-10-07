@@ -168,8 +168,7 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
         if (IsDockerPull) {
             throw new ArgumentException("Don't know how to pull images from local daemons at the moment");
         } else {
-            var prefix = BaseRegistry.StartsWith("localhost") ? "http" : "https";
-            var reg = new Registry(new Uri($"{prefix}://{BaseRegistry}"));
+            var reg = new Registry(ContainerHelpers.TryExpandRegistryToUri(BaseRegistry));
             return reg.GetImageManifest(BaseImageName, BaseImageTag).Result;
         }
     }
@@ -208,7 +207,7 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
         }
 
         var isDockerPush = OutputRegistry.StartsWith("docker://");
-        Registry? outputReg = isDockerPush ? null : new Registry(new Uri(OutputRegistry));
+        Registry? outputReg = isDockerPush ? null : new Registry(ContainerHelpers.TryExpandRegistryToUri(OutputRegistry));
         foreach (var tag in ImageTags)
         {
             if (isDockerPush)

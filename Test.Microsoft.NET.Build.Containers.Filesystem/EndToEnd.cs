@@ -29,7 +29,7 @@ public class EndToEnd
 
         // Build the image
 
-        Registry registry = new Registry(new Uri($"http://{DockerRegistryManager.LocalRegistry}"));
+        Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.LocalRegistry));
 
         Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag);
 
@@ -67,7 +67,7 @@ public class EndToEnd
 
         // Build the image
 
-        Registry registry = new Registry(new Uri($"http://{DockerRegistryManager.LocalRegistry}"));
+        Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.LocalRegistry));
 
         Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag);
 

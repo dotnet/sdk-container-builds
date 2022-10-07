@@ -150,6 +150,11 @@ public static class ContainerHelpers
         return anchoredTagRegexp.IsMatch(imageTag);
     }
 
+    public static Uri TryExpandRegistryToUri(string alreadyValidatedDomain) {
+        var prefix = alreadyValidatedDomain.StartsWith("localhost") ? "http" : "https";
+        return new Uri($"{prefix}://{alreadyValidatedDomain}");
+    }
+
     /// <summary>
     /// Parse a fully qualified container name (e.g. https://mcr.microsoft.com/dotnet/runtime:6.0)
     /// Note: Tag not required.
