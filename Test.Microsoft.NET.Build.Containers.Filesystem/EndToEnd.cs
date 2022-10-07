@@ -214,7 +214,8 @@ public class EndToEnd
         await pull.WaitForExitAsync();
         Assert.AreEqual(0, pull.ExitCode);
 
-        ProcessStartInfo runInfo = new("docker", $"run --rm --publish 5017:80 --detach {DockerRegistryManager.LocalRegistry}/{imageName}:{imageTag}")
+        var containerName = "test-container-1";
+        ProcessStartInfo runInfo = new("docker", $"run --rm --name {containerName} --publish 5017:80 --detach {DockerRegistryManager.LocalRegistry}/{imageName}:{imageTag}")
         {
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -250,6 +251,15 @@ public class EndToEnd
         }
 
         Assert.AreEqual(true, everSucceeded);
+
+        ProcessStartInfo logsPsi = new("docker", $"logs {appContainerId}") {
+            RedirectStandardOutput = true
+        };
+
+        Process logs = Process.Start(logsPsi);
+        Assert.IsNotNull(logs);
+        await logs.WaitForExitAsync();
+        Console.WriteLine(logs.StandardOutput.ReadToEnd());
 
         ProcessStartInfo stopPsi = new("docker", $"stop {appContainerId}")
         {
