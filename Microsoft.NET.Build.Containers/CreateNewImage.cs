@@ -166,7 +166,7 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
 
     private Image GetBaseImage() {
         if (IsDockerPull) {
-            throw new ArgumentException("Don't know how to pull images from local daemons at the moment");
+            return LocalDocker.Pull(BaseImageName, BaseImageTag).Result;
         } else {
             var reg = new Registry(ContainerHelpers.TryExpandRegistryToUri(BaseRegistry));
             return reg.GetImageManifest(BaseImageName, BaseImageTag).Result;

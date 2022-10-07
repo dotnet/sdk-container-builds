@@ -10,7 +10,7 @@ public class LocalDocker
 {
     public static async Task Load(Image x, string name, string tag, string baseName)
     {
-        // call `docker load` and get it ready to recieve input
+        // call `docker load` and get it ready to receive input
         ProcessStartInfo loadInfo = new("docker", $"load");
         loadInfo.RedirectStandardInput = true;
         loadInfo.RedirectStandardOutput = true;
@@ -34,6 +34,78 @@ public class LocalDocker
         if (loadProcess.ExitCode != 0)
         {
             throw new DockerLoadException($"Failed to load image to local Docker daemon. stdout: {await loadProcess.StandardError.ReadToEndAsync()}");
+        }
+    }
+
+    public static async Task<Image> Pull(string name, string reference) {
+        // call 'docker save' to save the tarball out to a stream
+        // extract it to the relevant locations in the content store
+        // locate the manifest and return it
+        ProcessStartInfo saveInfo = new("docker", "save ${name}:{reference}"){
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+            RedirectStandardInput = true 
+        };
+
+        using Process? saveProcess = Process.Start(saveInfo);
+        if(saveProcess is null) {
+            throw new NotImplementedException("Failed creating docker save process");
+        }
+
+        using var reader = new TarReader(saveProcess.StandardOutput.BaseStream, leaveOpen: true);
+        JsonNode? manifest = null;
+        JsonNode? config = null;
+        HashSet<string> knownDirectories = new();
+
+        void ReadManifest(TarEntry entry) {
+            using var dataStream = entry.DataStream;
+            manifest = JsonNode.Parse(dataStream);
+        }
+
+        void ReadConfig(TarEntry entry) {
+            using var dataStream = entry.DataStream;
+            config = JsonNode.Parse(dataStream);
+        }
+
+        void AddTrackedDirectory(TarEntry entry) {
+            knownDirectories.Add(entry.Name);
+        }
+
+        async Task ExtractTarToContentStore(TarEntry entry) {
+            var parentDir = Path.GetDirectoryName(entry.Name);
+            // the descriptor hash is the parent dir
+            var descriptorHash = Path.GetFileName(parentDir)!;
+            var tarSize = entry.DataStream.Length!;
+            var contentStorePath = ContentStore.PathForDescriptor(new Descriptor("application/vnd.docker.image.rootfs.diff.tar.gzip", descriptorHash, tarSize));
+            using var dataStream = entry.DataStream;
+            if(File.Exists(contentStorePath)) return;
+
+            using var layerFile = File.Create(contentStorePath); 
+            await dataStream.CopyToAsync(layerFile);
+        }
+
+        while (true) {
+            var entry = await reader.GetNextEntryAsync();
+            if(entry is null) break;
+            if (entry is { EntryType: TarEntryType.RegularFile }) {
+                if (Path.GetFileName(entry.Name) == "manifest.json") {
+                    ReadManifest(entry); 
+                } else if (Path.GetExtension(entry.Name) == ".json") {
+                    ReadConfig(entry);
+                } else if (Path.GetFileName(entry.Name) == "layer.tar"
+                            && Path.GetDirectoryName(entry.Name) is string parentDir
+                            && knownDirectories.Contains(parentDir)) {
+                    await ExtractTarToContentStore(entry);
+                }
+            } else if (entry is { EntryType: TarEntryType.Directory }) { 
+                AddTrackedDirectory(entry);
+            }
+        }
+
+        if (manifest is not null && config is not null) {
+            return new Image(manifest, config, name, null);
+        } else {
+            throw new Exception("Unable to load image from Docker daemon");
         }
     }
 

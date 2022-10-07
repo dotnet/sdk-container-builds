@@ -174,8 +174,8 @@ public static class Patterns
     /// domain and trailing components.
     /// </summary>
     private static readonly string anchoredName = anchored(
-        optional(capture(domain), literal("/")),
-        capture(nameComponent, optional(repeated(literal("/"), nameComponent)))
+        optional(capture(domain), literal("/")), // mcr.microsoft.com
+        capture(nameComponent, optional(repeated(literal("/"), nameComponent))) // (dotnet)(/runtime)(/sdk-container-demo)
     );
 
     /// <summary>

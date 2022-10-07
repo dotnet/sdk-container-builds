@@ -10,12 +10,16 @@ public static class ContainerBuilder
     public static async Task Containerize(DirectoryInfo folder, string workingDir, string registryName, string baseName, string baseTag, string[] entrypoint, string[] entrypointArgs, string imageName, string[] imageTags, string outputRegistry, string[] labels, Port[] exposedPorts)
     {
         var isDockerPull = registryName.StartsWith(ContainerHelpers.DefaultRegistry);
-        if (isDockerPull) {
+        Image img;
+        if (isDockerPull)
+        {
+            img = await LocalDocker.Pull(baseName, baseTag);
             throw new ArgumentException("Don't know how to pull images from local daemons at the moment");
+        } else {
+            Registry baseRegistry = new Registry(ContainerHelpers.TryExpandRegistryToUri(registryName));
+            img = await baseRegistry.GetImageManifest(baseName, baseTag);
         }
-        Registry baseRegistry = new Registry(ContainerHelpers.TryExpandRegistryToUri(registryName));
-
-        Image img = await baseRegistry.GetImageManifest(baseName, baseTag);
+        
         img.WorkingDirectory = workingDir;
 
         JsonSerializerOptions options = new()
