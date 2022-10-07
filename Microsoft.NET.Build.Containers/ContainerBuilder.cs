@@ -26,7 +26,7 @@ public static class ContainerBuilder
         img.SetEntrypoint(entrypoint, entrypointArgs);
 
         var isDockerPush = outputRegistry.StartsWith("docker://");
-        Registry? outputReg = isDockerPush ? null : new Registry(new Uri(outputRegistry));
+        Registry? outputReg = isDockerPush ? null : new Registry(new Uri(outputRegistry.StartsWith("localhost") ? $"http://{outputRegistry}": $"https:{outputRegistry}"));
 
         foreach (var label in labels)
         {
