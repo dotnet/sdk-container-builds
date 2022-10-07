@@ -128,21 +128,9 @@ public class ParseContainerProperties : Microsoft.Build.Utilities.Task
             validTags = Array.Empty<string>();
         }
 
-        string registryToUse = string.Empty;
-
-        if (!ContainerRegistry.StartsWith("http://") &&
-             !ContainerRegistry.StartsWith("https://") &&
-             !ContainerRegistry.StartsWith("docker://"))
+        if (!ContainerHelpers.IsValidRegistry(ContainerRegistry))
         {
-            // Default to https when no scheme is present: https://github.com/distribution/distribution/blob/26163d82560f4dda94bd7b87d587f94644c5af79/reference/normalize.go#L88
-            registryToUse = "https://";
-        }
-
-        registryToUse += ContainerRegistry;
-
-        if (!ContainerHelpers.IsValidRegistry(registryToUse))
-        {
-            Log.LogError("Could not recognize registry '{0}'. Does your registry need a scheme, like 'https://'?", ContainerRegistry);
+            Log.LogError("Could not recognize registry '{0}'.", ContainerRegistry);
             return !Log.HasLoggedErrors;
         }
 
@@ -150,13 +138,14 @@ public class ParseContainerProperties : Microsoft.Build.Utilities.Task
         {
             Log.LogWarning($"{nameof(FullyQualifiedBaseImageName)} had spaces in it, replacing with dashes.");
         }
+        FullyQualifiedBaseImageName = FullyQualifiedBaseImageName.Replace(' ', '-');
 
-        if (!ContainerHelpers.TryParseFullyQualifiedContainerName(FullyQualifiedBaseImageName.Replace(' ', '-'),
+        if (!ContainerHelpers.TryParseFullyQualifiedContainerName(FullyQualifiedBaseImageName,
                                                                   out string? outputReg,
                                                                   out string? outputImage,
                                                                   out string? outputTag))
         {
-            Log.LogError($"Could not parse {nameof(FullyQualifiedBaseImageName)}: {0}", FullyQualifiedBaseImageName);
+            Log.LogError($"Could not parse {nameof(FullyQualifiedBaseImageName)}: {{0}}", FullyQualifiedBaseImageName);
             return !Log.HasLoggedErrors;
         }
 
@@ -182,7 +171,7 @@ public class ParseContainerProperties : Microsoft.Build.Utilities.Task
         ParsedContainerRegistry = outputReg ?? "";
         ParsedContainerImage = outputImage ?? "";
         ParsedContainerTag = outputTag ?? "";
-        NewContainerRegistry = registryToUse;
+        NewContainerRegistry = ContainerRegistry;
         NewContainerTags = validTags;
 
         if (BuildEngine != null)

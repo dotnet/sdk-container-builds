@@ -140,6 +140,8 @@ public class EndToEnd
 
         newProjectDir.Create();
         privateNuGetAssets.Create();
+        var repoGlobalJson = Path.Combine("..", "..", "..", "..", "global.json");
+        File.Copy(repoGlobalJson, Path.Combine(newProjectDir.FullName, "global.json"));
 
         // 🤢
         DirectoryInfo nupkgPath = new DirectoryInfo(Assembly.GetAssembly(this.GetType()).Location).Parent.Parent.Parent.Parent;
@@ -190,14 +192,14 @@ public class EndToEnd
         Process dotnetPackageAdd = Process.Start(info);
         Assert.IsNotNull(dotnetPackageAdd);
         await dotnetPackageAdd.WaitForExitAsync();
-        Assert.AreEqual(0, dotnetPackageAdd.ExitCode);
+        Assert.AreEqual(0, dotnetPackageAdd.ExitCode, dotnetPackageAdd.StandardOutput.ReadToEnd());
 
         string imageName = NewImageName();
         string imageTag = "1.0";
 
         info.Arguments = $"publish /p:publishprofile=DefaultContainer /p:runtimeidentifier=linux-x64 /bl" +
                           $" /p:ContainerBaseImage={DockerRegistryManager.FullyQualifiedBaseImageDefault}" +
-                          $" /p:ContainerRegistry=http://{DockerRegistryManager.LocalRegistry}" +
+                          $" /p:ContainerRegistry={DockerRegistryManager.LocalRegistry}" +
                           $" /p:ContainerImageName={imageName}" +
                           $" /p:Version={imageTag}";
 
@@ -234,7 +236,7 @@ public class EndToEnd
         {
             try
             {
-                var response = await client.GetAsync("http://localhost:5017/weatherforecast");
+                var response = await client.GetAsync("localhost:5017/weatherforecast");
 
                 if (response.IsSuccessStatusCode)
                 {

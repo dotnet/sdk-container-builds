@@ -22,7 +22,7 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
 
     /// <summary>
     /// The base registry to pull from.
-    /// Ex: https://mcr.microsoft.com
+    /// Ex: mcr.microsoft.com
     /// </summary>
     [Required]
     public string BaseRegistry { get; set; }
@@ -96,6 +96,8 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
 
     private bool IsDockerPush { get => OutputRegistry == "docker://"; }
 
+    private bool IsDockerPull { get => BaseRegistry.StartsWith(ContainerHelpers.DefaultRegistry); }
+
     public CreateNewImage()
     {
         ContainerizeDirectory = "";
@@ -162,6 +164,16 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
 
     }
 
+    private Image GetBaseImage() {
+        if (IsDockerPull) {
+            throw new ArgumentException("Don't know how to pull images from local daemons at the moment");
+        } else {
+            var prefix = BaseRegistry.StartsWith("localhost") ? "http" : "https";
+            var reg = new Registry(new Uri($"{prefix}://{BaseRegistry}"));
+            return reg.GetImageManifest(BaseImageName, BaseImageTag).Result;
+        }
+    }
+
     public override bool Execute()
     {
         if (!Directory.Exists(PublishDirectory))
@@ -170,18 +182,7 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
             return !Log.HasLoggedErrors;
         }
 
-        Registry reg;
-        Image image;
-
-        try
-        {
-            reg = new Registry(new Uri(BaseRegistry, UriKind.RelativeOrAbsolute));
-            image = reg.GetImageManifest(BaseImageName, BaseImageTag).Result;
-        }
-        catch
-        {
-            throw;
-        }
+        var image = GetBaseImage();
 
         if (BuildEngine != null)
         {

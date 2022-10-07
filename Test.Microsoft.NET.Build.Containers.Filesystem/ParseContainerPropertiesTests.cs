@@ -12,13 +12,13 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
         public void Baseline()
         {
             ParseContainerProperties task = new ParseContainerProperties();
-            task.FullyQualifiedBaseImageName = "https://mcr.microsoft.com/dotnet/runtime:6.0";
-            task.ContainerRegistry = "http://localhost:5010";
+            task.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:6.0";
+            task.ContainerRegistry = "localhost:5010";
             task.ContainerImageName = "dotnet/testimage";
             task.ContainerImageTags = new[] { "5.0" };
 
             Assert.IsTrue(task.Execute());
-            Assert.AreEqual("https://mcr.microsoft.com", task.ParsedContainerRegistry);
+            Assert.AreEqual("mcr.microsoft.com", task.ParsedContainerRegistry);
             Assert.AreEqual("dotnet/runtime", task.ParsedContainerImage);
             Assert.AreEqual("6.0", task.ParsedContainerTag);
 
@@ -31,16 +31,16 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
         {
             ParseContainerProperties task = new ParseContainerProperties();
             task.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:6.0";
-            task.ContainerRegistry = "http://localhost:5010";
+            task.ContainerRegistry = "localhost:5010";
             task.ContainerImageName = "dotnet/testimage";
             task.ContainerImageTags = new[] { "5.0" };
 
             Assert.IsTrue(task.Execute());
-            Assert.AreEqual("https://mcr.microsoft.com", task.ParsedContainerRegistry);
+            Assert.AreEqual("mcr.microsoft.com", task.ParsedContainerRegistry);
             Assert.AreEqual("dotnet/runtime", task.ParsedContainerImage);
             Assert.AreEqual("6.0", task.ParsedContainerTag);
 
-            Assert.AreEqual("http://localhost:5010", task.NewContainerRegistry);
+            Assert.AreEqual("localhost:5010", task.NewContainerRegistry);
             Assert.AreEqual("dotnet/testimage", task.NewContainerImageName);
             new[] { "5.0" }.SequenceEqual(task.NewContainerTags);
         }
@@ -55,11 +55,11 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
             task.ContainerImageTags = new[] { "5.0" };
 
             Assert.IsTrue(task.Execute());
-            Assert.AreEqual("https://mcr.microsoft.com", task.ParsedContainerRegistry);
+            Assert.AreEqual("mcr.microsoft.com", task.ParsedContainerRegistry);
             Assert.AreEqual("dotnet/runtime", task.ParsedContainerImage);
             Assert.AreEqual("6.0", task.ParsedContainerTag);
 
-            Assert.AreEqual("https://localhost:5010", task.NewContainerRegistry);
+            Assert.AreEqual("localhost:5010", task.NewContainerRegistry);
             Assert.AreEqual("dotnet/testimage", task.NewContainerImageName);
             new[] { "5.0" }.SequenceEqual(task.NewContainerTags);
         }
@@ -69,14 +69,14 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
         {
             ParseContainerProperties task = new ParseContainerProperties();
             task.FullyQualifiedBaseImageName = "mcr microsoft com/dotnet runtime:6 0";
-            task.ContainerRegistry = "http://localhost:5010";
+            task.ContainerRegistry = "localhost:5010";
 
             // Spaces in the "new" container info don't pass the regex.
             task.ContainerImageName = "dotnet/testimage";
             task.ContainerImageTags = new[] { "5.0" };
 
             Assert.IsTrue(task.Execute());
-            Assert.AreEqual("https://mcr-microsoft-com", task.ParsedContainerRegistry);
+            Assert.AreEqual("mcr-microsoft-com", task.ParsedContainerRegistry);
             Assert.AreEqual("dotnet-runtime", task.ParsedContainerImage);
             Assert.AreEqual("6-0", task.ParsedContainerTag);
 
@@ -90,7 +90,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
         {
             ParseContainerProperties task = new ParseContainerProperties();
             task.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:6 0";
-            task.ContainerRegistry = "http://localhost:5010";
+            task.ContainerRegistry = "localhost:5010";
 
             // Spaces in the "new" container info don't pass the regex.
             task.ContainerImageName = "dotnet testimage";
@@ -106,7 +106,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
         {
             ParseContainerProperties task = new ParseContainerProperties();
             task.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:6 0";
-            task.ContainerRegistry = "http://localhost:5010";
+            task.ContainerRegistry = "localhost:5010";
             // Spaces in the "new" container info don't pass the regex.
             task.ContainerImageName = "dotnet/testimage";
             task.ContainerImageTags = new[] { "5.0" };
@@ -121,7 +121,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
         {
             ParseContainerProperties task = new ParseContainerProperties();
             task.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:6 0";
-            task.ContainerRegistry = "http://localhost:5010";
+            task.ContainerRegistry = "localhost:5010";
             // Spaces in the "new" container info don't pass the regex.
             task.ContainerImageName = "dotnet/testimage";
             task.ContainerImageTag = "a.b";

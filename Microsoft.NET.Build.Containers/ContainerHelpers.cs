@@ -2,7 +2,101 @@ namespace Microsoft.NET.Build.Containers;
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using System.Text.RegularExpressions;
+using static Patterns;
+
+static class Patterns {
+    
+    private static readonly string alphaNumeric = @"[a-z0-9]+";
+    private static readonly string separator = @"(?:[._]|__|[-]*)";
+    private static readonly string nameComponent = expression(alphaNumeric, optional(repeated(separator, alphaNumeric)));
+    private static readonly string domainNameComponent = @"(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])";
+    private static readonly string ipv6address = expression(
+        literal("["),
+        @"(?:[a-fA-F0-9:]+)",
+        literal("]")
+    );
+
+    private static readonly string domainName = expression(
+        domainNameComponent,
+        optional(repeated(literal("."), domainNameComponent))
+    );
+
+    private static readonly string host = $"(?:{domainName}|{ipv6address})";
+
+    private static readonly string domain = expression(
+        host, 
+        optional(literal(":"), "[0-9]+")
+    );
+
+    public static readonly Regex DomainRegexp = new (domain);
+
+    private static readonly string tag = @"[\w][\w.-]{0,127}";
+
+    public static readonly Regex TagRegexp = new(tag);
+
+    private static readonly string anchoredTag = anchored(tag);
+
+    public static readonly Regex anchoredTagRegexp = new(anchoredTag);
+
+    // needed because the original golang used `[[:xdigit:]] which .Net doesn't support
+    private static readonly string hexDigit = "[0-9A-Fa-f]";
+    private static readonly string digestPat = $"[A-Za-z][A-Za-z0-9]*(?:[-_+.][A-Za-z][A-Za-z0-9]*)*[:]{hexDigit}{{32,}}";
+    public static readonly Regex DigestRegexp = new(digestPat);
+    private static readonly string anchoredDigest = anchored(digestPat);
+    private static readonly Regex anchoredDigestRegexp = new(anchoredDigest);
+    private static readonly string namePat = expression(
+        optional(domain, literal("/")),
+        nameComponent,
+        optional(repeated(literal("/"), nameComponent))
+    );
+
+    public static readonly Regex NameRegexp = new(namePat);
+
+    private static readonly string anchoredName = anchored(
+        optional(capture(domain), literal("/")),
+        capture(nameComponent, optional(repeated(literal("/"), nameComponent)))
+    );
+
+    public static readonly Regex anchoredNameRegexp = new(anchoredName);
+
+    private static string referencePat = anchored(
+        capture(namePat),
+        optional(literal(":"), capture(tag)),
+        optional(literal("@"), capture(digestPat))
+    );
+
+    public static Regex ReferenceRegexp = new(referencePat);
+
+    private static readonly string identifier = @"([a-f0-9]{64})";
+    public static readonly Regex IdentifierRegexp = new(identifier);
+
+    private static readonly string shortIdentifier = @"([a-f0-9]{6,64})";
+    public static readonly Regex ShortIdentifierRegexp = new(shortIdentifier);
+
+    private static readonly string anchoredIdentifier = anchored(identifier); 
+    private static readonly Regex anchoredIdentifierRegexp = new(anchoredIdentifier);
+
+    private static readonly string anchoredShortIdentifier = anchored(shortIdentifier);
+    private static readonly Regex anchoredShortIdentifierRegexp = new(anchoredShortIdentifier);
+
+    private static string expression(params string[] segments) {
+        var b = new StringBuilder();
+        foreach (var s in segments) {
+            b.Append(s);
+        }
+        return b.ToString();
+    }
+    private static string capture(params string[] segments) => $"({expression(segments)})";
+    private static string anchored(params string[] segments) => $"^{expression(segments)}$";
+    private static string literal(string s) => Regex.Escape(s);
+
+    private static string repeated(params string[] segments) => $"{group(expression(segments))}+";
+    private static string group(params string[] segments) => $"(?:{expression(segments)})";
+    private static string optional(params string[] segments) => $"{group(expression(segments))}?";
+
+}
 
 record Label(string name, string value);
 
@@ -18,9 +112,8 @@ public record Port(int number, PortType type);
 
 public static class ContainerHelpers
 {
-    private static Regex imageTagRegex = new Regex(@"^[a-zA-Z0-9_][a-zA-Z0-9._-]{0,127}$");
 
-    private static Regex imageNameRegex = new Regex(@"^[a-z0-9]+([._-][a-z0-9]+)*(/[a-z0-9]+([._-][a-z0-9]+)*)*$");
+    public static string DefaultRegistry = "docker.io";
 
     /// <summary>
     /// Matches if the string is not lowercase or numeric, or ., _, or -.
@@ -29,53 +122,11 @@ public static class ContainerHelpers
     private static Regex imageNameCharacters = new Regex(@"[^a-z0-9_\-/]");
 
     /// <summary>
-    /// Given some "fully qualified" image name (e.g. mcr.microsoft.com/dotnet/runtime), return
-    /// a valid UriBuilder. This means appending 'https' if the URI is not absolute, otherwise UriBuilder will throw.
-    /// </summary>
-    /// <param name="containerBase"></param>
-    /// <returns>A <see cref="Uri" /> with the given containerBase, or, if containerBase is relative, https:// + containerBase</returns>
-    private static Uri? ContainerImageToUri(string containerBase)
-    {
-        Uri uri = new Uri(containerBase, UriKind.RelativeOrAbsolute);
-
-        try
-        {
-            return uri.IsAbsoluteUri ? uri : new Uri(containerBase.Contains("localhost") ? "http://" : "https://" + uri);
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine("Failed parsing the container image into a UriBuilder: {0}", e);
-            return null;
-        }
-    }
-
-    /// <summary>
     /// Ensures the given registry is valid.
     /// </summary>
-    /// <param name="imageName"></param>
+    /// <param name="registryName"></param>
     /// <returns></returns>
-    public static bool IsValidRegistry(string registryName)
-    {
-        // No scheme prefixed onto the registry
-        if (string.IsNullOrEmpty(registryName) ||
-            (!registryName.StartsWith("http://") &&
-             !registryName.StartsWith("https://") &&
-             !registryName.StartsWith("docker://")))
-        {
-            return false;
-        }
-
-        try
-        {
-            UriBuilder uri = new UriBuilder(registryName);
-        }
-        catch
-        {
-            return false;
-        }
-
-        return true;
-    }
+    public static bool IsValidRegistry(string registryName) => NameRegexp.IsMatch(registryName);
 
     /// <summary>
     /// Ensures the given image name is valid.
@@ -85,7 +136,7 @@ public static class ContainerHelpers
     /// <returns></returns>
     public static bool IsValidImageName(string imageName)
     {
-        return imageNameRegex.IsMatch(imageName);
+        return anchoredNameRegexp.IsMatch(imageName);
     }
 
     /// <summary>
@@ -96,7 +147,7 @@ public static class ContainerHelpers
     /// <returns></returns>
     public static bool IsValidImageTag(string imageTag)
     {
-        return imageTagRegex.IsMatch(imageTag);
+        return anchoredTagRegexp.IsMatch(imageTag);
     }
 
     /// <summary>
@@ -113,25 +164,29 @@ public static class ContainerHelpers
                                                             [NotNullWhen(true)] out string? containerName,
                                                             [NotNullWhen(true)] out string? containerTag)
     {
-        Uri? uri = ContainerImageToUri(fullyQualifiedContainerName);
-
-        if (uri == null || uri.Segments.Length <= 1)
-        {
+        var referenceMatch = ReferenceRegexp.Match(fullyQualifiedContainerName);
+        if(referenceMatch is not { Success: true }) {
             containerRegistry = null;
             containerName = null;
             containerTag = null;
             return false;
         }
-
-        // The first segment is the '/', create a string out of everything after.
-        string image = uri.PathAndQuery.Substring(1);
-
-        // If the image has a ':', there's a tag we need to parse.
-        int indexOfColon = image.IndexOf(':');
-
-        containerRegistry = uri.Scheme + "://" + uri.Host + (uri.Port > 0 && !uri.IsDefaultPort ? ":" + uri.Port : "");
-        containerName = indexOfColon == -1 ? image : image.Substring(0, indexOfColon);
-        containerTag = indexOfColon == -1 ? "" : image.Substring(indexOfColon + 1);
+        var nameMatch = anchoredNameRegexp.Match(referenceMatch.Groups[1].Value);
+        if (nameMatch is { Success: true }) {
+            if (nameMatch.Groups.Count == 3) {
+                containerRegistry = nameMatch.Groups[1].Value;
+                containerName = nameMatch.Groups[2].Value;
+            } else {
+                containerRegistry = DefaultRegistry;
+                containerName = referenceMatch.Groups[1].Value;
+            }
+        } else {
+            containerRegistry = null;
+            containerName = null;
+            containerTag = null;
+            return false;
+        }
+        containerTag = referenceMatch.Groups[2].Value;
         return true;
     }
 
