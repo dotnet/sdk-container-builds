@@ -6,97 +6,303 @@ using System.Text;
 using System.Text.RegularExpressions;
 using static Patterns;
 
-public static class Patterns {
-    
+/// <summary>
+/// This class is a port of the regex patterns described in the regexp.go file in the OCI Registry spec repo distribution/distribution.
+/// It is current as of SHA 78b9c98c5c31c30d74f9acb7d96f98552f2cf78f.
+/// <see href="https://github.com/distribution/distribution/blob/78b9c98c5c31c30d74f9acb7d96f98552f2cf78f/reference/regexp.go">regexp.go</see> is the direct file link.
+/// Comments on each member are lifted directly from this source.
+/// Names of each member are deliberately non-.NET-standard, as they were kept aligned with their golang versions for easier comparison.
+/// Visibility of each member is determined by golang rules - lowercase is private, uppercase is public. The exception is when a private member is used inside the golang module.
+/// </summary>
+public static class Patterns
+{
+
+    /// <summary>
+    /// alphaNumeric defines the alpha numeric atom, typically a
+    /// component of names. This only allows lower case characters and digits.
+    /// </summary>
     private static readonly string alphaNumeric = @"[a-z0-9]+";
+
+    /// <summary>
+    /// separator defines the separators allowed to be embedded in name
+    /// components. This allow one period, one or two underscore and multiple
+    /// dashes. Repeated dashes and underscores are intentionally treated
+    /// differently. In order to support valid hostnames as name components,
+    /// supporting repeated dash was added. Additionally double underscore is
+    /// now allowed as a separator to loosen the restriction for previously
+    /// supported names.
+    /// </summary>
     private static readonly string separator = @"(?:[._]|__|[-]*)";
+
+    /// <summary>
+    /// nameComponent restricts registry path component names to start
+    /// with at least one letter or number, with following parts able to be
+    /// separated by one period, one or two underscore and multiple dashes.
+    /// </summary>
     private static readonly string nameComponent = expression(alphaNumeric, optional(repeated(separator, alphaNumeric)));
+
+    /// <summary>
+    /// domainNameComponent restricts the registry domain component of a
+    /// repository name to start with a component as defined by DomainRegexp.
+    /// </summary>
     private static readonly string domainNameComponent = @"(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])";
+
+    /// <summary>
+    /// ipv6address are enclosed between square brackets and may be represented
+    /// in many ways, see rfc5952. Only IPv6 in compressed or uncompressed format
+    /// are allowed, IPv6 zone identifiers (rfc6874) or Special addresses such as
+    /// IPv4-Mapped are deliberately excluded.
+    /// </summary>
     private static readonly string ipv6address = expression(
         literal("["),
         @"(?:[a-fA-F0-9:]+)",
         literal("]")
     );
 
+    /// <summary>
+    /// domainName defines the structure of potential domain components
+    /// that may be part of image names. This is purposely a subset of what is
+    /// allowed by DNS to ensure backwards compatibility with Docker image
+    /// names. This includes IPv4 addresses on decimal format.
+    /// </summary>
     private static readonly string domainName = expression(
         domainNameComponent,
         optional(repeated(literal("."), domainNameComponent))
     );
 
+    /// <summary>
+    /// host defines the structure of potential domains based on the URI
+    /// Host subcomponent on rfc3986. It may be a subset of DNS domain name,
+    /// or an IPv4 address in decimal format, or an IPv6 address between square
+    /// brackets (excluding zone identifiers as defined by rfc6874 or special
+    /// addresses such as IPv4-Mapped).
+    /// </summary>
     private static readonly string host = $"(?:{domainName}|{ipv6address})";
 
+    /// <summary>
+    /// allowed by the URI Host subcomponent on rfc3986 to ensure backwards
+    /// compatibility with Docker image names.
+    /// </summary>
     private static readonly string domain = expression(
-        host, 
+        host,
         optional(literal(":"), "[0-9]+")
     );
 
-    public static readonly Regex DomainRegexp = new (domain);
+    /// <summary>
+    /// DomainRegexp defines the structure of potential domain components
+    /// that may be part of image names. This is purposely a subset of what is
+    /// allowed by DNS to ensure backwards compatibility with Docker image
+    /// names.
+    /// </summary>
+    public static readonly Regex DomainRegexp = new(domain);
+
+    /// <summary>
+    /// This is a custom addition - we needed domain-part validation for a string we _knew_ was anchored,
+    /// so this was included as a slight addition to the source material.
+    /// </summary>
     public static readonly Regex AnchoredDomainRegexp = new(anchored(domain));
 
+    /// <summary>
+    /// valid tags are a word character followed by 0-127 subsequent word, dot, or dash characters.
+    /// </summary>
     private static readonly string tag = @"[\w][\w.-]{0,127}";
 
+    /// <summary>
+    /// TagRegexp matches valid tag names. From docker/docker:graph/tags.go.
+    /// </summary>
     public static readonly Regex TagRegexp = new(tag);
 
+    /// <summary>
+    // anchoredTag matches valid tag names, anchored at the start and
+    // end of the matched string.
+    /// </summary>
     private static readonly string anchoredTag = anchored(tag);
 
+    /// <summary>
+    /// anchoredTagRegexp matches valid tag names, anchored at the start and
+    /// end of the matched string.
+    /// </summary>
     public static readonly Regex anchoredTagRegexp = new(anchoredTag);
 
-    // needed because the original golang used `[[:xdigit:]] which .Net doesn't support
+    /// <summary>
+    /// needed because the original golang used `[[:xdigit:]]` which .Net doesn't support.
+    /// `[[:xdigit:]]` is the set of valid hex digits, which is 0-9, a-f, and A-F.
+    /// </summary>
     private static readonly string hexDigit = "[0-9A-Fa-f]";
+
+    /// <summary>
+    /// digestPat matches valid digests.
+    /// </summary>
     private static readonly string digestPat = $"[A-Za-z][A-Za-z0-9]*(?:[-_+.][A-Za-z][A-Za-z0-9]*)*[:]{hexDigit}{{32,}}";
+
+    /// <summary>
+    /// DigestRegexp matches valid digests.
+    /// </summary>
     public static readonly Regex DigestRegexp = new(digestPat);
+
+    /// <summary>
+    /// anchoredDigest matches valid digests, anchored at the start and
+    /// end of the matched string.
+    /// </summary>
     private static readonly string anchoredDigest = anchored(digestPat);
+
+    /// <summary>
+    /// anchoredDigestRegexp matches valid digests, anchored at the start and
+    /// end of the matched string.
+    /// </summary>
     private static readonly Regex anchoredDigestRegexp = new(anchoredDigest);
+
+    /// <summary>
+    /// namePat is the format for the name component of references. The
+    /// regexp has capturing groups for the domain and name part omitting
+    /// the separating forward slash from either.
+    /// </summary>
     private static readonly string namePat = expression(
         optional(domain, literal("/")),
         nameComponent,
         optional(repeated(literal("/"), nameComponent))
     );
 
+    /// <summary>
+    /// NameRegexp is the format for the name component of references. Logically this consists of
+    /// a domain portion followed by one or more /-delimited name components.
+    /// </summary>
     public static readonly Regex NameRegexp = new(namePat);
 
+    /// <summary>
+    /// anchoredNameRegexp is used to parse a name value, capturing the
+    /// domain and trailing components.
+    /// </summary>
     private static readonly string anchoredName = anchored(
         optional(capture(domain), literal("/")),
         capture(nameComponent, optional(repeated(literal("/"), nameComponent)))
     );
 
+    /// <summary>
+    /// anchoredNameRegexp is used to parse a name value, capturing the
+    /// domain and trailing components.
+    /// </summary>
     public static readonly Regex anchoredNameRegexp = new(anchoredName);
 
+    /// <summary>
+    /// referencePat is the full supported format of a reference. The regexp
+    /// is anchored and has capturing groups for name, tag, and digest
+    /// components.
+    /// </summary>
     private static string referencePat = anchored(
         capture(namePat),
         optional(literal(":"), capture(tag)),
         optional(literal("@"), capture(digestPat))
     );
 
+    /// <summary>
+    /// ReferenceRegexp is the full supported format of a reference. The regexp
+    /// is anchored and has capturing groups for name, tag, and digest
+    /// components.
+    /// </summary>
     public static Regex ReferenceRegexp = new(referencePat);
 
+    /// <summary>
+    /// identifier is the format for string identifier used as a
+    /// content addressable identifier using sha256. These identifiers
+    /// are like digests without the algorithm, since sha256 is used.
+    /// </summary>
     private static readonly string identifier = @"([a-f0-9]{64})";
+
+    /// <summary>
+    /// IdentifierRegexp is the format for string identifier used as a
+    /// content addressable identifier using sha256. These identifiers
+    /// are like digests without the algorithm, since sha256 is used.
+    /// </summary>
     public static readonly Regex IdentifierRegexp = new(identifier);
 
+    /// <summary>
+    /// shortIdentifier is the format used to represent a prefix
+    /// of an identifier. A prefix may be used to match a sha256 identifier
+    /// within a list of trusted identifiers.
+    /// </summary>
     private static readonly string shortIdentifier = @"([a-f0-9]{6,64})";
+
+    /// <summary>
+    /// ShortIdentifierRegexp is the format used to represent a prefix
+    /// of an identifier. A prefix may be used to match a sha256 identifier
+    /// within a list of trusted identifiers.
+    /// </summary>
     public static readonly Regex ShortIdentifierRegexp = new(shortIdentifier);
 
-    private static readonly string anchoredIdentifier = anchored(identifier); 
+    /// <summary>
+    /// anchoredIdentifier is used to check or match an
+    /// identifier value, anchored at start and end of string.
+    /// </summary>
+    private static readonly string anchoredIdentifier = anchored(identifier);
+
+    /// <summary>
+    /// anchoredIdentifierRegexp is used to check or match an
+    /// identifier value, anchored at start and end of string.
+    /// </summary>
     private static readonly Regex anchoredIdentifierRegexp = new(anchoredIdentifier);
 
+    /// <summary>
+    /// anchoredShortIdentifier is used to check if a value
+    /// is a possible identifier prefix, anchored at start and end
+    /// of string.
+    /// </summary>
     private static readonly string anchoredShortIdentifier = anchored(shortIdentifier);
+
+    /// <summary>
+    /// anchoredShortIdentifierRegexp is used to check if a value
+    /// is a possible identifier prefix, anchored at start and end
+    /// of string.
+    /// </summary>
     private static readonly Regex anchoredShortIdentifierRegexp = new(anchoredShortIdentifier);
 
-    private static string expression(params string[] segments) {
+    /// <summary>
+    /// literal compiles s into a literal regular expression, escaping any regexp
+    /// reserved characters.
+    /// </summary>
+    /// <remarks>we use a simpler implementation than the golang source since Regex.Escape seems to do the job</remarks>
+    private static string literal(string s) => Regex.Escape(s);
+
+    /// <summary>
+    /// expression defines a full expression, where each regular expression must
+    /// follow the previous.
+    /// </summary>
+    private static string expression(params string[] segments)
+    {
         var b = new StringBuilder();
-        foreach (var s in segments) {
+        foreach (var s in segments)
+        {
             b.Append(s);
         }
         return b.ToString();
     }
-    private static string capture(params string[] segments) => $"({expression(segments)})";
-    private static string anchored(params string[] segments) => $"^{expression(segments)}$";
-    private static string literal(string s) => Regex.Escape(s);
 
-    private static string repeated(params string[] segments) => $"{group(expression(segments))}+";
-    private static string group(params string[] segments) => $"(?:{expression(segments)})";
+    /// <summary>
+    /// optional wraps the expression in a non-capturing group and makes the
+    /// production optional.
+    /// </summary>
     private static string optional(params string[] segments) => $"{group(expression(segments))}?";
 
+    /// <summary>
+    /// repeated wraps the regexp in a non-capturing group to get one or more
+    /// matches.
+    /// </summary>
+    private static string repeated(params string[] segments) => $"{group(expression(segments))}+";
+
+    /// <summary>
+    /// group wraps the regexp in a non-capturing group.
+    /// </summary>
+    private static string group(params string[] segments) => $"(?:{expression(segments)})";
+
+    /// <summary>
+    /// capture wraps the expression in a capturing group.
+    /// </summary>
+    private static string capture(params string[] segments) => $"({expression(segments)})";
+
+    /// <summary>
+    /// anchored anchors the regular expression by adding start and end delimiters.
+    /// </summary>
+    private static string anchored(params string[] segments) => $"^{expression(segments)}$";
 }
 
 record Label(string name, string value);
@@ -114,6 +320,11 @@ public record Port(int number, PortType type);
 public static class ContainerHelpers
 {
 
+    /// <summary>
+    /// DefaultRegistry is the canonical representation of something that lives in the local docker daemon. It's used as the inferred registry for repositories
+    /// that have no registry component.
+    /// See <see href="https://github.com/distribution/distribution/blob/78b9c98c5c31c30d74f9acb7d96f98552f2cf78f/reference/normalize.go">normalize.go</see>.
+    /// </summary>
     public const string DefaultRegistry = "docker.io";
 
     /// <summary>
@@ -151,7 +362,12 @@ public static class ContainerHelpers
         return anchoredTagRegexp.IsMatch(imageTag);
     }
 
-    public static Uri TryExpandRegistryToUri(string alreadyValidatedDomain) {
+    /// <summary>
+    /// Given an already-validated registry domain, this is our hueristic to determine what HTTP protocol should be used to interact with it.
+    /// This is primarily for testing - in the real world almost all usage should be through HTTPS!
+    /// </summary>
+    public static Uri TryExpandRegistryToUri(string alreadyValidatedDomain)
+    {
         var prefix = alreadyValidatedDomain.StartsWith("localhost") ? "http" : "https";
         return new Uri($"{prefix}://{alreadyValidatedDomain}");
     }
@@ -160,39 +376,85 @@ public static class ContainerHelpers
     /// Parse a fully qualified container name (e.g. https://mcr.microsoft.com/dotnet/runtime:6.0)
     /// Note: Tag not required.
     /// </summary>
+    /// <remarks>
+    /// This code is adapted from <see href="https://github.com/distribution/distribution/blob/78b9c98c5c31c30d74f9acb7d96f98552f2cf78f/reference/reference.go#L191-L236">reference.go</see>
+    /// and so may not match .NET idioms.
+    /// NOTE: We explicitly are not handling digest references at the moment.
+    /// </remarks>
     /// <param name="fullyQualifiedContainerName"></param>
     /// <param name="containerRegistry"></param>
     /// <param name="containerName"></param>
     /// <param name="containerTag"></param>
+    /// <param name="containerDigest"></param>
     /// <returns>True if the parse was successful. When false is returned, all out vars are set to empty strings.</returns>
     public static bool TryParseFullyQualifiedContainerName(string fullyQualifiedContainerName,
                                                             [NotNullWhen(true)] out string? containerRegistry,
                                                             [NotNullWhen(true)] out string? containerName,
-                                                            [NotNullWhen(true)] out string? containerTag)
+                                                            out string? containerTag, // tag is always optional - we can't guarantee anything here
+                                                            out string? containerDigest // digest is always optional - we can't guarantee anything here
+                                                            )
     {
+
+        /// if we don't have a reference at all, bail out
         var referenceMatch = ReferenceRegexp.Match(fullyQualifiedContainerName);
-        if(referenceMatch is not { Success: true }) {
+        if (referenceMatch is not { Success: true })
+        {
             containerRegistry = null;
             containerName = null;
             containerTag = null;
+            containerDigest = null;
             return false;
         }
-        var nameMatch = anchoredNameRegexp.Match(referenceMatch.Groups[1].Value);
-        if (nameMatch is { Success: true }) {
-            if (nameMatch.Groups.Count == 3) {
-                containerRegistry = nameMatch.Groups[1].Success? nameMatch.Groups[1].Value : DefaultRegistry;
-                containerName = nameMatch.Groups[2].Value;
-            } else {
-                containerRegistry = DefaultRegistry;
-                containerName = referenceMatch.Groups[1].Value;
+
+        // if we have a reference, then we have three groups:
+        // * reference name
+        // * reference tag (optional)
+        // * reference digest (optional)
+
+        // this will always be successful if the ReferenceRegexp matched, so it's safe to index into.
+        var namePortion = referenceMatch.Groups[1].Value;
+        // we try to decompose the reference name into registry and image name parts.
+        var nameMatch = anchoredNameRegexp.Match(namePortion);
+        if (nameMatch is { Success: true })
+        {
+            // the name regex has two groups:
+            // * registry (optional)
+            // * image name
+
+            // safely discover the registry
+            var registryPortion = nameMatch.Groups[1];
+            if (registryPortion.Success)
+            {
+                containerRegistry = registryPortion.Value;
             }
-        } else {
+            else
+            {
+                // intent of this is that if we have a 'bare' image name (like library/ruby for example)
+                // then DefaultRegistry is used as the registry.
+                containerRegistry = DefaultRegistry;
+            }
+
+            // direct access to the name portion is safe because the regex matched
+            var imageNamePortion = nameMatch.Groups[2];
+            containerName = imageNamePortion.Value;
+        }
+        else
+        {
             containerRegistry = null;
             containerName = null;
             containerTag = null;
+            containerDigest = null;
             return false;
         }
-        containerTag = referenceMatch.Groups[2].Value;
+
+        // tag may not exist in the reference, so we must safely access it
+        var tagPortion = referenceMatch.Groups[2];
+        containerTag = tagPortion.Success ? tagPortion.Value : null;
+
+        // digest may not exist in the reference, so we must safely access it
+        var digestPortion = referenceMatch.Groups[3];
+        containerDigest = digestPortion.Success ? digestPortion.Value : null;
+
         return true;
     }
 

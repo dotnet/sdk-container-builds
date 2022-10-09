@@ -143,7 +143,8 @@ public class ParseContainerProperties : Microsoft.Build.Utilities.Task
         if (!ContainerHelpers.TryParseFullyQualifiedContainerName(FullyQualifiedBaseImageName,
                                                                   out string? outputReg,
                                                                   out string? outputImage,
-                                                                  out string? outputTag))
+                                                                  out string? outputTag,
+                                                                  out string? _outputDigest))
         {
             Log.LogError($"Could not parse {nameof(FullyQualifiedBaseImageName)}: {{0}}", FullyQualifiedBaseImageName);
             return !Log.HasLoggedErrors;

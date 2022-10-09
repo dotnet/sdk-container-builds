@@ -23,13 +23,13 @@ public class ContainerHelpersTests
 
     [TestMethod]
     [DataRow("mcr.microsoft.com/dotnet/runtime:6.0", true, "mcr.microsoft.com", "dotnet/runtime", "6.0")]
-    [DataRow("mcr.microsoft.com/dotnet/runtime", true, "mcr.microsoft.com", "dotnet/runtime", "")]
-    [DataRow("mcr.microsoft.com/dotnet/runtime", true, "mcr.microsoft.com", "dotnet/runtime", "")]
+    [DataRow("mcr.microsoft.com/dotnet/runtime", true, "mcr.microsoft.com", "dotnet/runtime", null)]
+    [DataRow("mcr.microsoft.com/dotnet/runtime", true, "mcr.microsoft.com", "dotnet/runtime", null)]
     [DataRow("mcr.microsoft.com/", false, null, null, null)] // no image = nothing resolves
     // Ports tag along
-    [DataRow("mcr.microsoft.com:54/dotnet/runtime", true, "mcr.microsoft.com:54", "dotnet/runtime", "")]
+    [DataRow("mcr.microsoft.com:54/dotnet/runtime", true, "mcr.microsoft.com:54", "dotnet/runtime", null)]
     // Even if nonsensical
-    [DataRow("mcr.microsoft.com:0/dotnet/runtime", true, "mcr.microsoft.com:0", "dotnet/runtime", "")]
+    [DataRow("mcr.microsoft.com:0/dotnet/runtime", true, "mcr.microsoft.com:0", "dotnet/runtime", null)]
     // We don't allow hosts with missing ports when a port is anticipated
     [DataRow("mcr.microsoft.com:/dotnet/runtime", false, null, null, null)]
     // no image = nothing resolves
@@ -37,7 +37,7 @@ public class ContainerHelpersTests
     [DataRow("ubuntu:jammy", true, ContainerHelpers.DefaultRegistry, "ubuntu", "jammy")]
     public void TryParseFullyQualifiedContainerName(string fullyQualifiedName, bool expectedReturn, string expectedRegistry, string expectedImage, string expectedTag)
     {
-        Assert.AreEqual(expectedReturn, ContainerHelpers.TryParseFullyQualifiedContainerName(fullyQualifiedName, out string? containerReg, out string? containerName, out string? containerTag));
+        Assert.AreEqual(expectedReturn, ContainerHelpers.TryParseFullyQualifiedContainerName(fullyQualifiedName, out string? containerReg, out string? containerName, out string? containerTag, out string? containerDigest));
         Assert.AreEqual(expectedRegistry, containerReg);
         Assert.AreEqual(expectedImage, containerName);
         Assert.AreEqual(expectedTag, containerTag);
