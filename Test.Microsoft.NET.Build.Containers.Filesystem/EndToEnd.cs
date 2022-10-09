@@ -237,7 +237,7 @@ public class EndToEnd
         {
             try
             {
-                var response = await client.GetAsync("localhost:5017/weatherforecast");
+                var response = await client.GetAsync("http://localhost:5017/weatherforecast");
 
                 if (response.IsSuccessStatusCode)
                 {
