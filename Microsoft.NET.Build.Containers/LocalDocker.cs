@@ -66,13 +66,25 @@ public class LocalDocker
         void ReadManifest(TarEntry entry) {
             Console.WriteLine($"Reading entry {entry.Name} as manifest");
             var dataStream = entry.DataStream;
-            manifest = JsonNode.Parse(dataStream);
+            dataStream.Position = 0;
+            var manifestWrapper = JsonNode.Parse(dataStream);
+            // the manifests are in an array, but our Image type currently
+            // only works on the first manifest, so unwrap that here
+            if (manifestWrapper is JsonArray manifestArray && manifestArray.Count > 0)
+            {
+                manifest = manifestArray[0];
+            }
         }
 
         void ReadConfig(TarEntry entry) {
             Console.WriteLine($"Reading entry {entry.Name} as config");
             var dataStream = entry.DataStream;
-            config = JsonNode.Parse(dataStream);
+            dataStream.Position = 0;
+            var configWrapper = JsonNode.Parse(dataStream);
+            // the config structure is nested inside this wrapper,
+            // but our Image type expects the raw config,
+            // so we unwrap it here
+            config = configWrapper?["config"];
         }
 
         void AddTrackedDirectory(TarEntry entry) {
@@ -84,7 +96,7 @@ public class LocalDocker
             
             var parentDir = Path.GetDirectoryName(entry.Name);
             // the descriptor hash is the parent dir
-            var descriptorHash = Path.GetFileName(parentDir)!;
+            var descriptorHash = $"sha256:{Path.GetFileName(parentDir)!}";
             Console.WriteLine($"Extracting entry {descriptorHash}");
             var contentStorePath = ContentStore.PathForDescriptor(new Descriptor("application/vnd.docker.image.rootfs.diff.tar", descriptorHash, 0));
             Console.WriteLine($"Extracting entry {descriptorHash} to {contentStorePath}");
