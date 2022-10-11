@@ -17,7 +17,7 @@ public class ContainerHelpersTests
     [DataRow("mcr.microsoft.com/", false)] // invalid url
     public void IsValidRegistry(string registry, bool expectedReturn)
     {
-        Console.WriteLine($"Domain pattern is '{Patterns.AnchoredDomainRegexp.ToString()}'");
+        Console.WriteLine($"Domain pattern is '{ReferenceParser.AnchoredDomainRegexp.ToString()}'");
         Assert.AreEqual(expectedReturn, ContainerHelpers.IsValidRegistry(registry));
     }
 
