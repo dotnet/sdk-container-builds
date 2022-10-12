@@ -64,7 +64,7 @@
         <ItemGroup Label="ASP.NET port forwarding" Condition="'$(_IsAspNet)' == 'true'">
             <ContainerPort Include="80" Type="tcp" Condition="@(ContainerPort->WithMetadataValue('Identity', '80')->AnyHaveMetadataValue('Type', 'tcp')) == ''" />
 
-            <ContainerEnvironmentVariable Include="ASPNETCORE_URLS" Value="http://localhost:5000;https://localhost:5001"
+            <ContainerEnvironmentVariable Include="ASPNETCORE_URLS" Value="http://+:80"
                                                                     Condition="@(ContainerEnvironmentVariable->WithMetadataValue('Identity', 'ASPNETCORE_URLS')) == ''"/>
         </ItemGroup>
 
