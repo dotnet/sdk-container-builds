@@ -18,6 +18,8 @@ public record Port(int number, PortType type);
 
 public static class ContainerHelpers
 {
+    private static Regex envVarRegex = new Regex(@"^[a-zA-Z_]+$");
+
     private static Regex imageTagRegex = new Regex(@"^[a-zA-Z0-9_][a-zA-Z0-9._-]{0,127}$");
 
     private static Regex imageNameRegex = new Regex(@"^[a-z0-9]+([._-][a-z0-9]+)*(/[a-z0-9]+([._-][a-z0-9]+)*)*$");
@@ -97,6 +99,16 @@ public static class ContainerHelpers
     public static bool IsValidImageTag(string imageTag)
     {
         return imageTagRegex.IsMatch(imageTag);
+    }
+
+    /// <summary>
+    /// Ensures a given environment variable is valid.
+    /// </summary>
+    /// <param name="envVar"></param>
+    /// <returns></returns>
+    public static bool IsValidEnvironmentVariable(string envVar)
+    {
+        return envVarRegex.IsMatch(envVar);
     }
 
     /// <summary>
