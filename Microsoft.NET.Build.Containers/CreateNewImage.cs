@@ -94,9 +94,9 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
     /// </summary>
     public ITaskItem[] Labels { get; set; }
 
-    private bool IsDockerPush { get => OutputRegistry == ContainerHelpers.DefaultRegistry; }
+    private bool IsDockerPush { get => String.IsNullOrEmpty(OutputRegistry); }
 
-    private bool IsDockerPull { get => BaseRegistry.StartsWith(ContainerHelpers.DefaultRegistry); }
+    private bool IsDockerPull { get => String.IsNullOrEmpty(BaseRegistry); }
 
     public CreateNewImage()
     {

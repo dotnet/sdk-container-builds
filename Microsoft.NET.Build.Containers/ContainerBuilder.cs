@@ -9,7 +9,7 @@ public static class ContainerBuilder
 {
     public static async Task Containerize(DirectoryInfo folder, string workingDir, string registryName, string baseName, string baseTag, string[] entrypoint, string[] entrypointArgs, string imageName, string[] imageTags, string outputRegistry, string[] labels, Port[] exposedPorts)
     {
-        var isDockerPull = registryName.StartsWith(ContainerHelpers.DefaultRegistry);
+        var isDockerPull = String.IsNullOrEmpty(registryName);
         if (isDockerPull) {
             throw new ArgumentException("Don't know how to pull images from local daemons at the moment");
         }
@@ -29,7 +29,7 @@ public static class ContainerBuilder
 
         img.SetEntrypoint(entrypoint, entrypointArgs);
 
-        var isDockerPush = outputRegistry == ContainerHelpers.DefaultRegistry;
+        var isDockerPush = String.IsNullOrEmpty(outputRegistry);
         Registry? outputReg = isDockerPush ? null : new Registry(ContainerHelpers.TryExpandRegistryToUri(outputRegistry));
 
         foreach (var label in labels)
