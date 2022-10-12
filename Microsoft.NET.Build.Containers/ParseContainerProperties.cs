@@ -15,9 +15,8 @@ public class ParseContainerProperties : Microsoft.Build.Utilities.Task
     public string FullyQualifiedBaseImageName { get; set; }
 
     /// <summary>
-    /// The registry to push the new container to.
+    /// The registry to push the new container to. This will be null if the container is to be pushed to a local daemon.
     /// </summary>
-    [Required]
     public string ContainerRegistry { get; set; }
 
     /// <summary>
@@ -128,7 +127,7 @@ public class ParseContainerProperties : Microsoft.Build.Utilities.Task
             validTags = Array.Empty<string>();
         }
 
-        if (!ContainerHelpers.IsValidRegistry(ContainerRegistry))
+        if (!String.IsNullOrEmpty(ContainerRegistry) && !ContainerHelpers.IsValidRegistry(ContainerRegistry))
         {
             Log.LogError("Could not recognize registry '{0}'.", ContainerRegistry);
             return !Log.HasLoggedErrors;

@@ -56,7 +56,7 @@ public class TargetsTests
         var loggers = new List<ILogger>
         {
             // new Microsoft.Build.Logging.BinaryLogger() {CollectProjectImports = Microsoft.Build.Logging.BinaryLogger.ProjectImportsCollectionMode.Embed, Verbosity = LoggerVerbosity.Diagnostic, Parameters = "LogFile=blah.binlog" },
-            // new global::Microsoft.Build.Logging.ConsoleLogger(LoggerVerbosity.Detailed)
+            new global::Microsoft.Build.Logging.ConsoleLogger(LoggerVerbosity.Detailed)
         };
         var collection = new ProjectCollection(null, loggers, ToolsetDefinitionLocations.Default);
         foreach (var kvp in bonusProps)
