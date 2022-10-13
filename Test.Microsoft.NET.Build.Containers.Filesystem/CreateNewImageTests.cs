@@ -158,8 +158,8 @@ public class CreateNewImageTests
         Assert.AreEqual(0, dotnetBuildRelease.ExitCode);
 
         ParseContainerProperties pcp = new ParseContainerProperties();
-        pcp.FullyQualifiedBaseImageName = "https://mcr.microsoft.com/dotnet/runtime:6.0";
-        pcp.ContainerRegistry = "docker://";
+        pcp.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:6.0";
+        pcp.ContainerRegistry = "";
         pcp.ContainerImageName = "dotnet/envvarvalidation";
         pcp.ContainerImageTag = "latest";
 
@@ -169,7 +169,7 @@ public class CreateNewImageTests
         pcp.ContainerEnvironmentVariables = new[] { new TaskItem("B@dEnv.Var", dict), new TaskItem("GoodEnvVar", dict) };
 
         Assert.IsTrue(pcp.Execute());
-        Assert.AreEqual("https://mcr.microsoft.com", pcp.ParsedContainerRegistry);
+        Assert.AreEqual("mcr.microsoft.com", pcp.ParsedContainerRegistry);
         Assert.AreEqual("dotnet/runtime", pcp.ParsedContainerImage);
         Assert.AreEqual("6.0", pcp.ParsedContainerTag);
         Assert.AreEqual(1, pcp.NewContainerEnvironmentVariables.Length);
