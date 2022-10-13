@@ -42,11 +42,11 @@ public class CreateNewImageTests
         Assert.AreEqual(0, dotnetPublish.ExitCode);
 
         CreateNewImage task = new CreateNewImage();
-        task.BaseRegistry = "https://mcr.microsoft.com";
+        task.BaseRegistry = "mcr.microsoft.com";
         task.BaseImageName = "dotnet/runtime";
         task.BaseImageTag = "6.0";
 
-        task.OutputRegistry = "http://localhost:5010";
+        task.OutputRegistry = "localhost:5010";
         task.PublishDirectory = Path.Combine(newProjectDir.FullName, "bin", "release", "net7.0");
         task.ImageName = "dotnet/testimage";
         task.WorkingDirectory = "app/";
@@ -90,13 +90,13 @@ public class CreateNewImageTests
         Assert.AreEqual(0, dotnetPublish.ExitCode);
 
         ParseContainerProperties pcp = new ParseContainerProperties();
-        pcp.FullyQualifiedBaseImageName = "https://mcr.microsoft.com/dotnet/runtime:6.0";
-        pcp.ContainerRegistry = "http://localhost:5010";
+        pcp.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:6.0";
+        pcp.ContainerRegistry = "localhost:5010";
         pcp.ContainerImageName = "dotnet/testimage";
         pcp.ContainerImageTags = new [] {"5.0", "latest"};
 
         Assert.IsTrue(pcp.Execute());
-        Assert.AreEqual("https://mcr.microsoft.com", pcp.ParsedContainerRegistry);
+        Assert.AreEqual("mcr.microsoft.com", pcp.ParsedContainerRegistry);
         Assert.AreEqual("dotnet/runtime", pcp.ParsedContainerImage);
         Assert.AreEqual("6.0", pcp.ParsedContainerTag);
 
@@ -108,7 +108,7 @@ public class CreateNewImageTests
         cni.BaseImageName = pcp.ParsedContainerImage;
         cni.BaseImageTag = pcp.ParsedContainerTag;
         cni.ImageName = pcp.NewContainerImageName;
-        cni.OutputRegistry = "http://localhost:5010";
+        cni.OutputRegistry = "localhost:5010";
         cni.PublishDirectory = Path.Combine(newProjectDir.FullName, "bin", "release", "net7.0");
         cni.WorkingDirectory = "app/";
         cni.Entrypoint = new TaskItem[] { new("ParseContainerProperties_EndToEnd") };

@@ -13,7 +13,7 @@ public class RegistryTests
     [TestMethod]
     public async Task GetFromRegistry()
     {
-        Registry registry = new Registry(new Uri($"http://{DockerRegistryManager.LocalRegistry}"));
+        Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.LocalRegistry));
 
         Image downloadedImage = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag);
 

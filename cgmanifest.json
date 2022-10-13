@@ -1,0 +1,15 @@
+{
+    "$schema": "https://json.schemastore.org/component-detection-manifest.json",
+    "registrations": [
+        {
+            "component": {
+                "type": "go",
+                "go": {
+                    "name": "github.com/distribution/distribution",
+                    "version": "78b9c98c5c31c30d74f9acb7d96f98552f2cf78f"
+                }
+            },
+            "developmentDependency": true
+        }
+    ]
+}
