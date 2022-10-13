@@ -8,37 +8,36 @@ public class ContainerHelpersTests
 {
     [TestMethod]
     // Valid Tests
-    [DataRow("https://mcr.microsoft.com", true)]
-    [DataRow("https://mcr.microsoft.com/", true)]
-    [DataRow("http://mcr.microsoft.com:5001", true)] // Registries can have ports
-    [DataRow("docker://mcr.microsoft.com:5001", true)] // docker:// is considered valid
+    [DataRow("mcr.microsoft.com", true)]
+    [DataRow("mcr.microsoft.com:5001", true)] // Registries can have ports
+    [DataRow("docker.io", true)] // default docker registry is considered valid
 
     // // Invalid tests
-    [DataRow("docker://mcr.microsoft.com:xyz/dotnet/runtime:6.0", false)] // invalid port
-    [DataRow("httpz://mcr.microsoft.com", false)] // invalid scheme
-    [DataRow("https://mcr.mi-=crosoft.com", false)] // invalid url
-    [DataRow("mcr.microsoft.com/", false)] // Missing scheme
+    [DataRow("mcr.mi-=crosoft.com", false)] // invalid url
+    [DataRow("mcr.microsoft.com/", false)] // invalid url
     public void IsValidRegistry(string registry, bool expectedReturn)
     {
+        Console.WriteLine($"Domain pattern is '{ReferenceParser.AnchoredDomainRegexp.ToString()}'");
         Assert.AreEqual(expectedReturn, ContainerHelpers.IsValidRegistry(registry));
     }
 
     [TestMethod]
-    [DataRow("https://mcr.microsoft.com/dotnet/runtime:6.0", true, "https://mcr.microsoft.com", "dotnet/runtime", "6.0")]
-    [DataRow("https://mcr.microsoft.com/dotnet/runtime", true, "https://mcr.microsoft.com", "dotnet/runtime", "")]
-    [DataRow("docker://mcr.microsoft.com/dotnet/runtime", true, "docker://mcr.microsoft.com", "dotnet/runtime", "")]
-    [DataRow("https://mcr.microsoft.com/", false, null, null, null)] // no image = nothing resolves
+    [DataRow("mcr.microsoft.com/dotnet/runtime:6.0", true, "mcr.microsoft.com", "dotnet/runtime", "6.0")]
+    [DataRow("mcr.microsoft.com/dotnet/runtime", true, "mcr.microsoft.com", "dotnet/runtime", null)]
+    [DataRow("mcr.microsoft.com/dotnet/runtime", true, "mcr.microsoft.com", "dotnet/runtime", null)]
+    [DataRow("mcr.microsoft.com/", false, null, null, null)] // no image = nothing resolves
     // Ports tag along
-    [DataRow("docker://mcr.microsoft.com:54/dotnet/runtime", true, "docker://mcr.microsoft.com:54", "dotnet/runtime", "")]
-    // Unless they're invalid
-    [DataRow("docker://mcr.microsoft.com:0/dotnet/runtime", true, "docker://mcr.microsoft.com", "dotnet/runtime", "")]
-    // Strip the ':' in an unspecified port
-    [DataRow("docker://mcr.microsoft.com:/dotnet/runtime", true, "docker://mcr.microsoft.com", "dotnet/runtime", "")]
+    [DataRow("mcr.microsoft.com:54/dotnet/runtime", true, "mcr.microsoft.com:54", "dotnet/runtime", null)]
+    // Even if nonsensical
+    [DataRow("mcr.microsoft.com:0/dotnet/runtime", true, "mcr.microsoft.com:0", "dotnet/runtime", null)]
+    // We don't allow hosts with missing ports when a port is anticipated
+    [DataRow("mcr.microsoft.com:/dotnet/runtime", false, null, null, null)]
     // no image = nothing resolves
-    [DataRow("https://mcr.microsoft.com/", false, null, null, null)]
+    [DataRow("mcr.microsoft.com/", false, null, null, null)]
+    [DataRow("ubuntu:jammy", true, ContainerHelpers.DefaultRegistry, "ubuntu", "jammy")]
     public void TryParseFullyQualifiedContainerName(string fullyQualifiedName, bool expectedReturn, string expectedRegistry, string expectedImage, string expectedTag)
     {
-        Assert.AreEqual(expectedReturn, ContainerHelpers.TryParseFullyQualifiedContainerName(fullyQualifiedName, out string? containerReg, out string? containerName, out string? containerTag));
+        Assert.AreEqual(expectedReturn, ContainerHelpers.TryParseFullyQualifiedContainerName(fullyQualifiedName, out string? containerReg, out string? containerName, out string? containerTag, out string? containerDigest));
         Assert.AreEqual(expectedRegistry, containerReg);
         Assert.AreEqual(expectedImage, containerName);
         Assert.AreEqual(expectedTag, containerTag);
