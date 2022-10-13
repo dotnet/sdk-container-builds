@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Microsoft.Build.Locator;
 
 namespace Test.Microsoft.NET.Build.Containers.Filesystem;
 
@@ -21,6 +22,12 @@ public class DockerRegistryManager
         Assert.IsNotNull(cmd);
         cmd.WaitForExit();
         Assert.AreEqual(0, cmd.ExitCode, cmd.StandardOutput.ReadToEnd());
+    }
+
+    public static void LocateMSBuild()
+    {
+        var instances = MSBuildLocator.QueryVisualStudioInstances(new() { DiscoveryTypes = DiscoveryType.DotNetSdk, WorkingDirectory = Environment.CurrentDirectory });
+        MSBuildLocator.RegisterInstance(instances.First());
     }
 
     [AssemblyInitialize]
@@ -49,6 +56,7 @@ public class DockerRegistryManager
         Exec("docker", $"pull {BaseImageSource}{BaseImage}:{BaseImageTag}");
         Exec("docker", $"tag {BaseImageSource}{BaseImage}:{BaseImageTag} {LocalRegistry}/{BaseImage}:{BaseImageTag}");
         Exec("docker", $"push {LocalRegistry}/{BaseImage}:{BaseImageTag}");
+        LocateMSBuild();
     }
 
     [AssemblyCleanup]
