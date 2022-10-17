@@ -37,7 +37,7 @@
   <ItemGroup Condition="'$(TargetFramework)' != 'net472'">
     <Compile Remove="CreateNewImageToolTask.cs" />
     <Compile Remove="net472Definitions.cs" />
-    <Compile Remove="VSHostObjects.cs" />
+    <Compile Remove="VSHostObject.cs" />
   </ItemGroup>
 
   <!-- This target adds all of our PackageReference and ProjectReference's runtime assets to our package output. -->
