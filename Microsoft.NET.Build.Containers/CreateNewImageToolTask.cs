@@ -1,6 +1,7 @@
 namespace Microsoft.NET.Build.Containers.Tasks;
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.IO;
 using Microsoft.Build.Framework;
@@ -95,6 +96,8 @@ public class CreateNewImage : ToolTask
     // Unused, ToolExe is set via targets and overrides this.
     protected override string ToolName => "dotnet";
 
+    private (bool success, string user, string pass) extractionInfo;
+
     private string DotNetPath
     {
         get
@@ -125,15 +128,22 @@ public class CreateNewImage : ToolTask
         Labels = Array.Empty<ITaskItem>();
         ExposedPorts = Array.Empty<ITaskItem>();
         ContainerEnvironmentVariables = Array.Empty<ITaskItem>();
+        extractionInfo = (false, string.Empty, string.Empty);
     }
 
     private void HostObjectMagic()
     {
         VSHostObject hostObj = new VSHostObject(HostObject as System.Collections.Generic.IEnumerable<ITaskItem>);
         if (hostObj.ExtractCredentials(out string user, out string pass))
+        {
             Log.LogWarning($"Host Object Retrieved.\nUser: {user}\nPass: {pass}");
+            extractionInfo = (true, user, pass);
+        }
         else
+        {
             Log.LogWarning("Host object failed to extract");
+        }
+            
     }
 
     protected override string GenerateFullPathToTool() => Quote(Path.Combine(DotNetPath, ToolExe));
@@ -142,6 +152,31 @@ public class CreateNewImage : ToolTask
     {
         HostObjectMagic();
         return base.Execute();
+    }
+
+    /// <summary>
+    /// Workaround to avoid storing user/pass into the EnvironmentVariables property, which gets logged by the task.
+    /// </summary>
+    /// <param name="pathToTool"></param>
+    /// <param name="commandLineCommands"></param>
+    /// <param name="responseFileSwitch"></param>
+    /// <returns></returns>
+    protected override ProcessStartInfo GetProcessStartInfo
+    (
+        string pathToTool,
+        string commandLineCommands,
+        string responseFileSwitch
+    )
+    {
+        ProcessStartInfo startInfo = base.GetProcessStartInfo(pathToTool, commandLineCommands, responseFileSwitch)!;
+
+        if (extractionInfo.success)
+        {
+            startInfo.Environment["MSB_CNE_U"] = extractionInfo.user;
+            startInfo.Environment["MSB_CNE_P"] = extractionInfo.pass;
+        }
+
+        return startInfo;
     }
 
     protected override string GenerateCommandLineCommands()
