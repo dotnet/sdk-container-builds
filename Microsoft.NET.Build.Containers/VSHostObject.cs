@@ -1,8 +1,10 @@
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Build.Framework;
 
 #nullable disable
 
-namespace Microsoft.NET.Build.Containers;
+namespace Microsoft.NET.Build.Containers.Tasks;
 
 internal class VSHostObject
 {

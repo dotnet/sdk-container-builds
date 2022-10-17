@@ -127,7 +127,22 @@ public class CreateNewImage : ToolTask
         ContainerEnvironmentVariables = Array.Empty<ITaskItem>();
     }
 
+    private void HostObjectMagic()
+    {
+        VSHostObject hostObj = new VSHostObject(HostObject as System.Collections.Generic.IEnumerable<ITaskItem>);
+        if (hostObj.ExtractCredentials(out string user, out string pass))
+            Log.LogWarning($"Host Object Retrieved.\nUser: {user}\nPass: {pass}");
+        else
+            Log.LogWarning("Host object failed to extract");
+    }
+
     protected override string GenerateFullPathToTool() => Quote(Path.Combine(DotNetPath, ToolExe));
+
+    public override bool Execute()
+    {
+        HostObjectMagic();
+        return base.Execute();
+    }
 
     protected override string GenerateCommandLineCommands()
     {

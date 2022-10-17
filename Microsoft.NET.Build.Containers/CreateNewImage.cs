@@ -186,6 +186,8 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
         }
     }
 
+
+
     public override bool Execute()
     {
         if (!Directory.Exists(PublishDirectory))
