@@ -83,8 +83,14 @@ public partial class AuthHandshakeMessageHandler : DelegatingHandler
     /// <returns></returns>
     private async Task<string> GetTokenAsync(Uri realm, string service, string scope, CancellationToken cancellationToken)
     {
+        // Allow overrides for auth via environment variables
+        string? credU = Environment.GetEnvironmentVariable("MSB_CNE_U");
+        string? credP = Environment.GetEnvironmentVariable("MSB_CNE_P");
+
         // fetch creds for the host
-        DockerCredentials privateRepoCreds = await CredsProvider.GetCredentialsAsync(realm.Host);
+        DockerCredentials privateRepoCreds = (!string.IsNullOrEmpty(credU) && !string.IsNullOrEmpty(credP)) ?
+                                                                        new DockerCredentials(credU, credP) :
+                                                                        await CredsProvider.GetCredentialsAsync(realm.Host);
         // use those creds when calling the token provider
         var header = privateRepoCreds.Username == "<token>"
                         ? new AuthenticationHeaderValue("Bearer", privateRepoCreds.Password)

@@ -53,15 +53,6 @@ public static class ContainerBuilder
             img.ExposePort(number, type);
         }
 
-        string? credU = Environment.GetEnvironmentVariable("MSB_CNE_U");
-        string? credP = Environment.GetEnvironmentVariable("MSB_CNE_P");
-
-        if (!string.IsNullOrEmpty(credU) && 
-            !string.IsNullOrEmpty(credP))
-        {
-            // Insert credentials somewhere.
-        }
-
         foreach (var tag in imageTags)
         {
             if (isDockerPush)
