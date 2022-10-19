@@ -21,6 +21,8 @@ public partial class AuthHandshakeMessageHandler : DelegatingHandler
     /// </summary>
     private static Dictionary<string, string> TokenCache = new();
 
+    private static object TokenCacheInsertLock = new();
+
     /// <summary>
     /// the www-authenticate header must have realm, service, and scope information, so this method parses it into that shape if present
     /// </summary>
@@ -113,7 +115,9 @@ public partial class AuthHandshakeMessageHandler : DelegatingHandler
         }
 
         // save the retrieved token in the cache
-        TokenCache[realm.Host] = token.ResolvedToken;
+        lock(TokenCacheInsertLock) {
+            TokenCache[realm.Host] = token.ResolvedToken;
+        }
         return token.ResolvedToken;
     }
 
