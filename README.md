@@ -1,8 +1,8 @@
 # .NET SDK Container Building Tools
 
-This repo contains APIs and MSBuild Tasks for generating an OCI Container from a .NET project, as well as tests for the same.
+This repo contains APIs and MSBuild Tasks for generating and testing an [OCI Container](https://opencontainers.org/) from a .NET project.
 
-Getting started with the library in an existing project is as easy as
+A basic start with the library in an existing project:
 
 ```shell
 dotnet add package Microsoft.NET.Build.Containers
@@ -15,9 +15,7 @@ You can learn more about the project from the project [Documentation](./docs).
 
 ## Prerequisites
 
-In order to build the project you will need [.NET SDK 7.0.100, preview 7](https://dotnet.microsoft.com/download/dotnet/7.0) or greater installed.
-From there, you can simply `dotnet build` the repository and be good to go!
-
+[.NET SDK 7.0.100, preview 7](https://dotnet.microsoft.com/download/dotnet/7.0) or later 
 
 ## Contributing
 
@@ -36,8 +34,7 @@ sdk-container-builds is a [.NET Foundation project](https://dotnetfoundation.org
 
 ## Related Projects
 
-You should take a look at these related projects:
-
+- [.NET docker-tools](https://github.com/dotnet/docker-tools)
 - [Konet](https://github.com/lippertmarkus/konet)
 - [`dotnet build-image`](https://github.com/tmds/build-image)
 - [.NET SDK](https://github.com/dotnet/sdk)
