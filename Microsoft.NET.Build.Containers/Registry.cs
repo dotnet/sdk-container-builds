@@ -224,10 +224,8 @@ public record struct Registry(Uri BaseUri)
 
         if (!putResponse.IsSuccessStatusCode)
         {
-            throw new ContainerHttpException(string.Format("Registry: CONTAINER005: Registry push failed. URI: {0}", putResponse.RequestMessage!.RequestUri))
-            {
-                json = await putResponse.Content.ReadAsStringAsync()
-            };
+            string jsonResponse = await putResponse.Content.ReadAsStringAsync();
+            throw new ContainerHttpException(string.Format("Registry push failed.\nURI: {0}\nJson Response:{1}", putResponse.RequestMessage!.RequestUri, jsonResponse));
         }
 
         var putResponse2 = await client.PutAsync(new Uri(BaseUri, $"/v2/{name}/manifests/{tag}"), manifestUploadContent);

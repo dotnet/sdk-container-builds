@@ -23,9 +23,10 @@ public class DockerLoadException : Exception
 
 public class ContainerHttpException : Exception
 {
-    public string json;
-    public ContainerHttpException(string message) : base(message)
+    private const string errorPrefix = "Containerize: error CONTAINER004: ";
+    public ContainerHttpException(string message) 
+            : base(errorPrefix + message)
     {
-        json = "";
+
     }
 }
