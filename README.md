@@ -34,8 +34,7 @@ sdk-container-builds is a [.NET Foundation project](https://dotnetfoundation.org
 
 ## Related Projects
 
-You should take a look at these related projects:
-
+- [.NET SDK Container Building Tools](https://github.com/dotnet/sdk-container-builds)
 - [Konet](https://github.com/lippertmarkus/konet)
 - [`dotnet build-image`](https://github.com/tmds/build-image)
 - [.NET SDK](https://github.com/dotnet/sdk)
