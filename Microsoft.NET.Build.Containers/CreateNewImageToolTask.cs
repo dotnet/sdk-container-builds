@@ -172,8 +172,8 @@ public class CreateNewImage : ToolTask
 
         if (extractionInfo.success)
         {
-            startInfo.Environment["MSB_CNE_U"] = extractionInfo.user;
-            startInfo.Environment["MSB_CNE_P"] = extractionInfo.pass;
+            startInfo.Environment["SDK_CONTAINER_REGISTRY_UNAME"] = extractionInfo.user;
+            startInfo.Environment["SDK_CONTAINER_REGISTRY_PWORD"] = extractionInfo.pass;
         }
 
         return startInfo;
