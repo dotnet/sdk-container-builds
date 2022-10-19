@@ -84,7 +84,7 @@ public partial class AuthHandshakeMessageHandler : DelegatingHandler
     private async Task<string> GetTokenAsync(Uri realm, string service, string scope, CancellationToken cancellationToken)
     {
         // Allow overrides for auth via environment variables
-        string? credU = Environment.GetEnvironmentVariable("MSB_CNE_U");
+        string? credU = Environment.GetEnvironmentVariable("MSB_CNE_U"); // SDK_CONTAINER_REGISTRY_UNAME
         string? credP = Environment.GetEnvironmentVariable("MSB_CNE_P");
 
         // fetch creds for the host

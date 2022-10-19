@@ -249,6 +249,13 @@ public class CreateNewImage : Microsoft.Build.Utilities.Task
                         Log.LogMessage(MessageImportance.High, "Pushed container '{0}:{1}' to registry '{2}'", ImageName, tag, OutputRegistry);
                     }
                 }
+                catch (ContainerHttpException e)
+                {
+                    if (BuildEngine != null)
+                    {
+                        Log.LogErrorFromException(e, true);
+                    }
+                }
                 catch (Exception e)
                 {
                     if (BuildEngine != null)

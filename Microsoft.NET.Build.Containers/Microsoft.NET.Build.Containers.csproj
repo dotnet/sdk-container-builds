@@ -36,7 +36,7 @@
     <Compile Include="VSHostObject.cs" />
   </ItemGroup>
 
-  <!-- core builds remove files specific to net472 workarounds -->
+  <!-- core remove files specific to net472 workarounds -->
   <ItemGroup Condition="'$(TargetFramework)' != 'net472'">
     <Compile Remove="CreateNewImageToolTask.cs" />
     <Compile Remove="net472Definitions.cs" />

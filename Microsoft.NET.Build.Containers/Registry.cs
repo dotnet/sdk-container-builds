@@ -216,7 +216,19 @@ public record struct Registry(Uri BaseUri)
 
         string putresponsestr = await putResponse.Content.ReadAsStringAsync();
 
-        putResponse.EnsureSuccessStatusCode();
+        putResponse.EnsureSuccessStatusCode(); // if response is not a 2xx success http, throw.
+
+        // If (response is not 2xx 'OK')
+        // Response contains 'content' as json. We can include that in our custom exception.
+        // Store the URI we tried to push to
+
+        if (!putResponse.IsSuccessStatusCode)
+        {
+            throw new ContainerHttpException(string.Format("Registry: CONTAINER005: Registry push failed. URI: {0}", putResponse.RequestMessage!.RequestUri))
+            {
+                json = await putResponse.Content.ReadAsStringAsync()
+            };
+        }
 
         var putResponse2 = await client.PutAsync(new Uri(BaseUri, $"/v2/{name}/manifests/{tag}"), manifestUploadContent);
 
