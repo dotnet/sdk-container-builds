@@ -15,7 +15,7 @@ For more information, see [Publish Profiles](https://docs.microsoft.com/aspnet/c
 The `Microsoft.NET.Build.Containers` package infers a number of properties about the generated container image:
 
 * Which base image to use.
-* Which version of that image to use.
+* Which version of the base image to use.
 * Where to push the generated image.
 
 <!--The `Microsoft.NET.Build.Containers` package provides full control over the preceding properties. -->
