@@ -117,13 +117,15 @@ public record struct Registry(Uri BaseUri)
         Debug.Assert(pushResponse.Headers.Location is not null);
 
         UriBuilder x;
-        if (pushResponse.Headers.Location.IsAbsoluteUri)
+        if (pushResponse.Headers.Location is {IsAbsoluteUri: true })
         {
             x = new UriBuilder(pushResponse.Headers.Location);
         }
         else
         {
-            x = new UriBuilder(BaseUri + pushResponse.Headers.Location.OriginalString);
+            // if we don't trim the BaseUri and relative Uri of slashes, you can get invalid urls.
+            // Uri constructor does this on our behalf.
+            x = new UriBuilder(new Uri(BaseUri, pushResponse.Headers.Location.OriginalString));
         }
 
         x.Query += $"&digest={Uri.EscapeDataString(digest)}";
@@ -199,9 +201,9 @@ public record struct Registry(Uri BaseUri)
 
                 // Ensure the blob is available locally
                 await x.originatingRegistry.Value.DownloadBlob(x.OriginatingName, descriptor);
-                logProgressMessage($"Finished uploading layer {digest} to registry");
                 // Then push it to the destination registry
                 await Push(Layer.FromDescriptor(descriptor), name, logProgressMessage);
+                logProgressMessage($"Finished uploading layer {digest} to registry");
             }
         }
 
