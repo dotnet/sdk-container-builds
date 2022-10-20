@@ -205,22 +205,24 @@ public record struct Registry(Uri BaseUri)
             }
         }
 
-        logProgressMessage($"Uploading config to registry");
         using (MemoryStream stringStream = new MemoryStream(Encoding.UTF8.GetBytes(x.config.ToJsonString())))
         {
-            await UploadBlob(name, x.GetDigest(x.config), stringStream);
+            var configDigest = x.GetDigest(x.config);
+            logProgressMessage($"Uploading config to registry at blob {configDigest}");
+            await UploadBlob(name, configDigest, stringStream);
             logProgressMessage($"Uploaded config to registry");
         }
 
-        logProgressMessage($"Uploading manifest to registry");
+        var manifestDigest = x.GetDigest(x.manifest);
+        logProgressMessage($"Uploading manifest to registry at blob {manifestDigest}");
         HttpContent manifestUploadContent = new StringContent(x.manifest.ToJsonString());
         manifestUploadContent.Headers.ContentType = new MediaTypeHeaderValue(DockerManifestV2);
-        var putResponse = await client.PutAsync(new Uri(BaseUri, $"/v2/{name}/manifests/{x.GetDigest(x.manifest)}"), manifestUploadContent);
+        var putResponse = await client.PutAsync(new Uri(BaseUri, $"/v2/{name}/manifests/{manifestDigest}"), manifestUploadContent);
         string putresponsestr = await putResponse.Content.ReadAsStringAsync();
         putResponse.EnsureSuccessStatusCode();
         logProgressMessage($"Uploaded manifest to registry");
 
-        logProgressMessage($"Uploading tag to registry");
+        logProgressMessage($"Uploading tag {tag} to registry");
         var putResponse2 = await client.PutAsync(new Uri(BaseUri, $"/v2/{name}/manifests/{tag}"), manifestUploadContent);
         putResponse2.EnsureSuccessStatusCode();
         logProgressMessage($"Uploaded tag to registry");
