@@ -174,8 +174,8 @@ public class CreateNewImage : ToolTask
 
         if (extractionInfo.success)
         {
-            startInfo.Environment["SDK_CONTAINER_REGISTRY_UNAME"] = extractionInfo.user;
-            startInfo.Environment["SDK_CONTAINER_REGISTRY_PWORD"] = extractionInfo.pass;
+            startInfo.Environment[ContainerHelpers.HostObjectUser] = extractionInfo.user;
+            startInfo.Environment[ContainerHelpers.HostObjectPass] = extractionInfo.pass;
         }
 
         return startInfo;
