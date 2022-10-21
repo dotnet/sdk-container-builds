@@ -155,12 +155,6 @@ public class CreateNewImage : ToolTask
 
     protected override string GenerateFullPathToTool() => Quote(Path.Combine(DotNetPath, ToolExe));
 
-    public override bool Execute()
-    {
-        HostObjectMagic();
-        return base.Execute();
-    }
-
     /// <summary>
     /// Workaround to avoid storing user/pass into the EnvironmentVariables property, which gets logged by the task.
     /// </summary>
@@ -175,6 +169,7 @@ public class CreateNewImage : ToolTask
         string responseFileSwitch
     )
     {
+        HostObjectMagic();
         ProcessStartInfo startInfo = base.GetProcessStartInfo(pathToTool, commandLineCommands, responseFileSwitch)!;
 
         if (extractionInfo.success)
