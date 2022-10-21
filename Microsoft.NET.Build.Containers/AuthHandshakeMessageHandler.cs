@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -88,9 +89,17 @@ public partial class AuthHandshakeMessageHandler : DelegatingHandler
         string? credP = Environment.GetEnvironmentVariable("SDK_CONTAINER_REGISTRY_PWORD");
 
         // fetch creds for the host
-        DockerCredentials privateRepoCreds = (!string.IsNullOrEmpty(credU) && !string.IsNullOrEmpty(credP)) ?
-                                                                        new DockerCredentials(credU, credP) :
-                                                                        await CredsProvider.GetCredentialsAsync(realm.Host);
+        DockerCredentials? privateRepoCreds;
+
+        if (!string.IsNullOrEmpty(credU) && !string.IsNullOrEmpty(credP))
+        {
+            privateRepoCreds = new DockerCredentials(credU, credP);
+        }
+        else
+        {
+            privateRepoCreds = await CredsProvider.GetCredentialsAsync(realm.Host);
+        }
+
         // use those creds when calling the token provider
         var header = privateRepoCreds.Username == "<token>"
                         ? new AuthenticationHeaderValue("Bearer", privateRepoCreds.Password)
