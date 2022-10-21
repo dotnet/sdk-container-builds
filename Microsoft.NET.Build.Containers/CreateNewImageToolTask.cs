@@ -151,7 +151,6 @@ public class CreateNewImage : ToolTask
         {
             Log.LogWarning("Host object failed to extract");
         }
-            
     }
 
     protected override string GenerateFullPathToTool() => Quote(Path.Combine(DotNetPath, ToolExe));
