@@ -139,19 +139,6 @@ public class CreateNewImage : ToolTask
         GeneratedContainerManifest = "";
     }
 
-    private void HostObjectMagic()
-    {
-        VSHostObject hostObj = new VSHostObject(HostObject as System.Collections.Generic.IEnumerable<ITaskItem>);
-        if (hostObj.ExtractCredentials(out string user, out string pass))
-        {
-            extractionInfo = (true, user, pass);
-        }
-        else
-        {
-            Log.LogWarning("Host object failed to extract");
-        }
-    }
-
     protected override string GenerateFullPathToTool() => Quote(Path.Combine(DotNetPath, ToolExe));
 
     /// <summary>
@@ -168,7 +155,16 @@ public class CreateNewImage : ToolTask
         string responseFileSwitch
     )
     {
-        HostObjectMagic();
+        VSHostObject hostObj = new VSHostObject(HostObject as System.Collections.Generic.IEnumerable<ITaskItem>);
+        if (hostObj.ExtractCredentials(out string user, out string pass))
+        {
+            extractionInfo = (true, user, pass);
+        }
+        else
+        {
+            Log.LogWarning("Host object failed to extract");
+        }
+
         ProcessStartInfo startInfo = base.GetProcessStartInfo(pathToTool, commandLineCommands, responseFileSwitch)!;
 
         if (extractionInfo.success)
