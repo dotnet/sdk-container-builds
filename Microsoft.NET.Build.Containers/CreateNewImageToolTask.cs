@@ -144,7 +144,6 @@ public class CreateNewImage : ToolTask
         VSHostObject hostObj = new VSHostObject(HostObject as System.Collections.Generic.IEnumerable<ITaskItem>);
         if (hostObj.ExtractCredentials(out string user, out string pass))
         {
-            Log.LogWarning($"Host Object Retrieved.\nUser: {user}\nPass: {pass}");
             extractionInfo = (true, user, pass);
         }
         else
