@@ -5,7 +5,7 @@ public class ContainerHttpException : Exception
     string? jsonResponse;
     string? uri;
     public ContainerHttpException(string message, string? targetUri, string? jsonResp)
-            : base($"{ErrorPrefix} {message}\nURI: {targetUri ?? "None."}\nJson Response: {jsonResp ?? "None."}")
+            : base($"{ErrorPrefix} {message}\nURI: {targetUri ?? "Unknown"}\nJson Response: {jsonResp ?? "None."}")
     {
         jsonResponse = jsonResp;
         uri = targetUri;
