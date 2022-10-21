@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using Microsoft.NET.Build.Containers.Credentials;
+
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
@@ -97,7 +99,14 @@ public partial class AuthHandshakeMessageHandler : DelegatingHandler
         }
         else
         {
-            privateRepoCreds = await CredsProvider.GetCredentialsAsync(realm.Host);
+            try
+            {
+                privateRepoCreds = await CredsProvider.GetCredentialsAsync(realm.Host);
+            }
+            catch (Exception e)
+            {
+                throw new CredentialRetrievalException(realm.Host, e);
+            }
         }
 
         // use those creds when calling the token provider
