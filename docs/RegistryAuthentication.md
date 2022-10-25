@@ -18,7 +18,7 @@ The `auths` section of the config.json file is a key/value map between registry 
 
 ### Credential helpers
 
-The `credHelpers` section of the config.json file is a key/value map between registry names and the names of specific programs that can be used to create and retrieve credentials for that registry. This is often used when particular registries have complex authentication requirements. In order for this kind of authentication to work, you must have an application named `docker-credential-{name}` on yrou system's PATH.  These kinds of credentials tend to be very secure, but can be hard to setup on development or CI machines.
+The `credHelpers` section of the config.json file is a key/value map between registry names and the names of specific programs that can be used to create and retrieve credentials for that registry. This is often used when particular registries have complex authentication requirements. In order for this kind of authentication to work, you must have an application named `docker-credential-{name}` on your system's PATH.  These kinds of credentials tend to be very secure, but can be hard to setup on development or CI machines.
 
 ### System Keychains
 
@@ -31,9 +31,15 @@ All of the above mechanisms are supported by this package. When we push or pull 
 The following registries have been explicitly tested:
 
 * Azure Container Registry*
-* Github Package Registry
+* AWS Elastic Container Registry
+* GitHub Package Registry
+* GitLab Container Registry
+* Google Cloud Artifact Registry
+* Quay.io
 
 ## Known-unsupported registries
+
+* Docker Hub
 
 ## Notes for specific registries
 
