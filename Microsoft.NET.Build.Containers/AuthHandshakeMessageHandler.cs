@@ -94,7 +94,7 @@ public partial class AuthHandshakeMessageHandler : DelegatingHandler
         string? credP = Environment.GetEnvironmentVariable("SDK_CONTAINER_REGISTRY_PWORD");
 
         // fetch creds for the host
-                DockerCredentials? privateRepoCreds;
+      DockerCredentials? privateRepoCreds;
 
         if (!string.IsNullOrEmpty(credU) && !string.IsNullOrEmpty(credP))
         {
