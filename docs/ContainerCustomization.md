@@ -175,6 +175,7 @@ ContainerEntrypointArg items have one property:
   <!-- This is the shorthand syntax for the same idea -->
   <ContainerEntrypointArgs Include="database;update" />
 </ItemGroup>
+```
 
 ## ASP.NET Core customizations
 
