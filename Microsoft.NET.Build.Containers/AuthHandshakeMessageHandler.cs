@@ -23,7 +23,7 @@ public partial class AuthHandshakeMessageHandler : DelegatingHandler
     /// <summary>
     /// Cache of most-recently-received token for each server.
     /// </summary>
-    private static Dictionary<string, AuthenticationHeaderValue> HostAuthenticationCache = new();
+    private static ConcurrentDictionary<string, AuthenticationHeaderValue> HostAuthenticationCache = new();
 
     /// <summary>
     /// the www-authenticate header must have realm, service, and scope information, so this method parses it into that shape if present
@@ -115,8 +115,7 @@ public partial class AuthHandshakeMessageHandler : DelegatingHandler
         if (scheme is "Basic")
         {
             var basicAuth = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{privateRepoCreds.Username}:{privateRepoCreds.Password}")));
-            HostAuthenticationCache[realm.Host] = basicAuth;
-            return basicAuth;
+            return HostAuthenticationCache.AddOrUpdate(realm.Host, basicAuth, (previous, current) => current);
         }
         else if (scheme is "Bearer")
         {
@@ -146,8 +145,7 @@ public partial class AuthHandshakeMessageHandler : DelegatingHandler
 
             // save the retrieved token in the cache
             var bearerAuth = new AuthenticationHeaderValue("Bearer", token.ResolvedToken);
-            HostAuthenticationCache[realm.Host] = bearerAuth;
-            return bearerAuth;
+            return HostAuthenticationCache.AddOrUpdate(realm.Host, bearerAuth, (previous, current) => current);
         }
         else
         {
