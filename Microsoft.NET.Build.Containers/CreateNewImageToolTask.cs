@@ -162,7 +162,7 @@ public class CreateNewImage : ToolTask
         }
         else
         {
-            Log.LogWarning("Host object failed to extract");
+            Log.LogMessage(MessageImportance.Low, "No host object detected.");
         }
 
         ProcessStartInfo startInfo = base.GetProcessStartInfo(pathToTool, commandLineCommands, responseFileSwitch)!;
