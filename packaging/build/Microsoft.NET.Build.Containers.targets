@@ -1,14 +1,15 @@
 <Project>
     <PropertyGroup>
-        <!-- Allow preview 7, any RC, or any stable version of 7 or higher -->
-        <_SDKMajorVersion>$(NETCoreSdkVersion.Substring(0,1))</_SDKMajorVersion>
-        <_SDKIsPrerelease Condition="$(NETCoreSdkVersion.Contains('-'))">true</_SDKIsPrerelease>
-        <_IsPreview7OrRCVersion Condition="$(NETCoreSdkVersion.Contains('-preview.7')) or $(NETCoreSdkVersion.Contains('-rc'))">true</_IsPreview7OrRCVersion>
-        <_IsStableSDKVersion Condition="$(NETCoreSdkVersion.Contains('-')) == false">true</_IsStableSDKVersion>
-        <_IsSDKContainerAllowedVersion Condition="$([MSBuild]::VersionLessThan($(_SDKMajorVersion), '7'))">false</_IsSDKContainerAllowedVersion>
-        <_IsSDKContainerAllowedVersion Condition="$([MSBuild]::VersionEquals($(_SDKMajorVersion), '7')) and ('$(_IsPreview7OrRCVersion)' == 'true' or '$(_IsStableSDKVersion)' == 'true')">true</_IsSDKContainerAllowedVersion>
-        <_IsSDKContainerAllowedVersion Condition="$([MSBuild]::VersionGreaterThan($(_SDKMajorVersion), '7'))">true</_IsSDKContainerAllowedVersion>
-        <_IsSDKContainerAllowedVersion Condition="'$(_IsSDKContainerAllowedVersion)' == ''">false</_IsSDKContainerAllowedVersion>
+        <_IsSDKContainerAllowedVersion>false</_IsSDKContainerAllowedVersion>
+        <!-- Anything newer than 7.0.100-preview.7 is supported -->
+        <_IsSDKContainerAllowedVersion
+            Condition="$([MSBuild]::VersionGreaterThan($(NetCoreSdkVersion), 7.0.100))
+                       OR ( $([MSBuild]::VersionEquals($(NetCoreSdkVersion), 7.0.100))
+                            AND (
+                                 $(NETCoreSdkVersion.Contains('-preview.7'))
+                                 OR $(NETCoreSdkVersion.Contains('-rc'))
+                                )
+                          )">true</_IsSDKContainerAllowedVersion>
     </PropertyGroup>
 
     <Target Name="_ContainerVerifySDKVersion"
