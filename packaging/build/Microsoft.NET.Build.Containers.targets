@@ -8,6 +8,7 @@
                             AND (
                                  $(NETCoreSdkVersion.Contains('-preview.7'))
                                  OR $(NETCoreSdkVersion.Contains('-rc'))
+                                 OR $(NETCoreSdkVersion.Contains('-')) == false
                                 )
                           )">true</_IsSDKContainerAllowedVersion>
     </PropertyGroup>
