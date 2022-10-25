@@ -46,7 +46,7 @@ public class TargetsTests
         props["_TargetFrameworkVersionWithoutV"] = "7.0";
         props["_NativeExecutableExtension"] = ".exe"; //TODO: windows/unix split here
         props["Version"] = "1.0.0"; // TODO: need to test non-compliant version strings here
-        props["NETCoreSdkVersion"] = "7.0.100"; // we manipulate this value during evaluation, so we need a sane default.
+        props["NETCoreSdkVersion"] = "7.0.100"; // we manipulate this value during evaluation, so we need a good default.
                                                 // tests that rely on checking this value can override it with bonusProps.
 
         // test setup parameters so that we can load the props/targets/tasks 
