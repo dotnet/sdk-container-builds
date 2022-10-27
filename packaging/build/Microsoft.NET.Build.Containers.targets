@@ -23,6 +23,16 @@
         <Error Condition="'$(_IsSDKContainerAllowedVersion)' != 'true'" Code="CONTAINER002" Text="The current .NET SDK ($(NETCoreSdkVersion)) doesn't support containerization. Please use version 7.0.100 or higher to enable containerization." />
     </Target>
 
+    <Target Name="_ContainerVerifyRuntime"
+        Condition="'$(WebPublishMethod)' == 'Container' or '$(PublishProfile)' == 'DefaultContainer'"
+        BeforeTargets="AfterPublish">
+        <!-- If the user has opted into container publishing via their own profile (WebPublishMethod = Container) or
+            via the default Profile (PublishProfile = DefaultContainer), make sure they're on a supported SDK version.
+            We do the explicit profile name check here because for preview6 for example the profile didn't exist, so we
+            can't rely only on the WebPublishMethod. -->
+        <Error Condition="'$(RuntimeIdentifier)' != 'linux-x64'" Code="CONTAINER006" Text="The Microsoft.NET.Build.Containers package does not (yet) support publishing for &quot;$(RuntimeIdentifier)&quot;. Please specify a runtime of &quot;linux-x64&quot;" />
+    </Target>
+
     <Target Name="ComputeContainerConfig">
         <!-- Reference data about this project -->
         <PropertyGroup>
