@@ -187,11 +187,11 @@ public class CreateNewImage : ToolTask
                " --imagename " + ImageName +
                " --workingdirectory " + WorkingDirectory +
                (Entrypoint.Length > 0 ? " --entrypoint " + Entrypoint.Select((i) => i.ItemSpec).Aggregate((i, s) => s += i + " ") : "") +
-               (Labels.Length > 0 ? " --labels " + Labels.Select((i) => i.ItemSpec + "=" + i.GetMetadata("Value")).Aggregate((i, s) => s += i + " ") : "") +
-               (ImageTags.Length > 0 ? " --imagetags " + ImageTags.Select((i) => i.ItemSpec).Aggregate((i, s) => s += i + " ") : "") +
+               (Labels.Length > 0 ? " --labels " + Labels.Select((i) => i.ItemSpec + "=" + Quote(i.GetMetadata("Value"))).Aggregate((i, s) => s += i + " ") : "") +
+               (ImageTags.Length > 0 ? " --imagetags " + ImageTags.Select((i) => Quote(i.ItemSpec)).Aggregate((i, s) => s += i + " ") : "") +
                (EntrypointArgs.Length > 0 ? " --entrypointargs " + EntrypointArgs.Select((i) => i.ItemSpec).Aggregate((i, s) => s += i + " ") : "") +
                (ExposedPorts.Length > 0 ? " --ports " + ExposedPorts.Select((i) => i.ItemSpec + "/" + i.GetMetadata("Type")).Aggregate((i, s) => s += i + " ") : "") +
-               (ContainerEnvironmentVariables.Length > 0 ? " --environmentvariables " + ContainerEnvironmentVariables.Select((i) => i.ItemSpec + "=" + i.GetMetadata("Value")).Aggregate((i, s) => s += i + " ") : "");
+               (ContainerEnvironmentVariables.Length > 0 ? " --environmentvariables " + ContainerEnvironmentVariables.Select((i) => i.ItemSpec + "=" + Quote(i.GetMetadata("Value"))).Aggregate((i, s) => s += i + " ") : "");
     }
 
     private string Quote(string path)
