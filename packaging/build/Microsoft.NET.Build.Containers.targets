@@ -26,11 +26,8 @@
     <Target Name="_ContainerVerifyRuntime"
         Condition="'$(WebPublishMethod)' == 'Container' or '$(PublishProfile)' == 'DefaultContainer'"
         BeforeTargets="AfterPublish">
-        <!-- If the user has opted into container publishing via their own profile (WebPublishMethod = Container) or
-            via the default Profile (PublishProfile = DefaultContainer), make sure they're on a supported SDK version.
-            We do the explicit profile name check here because for preview6 for example the profile didn't exist, so we
-            can't rely only on the WebPublishMethod. -->
-        <Error Condition="'$(RuntimeIdentifier)' != 'linux-x64'" Code="CONTAINER006" Text="The Microsoft.NET.Build.Containers package does not (yet) support publishing for &quot;$(RuntimeIdentifier)&quot;. Please specify a runtime of &quot;linux-x64&quot;" />
+        <!-- https://github.com/dotnet/sdk-container-builds/issues/91 -->
+        <Error Condition="'$(RuntimeIdentifier)' != 'linux-x64'" Code="CONTAINER006" Text="The Microsoft.NET.Build.Containers package does not (yet) support publishing for $([MSBuild]::ValueOrDefault('$(RuntimeIdentifier)', 'portable or no-RuntimeIdentifier-defined scenarios')). Please specify a runtime of &quot;linux-x64&quot;" />
     </Target>
 
     <Target Name="ComputeContainerConfig">
@@ -111,6 +108,7 @@
     <PropertyGroup>
         <PublishContainerDependsOn>
             _ContainerVerifySDKVersion;
+            _ContainerVerifyRuntime;
             ComputeContainerConfig
         </PublishContainerDependsOn>
     </PropertyGroup>
