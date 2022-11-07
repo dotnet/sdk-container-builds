@@ -15,7 +15,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
             task.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:6.0";
             task.ContainerRegistry = "localhost:5010";
             task.ContainerImageName = "dotnet/testimage";
-            task.ContainerImageTags = new[] { "5.0" };
+            task.ContainerImageTags = new[] { "5.0", "latest" };
 
             Assert.IsTrue(task.Execute());
             Assert.AreEqual("mcr.microsoft.com", task.ParsedContainerRegistry);
@@ -23,7 +23,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
             Assert.AreEqual("6.0", task.ParsedContainerTag);
 
             Assert.AreEqual("dotnet/testimage", task.NewContainerImageName);
-            new[] { "5.0" }.SequenceEqual(task.NewContainerTags);
+            CollectionAssert.AreEquivalent(new[] { "5.0", "latest" }, task.NewContainerTags);
         }
 
         [TestMethod]
@@ -42,7 +42,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
 
             Assert.AreEqual("localhost:5010", task.NewContainerRegistry);
             Assert.AreEqual("dotnet/testimage", task.NewContainerImageName);
-            new[] { "5.0" }.SequenceEqual(task.NewContainerTags);
+            CollectionAssert.AreEquivalent(new[] { "5.0" }, task.NewContainerTags);
         }
 
         [TestMethod]
@@ -61,7 +61,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
 
             Assert.AreEqual("localhost:5010", task.NewContainerRegistry);
             Assert.AreEqual("dotnet/testimage", task.NewContainerImageName);
-            new[] { "5.0" }.SequenceEqual(task.NewContainerTags);
+            CollectionAssert.AreEquivalent(new[] { "5.0" }, task.NewContainerTags);
         }
 
         [TestMethod]
@@ -81,7 +81,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
             Assert.AreEqual("6-0", task.ParsedContainerTag);
 
             Assert.AreEqual("dotnet/testimage", task.NewContainerImageName);
-            new[] { "5.0" }.SequenceEqual(task.NewContainerTags);
+            CollectionAssert.AreEquivalent(new[] { "5.0" }, task.NewContainerTags);
         }
 
         [TestMethod]
