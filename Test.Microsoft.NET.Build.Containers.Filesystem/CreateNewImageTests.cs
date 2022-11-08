@@ -49,6 +49,7 @@ public class CreateNewImageTests
         task.OutputRegistry = "localhost:5010";
         task.PublishDirectory = Path.Combine(newProjectDir.FullName, "bin", "release", "net7.0");
         task.ImageName = "dotnet/testimage";
+        task.ImageTags = new[] { "latest" };
         task.WorkingDirectory = "app/";
         task.Entrypoint = new TaskItem[] { new("dotnet"), new("build") };
 
@@ -101,7 +102,7 @@ public class CreateNewImageTests
         Assert.AreEqual("6.0", pcp.ParsedContainerTag);
 
         Assert.AreEqual("dotnet/testimage", pcp.NewContainerImageName);
-        new []{ "5.0", "latest"}.SequenceEqual(pcp.NewContainerTags);
+        CollectionAssert.AreEquivalent(new []{ "5.0", "latest"}, pcp.NewContainerTags);
 
         CreateNewImage cni = new CreateNewImage();
         cni.BaseRegistry = pcp.ParsedContainerRegistry;
