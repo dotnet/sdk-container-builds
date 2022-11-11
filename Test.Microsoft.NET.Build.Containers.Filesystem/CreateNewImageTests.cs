@@ -34,7 +34,7 @@ public class CreateNewImageTests
         dotnetNew.WaitForExit();
         Assert.AreEqual(0, dotnetNew.ExitCode);
 
-        info.Arguments = "build --configuration release";
+        info.Arguments = "publish -c Release -r linux-arm64";
 
         Process dotnetPublish = Process.Start(info);
         Assert.IsNotNull(dotnetPublish);
@@ -44,13 +44,14 @@ public class CreateNewImageTests
         CreateNewImage task = new CreateNewImage();
         task.BaseRegistry = "mcr.microsoft.com";
         task.BaseImageName = "dotnet/runtime";
-        task.BaseImageTag = "6.0";
+        task.BaseImageTag = "7.0";
 
         task.OutputRegistry = "localhost:5010";
-        task.PublishDirectory = Path.Combine(newProjectDir.FullName, "bin", "release", "net7.0");
+        task.PublishDirectory = Path.Combine(newProjectDir.FullName, "bin", "Release", "net7.0", "linux-arm64", "publish");
         task.ImageName = "dotnet/testimage";
         task.ImageTags = new[] { "latest" };
         task.WorkingDirectory = "app/";
+        task.ContainerRuntimeIdentifier = "linux-arm64";
         task.Entrypoint = new TaskItem[] { new("dotnet"), new("build") };
 
         Assert.IsTrue(task.Execute());
@@ -114,6 +115,7 @@ public class CreateNewImageTests
         cni.WorkingDirectory = "app/";
         cni.Entrypoint = new TaskItem[] { new("ParseContainerProperties_EndToEnd") };
         cni.ImageTags = pcp.NewContainerTags;
+        cni.ContainerRuntimeIdentifier = "linux-x64";
 
         Assert.IsTrue(cni.Execute());
         newProjectDir.Delete(true);
@@ -190,6 +192,7 @@ public class CreateNewImageTests
         cni.Entrypoint = new TaskItem[] { new("/app/Tasks_EndToEnd_With_EnvironmentVariable_Validation") };
         cni.ImageTags = pcp.NewContainerTags;
         cni.ContainerEnvironmentVariables = pcp.NewContainerEnvironmentVariables;
+        cni.ContainerRuntimeIdentifier = "linux-x64";
 
         Assert.IsTrue(cni.Execute());
 

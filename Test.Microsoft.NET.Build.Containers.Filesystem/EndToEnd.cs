@@ -31,7 +31,7 @@ public class EndToEnd
 
         Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.LocalRegistry));
 
-        Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag);
+        Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag, "linux-x64");
 
         Layer l = Layer.FromDirectory(publishDirectory, "/app");
 
@@ -69,7 +69,7 @@ public class EndToEnd
 
         Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.LocalRegistry));
 
-        Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag);
+        Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag, "linux-x64");
 
         Layer l = Layer.FromDirectory(publishDirectory, "/app");
 
