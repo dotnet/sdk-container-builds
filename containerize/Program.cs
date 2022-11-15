@@ -176,7 +176,8 @@ RootCommand root = new RootCommand("Containerize an application without Docker."
     entrypointArgsOpt,
     labelsOpt,
     portsOpt,
-    envVarsOpt
+    envVarsOpt,
+    userOpt
 };
 
 root.SetHandler(async (context) =>
