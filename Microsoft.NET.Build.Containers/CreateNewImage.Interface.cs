@@ -94,9 +94,14 @@ partial class CreateNewImage
     public ITaskItem[] ContainerEnvironmentVariables { get; set; }
 
     /// <summary>
-    /// The username for the container to use when running.
+    /// The user name for the container to use when running.
     /// </summary>
     public string ExecutionUserName { get; set; }
+    
+    /// <summary>
+    /// The group name for the container to use when running.
+    /// </summary>
+    public string ExecutionGroupName { get; set; }
 
     [Output]
     public string GeneratedContainerManifest { get; set; }
@@ -125,5 +130,6 @@ partial class CreateNewImage
         GeneratedContainerConfiguration = "";
         GeneratedContainerManifest = "";
         ExecutionUserName = "";
+        ExecutionGroupName = "";
     }
 }

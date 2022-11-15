@@ -101,6 +101,10 @@ public partial class CreateNewImage : Microsoft.Build.Utilities.Task
             image.User = ExecutionUserName;
         }
 
+        if (!String.IsNullOrEmpty(ExecutionGroupName)) {
+            image.Group = ExecutionGroupName;
+        }
+
         Layer newLayer = Layer.FromDirectory(PublishDirectory, WorkingDirectory, image.User, image.Group);
         image.AddLayer(newLayer);
         image.WorkingDirectory = WorkingDirectory;

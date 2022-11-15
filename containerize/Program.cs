@@ -162,6 +162,10 @@ var userOpt = new Option<string>(
     name: "--user",
     description: "The user name to use when running the image.");
 
+var groupOpt = new Option<string>(
+    name: "--group",
+    description: "The group name to use when running the image.");
+
 RootCommand root = new RootCommand("Containerize an application without Docker.")
 {
     publishDirectoryArg,
@@ -177,7 +181,8 @@ RootCommand root = new RootCommand("Containerize an application without Docker."
     labelsOpt,
     portsOpt,
     envVarsOpt,
-    userOpt
+    userOpt,
+    groupOpt
 };
 
 root.SetHandler(async (context) =>
@@ -196,7 +201,8 @@ root.SetHandler(async (context) =>
     Port[] _ports = context.ParseResult.GetValueForOption(portsOpt) ?? Array.Empty<Port>();
     var _envVars = context.ParseResult.GetValueForOption(envVarsOpt) ?? Array.Empty<(string, string)>();
     string? _user = context.ParseResult.GetValueForOption(userOpt);
-    await ContainerHelpers.Containerize(_publishDir, _workingDir, _baseReg, _baseName, _baseTag, _entrypoint, _entrypointArgs, _name, _user, _tags, _outputReg, _labels, _ports, _envVars);
+    string? _group = context.ParseResult.GetValueForOption(groupOpt);
+    await ContainerBuilder.Containerize(_publishDir, _workingDir, _baseReg, _baseName, _baseTag, _entrypoint, _entrypointArgs, _name, _tags, _outputReg, _labels, _ports, _envVars, _user, _group);
 });
 
 return await root.InvokeAsync(args);

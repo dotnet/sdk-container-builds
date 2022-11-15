@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 public static class ContainerBuilder
 {
-    public static async Task Containerize(DirectoryInfo folder, string workingDir, string registryName, string baseName, string baseTag, string[] entrypoint, string[] entrypointArgs, string imageName, string[] imageTags, string outputRegistry, string[] labels, Port[] exposedPorts, string[] envVars)
+    public static async Task Containerize(DirectoryInfo folder, string workingDir, string registryName, string baseName, string baseTag, string[] entrypoint, string[] entrypointArgs, string imageName, string[] imageTags, string outputRegistry, string[] labels, Port[] exposedPorts, (string key, string value)[] envVars, string? user, string? group)
     {
         var isDockerPull = String.IsNullOrEmpty(registryName);
         if (isDockerPull) {
@@ -18,12 +18,21 @@ public static class ContainerBuilder
         Image img = await baseRegistry.GetImageManifest(baseName, baseTag);
         img.WorkingDirectory = workingDir;
 
+
         JsonSerializerOptions options = new()
         {
             WriteIndented = true,
         };
 
-        Layer l = Layer.FromDirectory(folder.FullName, workingDir);
+        if (user is not null) {
+            img.User = user;
+        }
+
+        if (group is not null) {
+            img.Group = group;
+        }
+
+        Layer l = Layer.FromDirectory(folder.FullName, workingDir, img.User, img.Group);
 
         img.AddLayer(l);
 
@@ -40,11 +49,9 @@ public static class ContainerBuilder
             img.Label(labelPieces[0], labelPieces[1]);
         }
 
-        foreach (string envVar in envVars)
+        foreach (var (key, value) in envVars)
         {
-            string[] envPieces = envVar.Split('=', 2);
-
-            img.AddEnvironmentVariable(envPieces[0], envPieces[1]);
+            img.AddEnvironmentVariable(key, value);
         }
 
         foreach (var (number, type) in exposedPorts)
