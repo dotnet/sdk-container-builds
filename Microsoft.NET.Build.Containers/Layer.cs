@@ -98,14 +98,12 @@ public record struct Layer
     /// </summary>
     private sealed class HashDigestGZipStream : Stream
     {
-        private readonly SHA256 hashAlgorithm;
-        private readonly CryptoStream sha256Stream;
+        private readonly IncrementalHash incrementalHash;
         private readonly Stream compressionStream;
 
         public HashDigestGZipStream(Stream writeStream, bool leaveOpen)
         {
-            hashAlgorithm = SHA256.Create();
-            sha256Stream = new CryptoStream(Stream.Null, hashAlgorithm, CryptoStreamMode.Write);
+            incrementalHash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
             compressionStream = new GZipStream(writeStream, CompressionMode.Compress, leaveOpen);
         }
 
@@ -113,26 +111,24 @@ public record struct Layer
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            sha256Stream.Write(buffer, offset, count);
+            incrementalHash.AppendData(buffer, offset, count);
             compressionStream.Write(buffer, offset, count);
         }
 
         public override void Write(ReadOnlySpan<byte> buffer)
         {
-            sha256Stream.Write(buffer);
+            incrementalHash.AppendData(buffer);
             compressionStream.Write(buffer);
         }
 
         public override void Flush()
         {
-            sha256Stream.Flush();
             compressionStream.Flush();
         }
 
         internal byte[] GetHash()
         {
-            sha256Stream.FlushFinalBlock();
-            return hashAlgorithm.Hash!;
+            return incrementalHash.GetCurrentHash();
         }
 
         protected override void Dispose(bool disposing)
@@ -140,9 +136,7 @@ public record struct Layer
             try
             {
                 // dispose hashAlgorithm after sha256Stream since sha256Stream references/uses it
-                sha256Stream.Dispose();
-                hashAlgorithm.Dispose();
-
+                incrementalHash.Dispose();
                 compressionStream.Dispose();
             }
             finally
