@@ -9,6 +9,9 @@ parameters:
       - real
       - test
 
+variables:
+  Codeql.Enabled: true
+
 pool:
   name: VSEngSS-MicroBuild2022-1ES
 
