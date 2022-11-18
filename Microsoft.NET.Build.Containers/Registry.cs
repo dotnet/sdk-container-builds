@@ -155,17 +155,9 @@ public record struct Registry(Uri BaseUri)
             ByteArrayContent content = new (chunkBackingStore, offset: 0, count: bytesRead);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
             content.Headers.ContentLength = bytesRead;
-            //HttpResponseMessage putResponse = await client.PutAsync(putUri, content);
-
-            //string resp = await putResponse.Content.ReadAsStringAsync();
-
-            //putResponse.EnsureSuccessStatusCode();
-
-            // Chunked upload
-            //content.Headers.ContentRange = new(from:0, to: contents.Length - 1);
 
             // manual because ACR throws an error with the .NET type {"Range":"bytes 0-84521/*","Reason":"the Content-Range header format is invalid"}
-            //content.Headers.Add("Content-Range", $"0-{contents.Length - 1}");
+            //    content.Headers.Add("Content-Range", $"0-{contents.Length - 1}");
             Debug.Assert(content.Headers.TryAddWithoutValidation("Content-Range", $"{chunkStart}-{chunkStart + bytesRead - 1}"));
 
             HttpResponseMessage? patchResponse = null;
