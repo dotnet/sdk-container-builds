@@ -160,24 +160,9 @@ public record struct Registry(Uri BaseUri)
             //    content.Headers.Add("Content-Range", $"0-{contents.Length - 1}");
             Debug.Assert(content.Headers.TryAddWithoutValidation("Content-Range", $"{chunkStart}-{chunkStart + bytesRead - 1}"));
 
-            HttpResponseMessage? patchResponse = null;
-            for (int retry = 0; retry < 3; retry++)
-            {
-                ExceptionDispatchInfo? e = null;
-                try
-                {
-                    patchResponse = await client.PatchAsync(patchUri, content);
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    e = ExceptionDispatchInfo.Capture(ex);
-                }
+            HttpResponseMessage patchResponse = await client.PatchAsync(patchUri, content);
 
-                e.Throw();
-            }
-
-            if (patchResponse!.StatusCode != HttpStatusCode.Accepted)
+            if (patchResponse.StatusCode != HttpStatusCode.Accepted)
             {
                 string errorMessage = $"Failed to upload blob to {patchUri}; recieved {patchResponse.StatusCode} with detail {await patchResponse.Content.ReadAsStringAsync()}";
                 throw new ApplicationException(errorMessage);
