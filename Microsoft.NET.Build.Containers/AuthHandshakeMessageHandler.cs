@@ -194,10 +194,9 @@ public partial class AuthHandshakeMessageHandler : DelegatingHandler
                 retryCount += 1;
 
                 // TODO: log in a way that is MSBuild-friendly
-                Console.WriteLine($"Encountered a SocketException with message "{se.Message}". Pausing before retry.");
+                Console.WriteLine($"Encountered a SocketException with message \"{se.Message}\". Pausing before retry.");
 
                 await Task.Delay(TimeSpan.FromSeconds(1.0 * Math.Pow(2, retryCount)));
-
 
                 // retry
                 continue;
