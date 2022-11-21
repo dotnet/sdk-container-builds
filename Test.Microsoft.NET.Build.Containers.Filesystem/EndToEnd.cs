@@ -31,7 +31,7 @@ public class EndToEnd
 
         Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.LocalRegistry));
 
-        Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag, "linux-x64");
+        Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net6ImageTag, "linux-x64");
 
         Layer l = Layer.FromDirectory(publishDirectory, "/app");
 
@@ -69,7 +69,7 @@ public class EndToEnd
 
         Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.LocalRegistry));
 
-        Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.BaseImageTag, "linux-x64");
+        Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net6ImageTag, "linux-x64");
 
         Layer l = Layer.FromDirectory(publishDirectory, "/app");
 
@@ -91,7 +91,7 @@ public class EndToEnd
         Assert.AreEqual(0, run.ExitCode);
     }
 
-    private static async Task<string> BuildLocalApp()
+    private static async Task<string> BuildLocalApp(string tfm = "net6.0", string rid = "linux-x64")
     {
         DirectoryInfo d = new DirectoryInfo("MinimalTestApp");
         if (d.Exists)
@@ -99,7 +99,7 @@ public class EndToEnd
             d.Delete(recursive: true);
         }
 
-        ProcessStartInfo psi = new("dotnet", "new console -f net6.0 -o MinimalTestApp")
+        ProcessStartInfo psi = new("dotnet", $"new console -f {tfm} -o MinimalTestApp")
         {
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -109,16 +109,17 @@ public class EndToEnd
 
         Assert.IsNotNull(dotnetNew);
         await dotnetNew.WaitForExitAsync();
-        Assert.AreEqual(0, dotnetNew.ExitCode, await dotnetNew.StandardOutput.ReadToEndAsync() + await dotnetNew.StandardError.ReadToEndAsync());
+        Assert.AreEqual(0, dotnetNew.ExitCode, await dotnetNew.StandardOutput.ReadToEndAsync() + Environment.NewLine + await dotnetNew.StandardError.ReadToEndAsync());
 
-        // Build project
-
-        Process publish = Process.Start("dotnet", "publish -bl MinimalTestApp -r linux-x64");
+        ProcessStartInfo publishPSI = rid is null ? new("dotnet", $"publish -bl MinimalTestApp") : new("dotnet", $"publish -bl MinimalTestApp -r {rid}"); 
+        publishPSI.RedirectStandardOutput = true;
+        publishPSI.RedirectStandardError = true;
+        Process publish = Process.Start(publishPSI);
         Assert.IsNotNull(publish);
         await publish.WaitForExitAsync();
-        Assert.AreEqual(0, publish.ExitCode);
+        Assert.AreEqual(0, publish.ExitCode, await publish.StandardOutput.ReadToEndAsync() + Environment.NewLine + await publish.StandardError.ReadToEndAsync());
 
-        string publishDirectory = Path.Join("MinimalTestApp", "bin", "Debug", "net6.0", "linux-x64", "publish");
+        string publishDirectory = Path.Join("MinimalTestApp", "bin", "Debug", tfm, rid, "publish");
         return publishDirectory;
     }
 
@@ -273,5 +274,57 @@ public class EndToEnd
 
         newProjectDir.Delete(true);
         privateNuGetAssets.Delete(true);
+    }
+
+    [DataRow("linux-x86", false, "/app")] // packaging framework-dependent because missing runtime packs for x86 linux.
+    [DataRow("linux-x64", true, "/app")]
+    [DataRow("linux-arm", false, "/app")] // packaging framework-dependent because emulating arm on x64 Docker host doesn't work
+    [DataRow("linux-arm64", false, "/app")] // packaging framework-dependent because emulating arm64 on x64 Docker host doesn't work
+    [DataRow("win-x64", true, "C:\\app")]
+    [TestMethod]
+    public async Task CanPackageForAllSupportedContainerRIDs(string rid, bool isRIDSpecific, string workingDir) {
+        if (rid == "win-x64") {
+            Assert.Inconclusive("Cannot run Windows containers on Linux hosts (or at the same time as Linux containers), so skipping for now");
+            return;
+        }
+        string publishDirectory = await BuildLocalApp(tfm : "net7.0", rid : (isRIDSpecific ? rid : null));
+
+        // Build the image
+        Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.LocalRegistry));
+
+        Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net7ImageTag, rid);
+
+        Layer l = Layer.FromDirectory(publishDirectory, "/app");
+
+        x.AddLayer(l);
+        x.WorkingDirectory = workingDir;
+
+        var entryPoint = DecideEntrypoint(rid, isRIDSpecific, "MinimalTestApp", workingDir);
+        x.SetEntrypoint(entryPoint);
+
+        // Load the image into the local Docker daemon
+
+        await LocalDocker.Load(x, NewImageName(), rid, DockerRegistryManager.BaseImage);
+
+        // Run the image
+
+        ProcessStartInfo runInfo = new("docker", $"run --rm --tty {NewImageName()}:{rid}") {
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+        };
+        Process run = Process.Start(runInfo);
+        Assert.IsNotNull(run);
+        await run.WaitForExitAsync();
+
+        Assert.AreEqual(0, run.ExitCode, run.StandardOutput.ReadToEnd() + Environment.NewLine + run.StandardError.ReadToEnd());
+
+        string[] DecideEntrypoint(string rid, bool isRIDSpecific, string appName, string workingDir) {
+            var binary = rid.StartsWith("win") ? $"{appName}.exe" : appName;
+            if (isRIDSpecific) {
+                return new[] { $"{workingDir}/{binary}" };
+            } else {
+                return new[] { "dotnet", $"{workingDir}/{binary}.dll" };
+            }
+        }
     }
 }
