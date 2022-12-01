@@ -276,11 +276,12 @@ public class EndToEnd
         privateNuGetAssets.Delete(true);
     }
 
-    [DataRow("linux-x86", false, "/app")] // packaging framework-dependent because missing runtime packs for x86 linux.
-    [DataRow("linux-x64", true, "/app")]
     [DataRow("linux-arm", false, "/app")] // packaging framework-dependent because emulating arm on x64 Docker host doesn't work
+    //[DataRow("linux-x86", false, "/app")] // packaging framework-dependent because missing runtime packs for x86 linux. // MS doesn't ship a linux-x86 image
     [DataRow("linux-arm64", false, "/app")] // packaging framework-dependent because emulating arm64 on x64 Docker host doesn't work
     [DataRow("win-x64", true, "C:\\app")]
+    [DataRow("linux-x64", true, "/app")]
+    [DataRow("debian.11-x64", true, "/app")] // user-reported RID. proves dependency relationships
     [TestMethod]
     public async Task CanPackageForAllSupportedContainerRIDs(string rid, bool isRIDSpecific, string workingDir) {
         if (rid == "win-x64") {
@@ -290,7 +291,7 @@ public class EndToEnd
         string publishDirectory = await BuildLocalApp(tfm : "net7.0", rid : (isRIDSpecific ? rid : null));
 
         // Build the image
-        Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.LocalRegistry));
+        Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.BaseImageSource));
 
         Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net7ImageTag, rid);
 

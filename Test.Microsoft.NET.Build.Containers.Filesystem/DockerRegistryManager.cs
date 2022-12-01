@@ -54,7 +54,8 @@ public class DockerRegistryManager
 
         s_registryContainerId = registryContainerId;
 
-        foreach (var tag in new [] { Net6ImageTag, Net7ImageTag}) {
+        foreach (var tag in new[] { Net6ImageTag, Net7ImageTag })
+        {
             Exec("docker", $"pull {BaseImageSource}{BaseImage}:{tag}");
             Exec("docker", $"tag {BaseImageSource}{BaseImage}:{tag} {LocalRegistry}/{BaseImage}:{tag}");
             Exec("docker", $"push {LocalRegistry}/{BaseImage}:{tag}");
