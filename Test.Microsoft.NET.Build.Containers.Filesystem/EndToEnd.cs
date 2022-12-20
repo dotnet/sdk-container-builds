@@ -111,7 +111,7 @@ public class EndToEnd
         await dotnetNew.WaitForExitAsync();
         Assert.AreEqual(0, dotnetNew.ExitCode, await dotnetNew.StandardOutput.ReadToEndAsync() + Environment.NewLine + await dotnetNew.StandardError.ReadToEndAsync());
 
-        ProcessStartInfo publishPSI = rid is null ? new("dotnet", $"publish -bl MinimalTestApp") : new("dotnet", $"publish -bl MinimalTestApp -r {rid}"); 
+        ProcessStartInfo publishPSI = rid is null ? new("dotnet", $"publish -bl MinimalTestApp") : new("dotnet", $"publish -bl MinimalTestApp -r {rid} --self-contained"); 
         publishPSI.RedirectStandardOutput = true;
         publishPSI.RedirectStandardError = true;
         Process publish = Process.Start(publishPSI);
@@ -276,13 +276,13 @@ public class EndToEnd
         privateNuGetAssets.Delete(true);
     }
 
-    [DataRow("linux-arm", false, "/app")] // packaging framework-dependent because emulating arm on x64 Docker host doesn't work
-    //[DataRow("linux-x86", false, "/app")] // packaging framework-dependent because missing runtime packs for x86 linux. // MS doesn't ship a linux-x86 image
-    [DataRow("linux-arm64", false, "/app")] // packaging framework-dependent because emulating arm64 on x64 Docker host doesn't work
-    [DataRow("win-x64", true, "C:\\app")]
-    [DataRow("linux-x64", true, "/app")]
+    [DataRow("linux-arm", false, "/app", "linux/arm/v7")] // packaging framework-dependent because emulating arm on x64 Docker host doesn't work
+    //[DataRow("linux-x86", false, "/app", "linux/386")] // packaging framework-dependent because missing runtime packs for x86 linux. // MS doesn't ship a linux-x86 image
+    [DataRow("linux-arm64", false, "/app", "linux/arm/v8")] // packaging framework-dependent because emulating arm64 on x64 Docker host doesn't work
+    [DataRow("win-x64", true, "C:\\app", "windows/amd64")] // packaging self-contained because Windows containers can't run on Linux hosts
+    [DataRow("linux-x64", true, "/app", "linux/amd64")]
     [TestMethod]
-    public async Task CanPackageForAllSupportedContainerRIDs(string rid, bool isRIDSpecific, string workingDir) {
+    public async Task CanPackageForAllSupportedContainerRIDs(string rid, bool isRIDSpecific, string workingDir, string dockerPlatform) {
         if (rid == "win-x64") {
             Assert.Inconclusive("Cannot run Windows containers on Linux hosts (or at the same time as Linux containers), so skipping for now");
             return;
@@ -306,9 +306,9 @@ public class EndToEnd
 
         await LocalDocker.Load(x, NewImageName(), rid, DockerRegistryManager.BaseImage);
 
+        var args = $"run --rm --tty --platform {dockerPlatform} {NewImageName()}:{rid}";
         // Run the image
-
-        ProcessStartInfo runInfo = new("docker", $"run --rm --tty {NewImageName()}:{rid}") {
+        ProcessStartInfo runInfo = new("docker", args) {
             RedirectStandardError = true,
             RedirectStandardOutput = true,
         };
@@ -316,7 +316,7 @@ public class EndToEnd
         Assert.IsNotNull(run);
         await run.WaitForExitAsync();
 
-        Assert.AreEqual(0, run.ExitCode, run.StandardOutput.ReadToEnd() + Environment.NewLine + run.StandardError.ReadToEnd());
+        Assert.AreEqual(0, run.ExitCode, $"Arguments: {args}\n{run.StandardOutput.ReadToEnd()}\n{run.StandardError.ReadToEnd()}");
 
         string[] DecideEntrypoint(string rid, bool isRIDSpecific, string appName, string workingDir) {
             var binary = rid.StartsWith("win") ? $"{appName}.exe" : appName;
