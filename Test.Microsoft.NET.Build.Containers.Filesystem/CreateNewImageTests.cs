@@ -34,7 +34,7 @@ public class CreateNewImageTests
         dotnetNew.WaitForExit();
         Assert.AreEqual(0, dotnetNew.ExitCode);
 
-        info.Arguments = "publish -c Release -r linux-arm64";
+        info.Arguments = "publish -c Release -r linux-arm64 --no-self-contained";
 
         Process dotnetPublish = Process.Start(info);
         Assert.IsNotNull(dotnetPublish);

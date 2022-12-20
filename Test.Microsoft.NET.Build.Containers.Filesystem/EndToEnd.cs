@@ -278,7 +278,7 @@ public class EndToEnd
 
     [DataRow("linux-arm", false, "/app", "linux/arm/v7")] // packaging framework-dependent because emulating arm on x64 Docker host doesn't work
     //[DataRow("linux-x86", false, "/app", "linux/386")] // packaging framework-dependent because missing runtime packs for x86 linux. // MS doesn't ship a linux-x86 image
-    [DataRow("linux-arm64", false, "/app", "linux/arm/v8")] // packaging framework-dependent because emulating arm64 on x64 Docker host doesn't work
+    [DataRow("linux-arm64", false, "/app", "linux/arm64/v8")] // packaging framework-dependent because emulating arm64 on x64 Docker host doesn't work
     [DataRow("win-x64", true, "C:\\app", "windows/amd64")] // packaging self-contained because Windows containers can't run on Linux hosts
     [DataRow("linux-x64", true, "/app", "linux/amd64")]
     [TestMethod]
