@@ -281,7 +281,6 @@ public class EndToEnd
     [DataRow("linux-arm64", false, "/app")] // packaging framework-dependent because emulating arm64 on x64 Docker host doesn't work
     [DataRow("win-x64", true, "C:\\app")]
     [DataRow("linux-x64", true, "/app")]
-    [DataRow("debian.11-x64", true, "/app")] // user-reported RID. proves dependency relationships
     [TestMethod]
     public async Task CanPackageForAllSupportedContainerRIDs(string rid, bool isRIDSpecific, string workingDir) {
         if (rid == "win-x64") {
