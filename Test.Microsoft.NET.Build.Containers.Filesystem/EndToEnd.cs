@@ -276,17 +276,23 @@ public class EndToEnd
         privateNuGetAssets.Delete(true);
     }
 
-    [DataRow("linux-arm", false, "/app", "linux/arm/v7")] // packaging framework-dependent because emulating arm on x64 Docker host doesn't work
-    //[DataRow("linux-x86", false, "/app", "linux/386")] // packaging framework-dependent because missing runtime packs for x86 linux. // MS doesn't ship a linux-x86 image
-    [DataRow("linux-arm64", false, "/app", "linux/arm64/v8")] // packaging framework-dependent because emulating arm64 on x64 Docker host doesn't work
-    [DataRow("win-x64", true, "C:\\app", "windows/amd64")] // packaging self-contained because Windows containers can't run on Linux hosts
+    // These two are commented because the Github Actions runers don't let us easily configure the Docker Buildx config - 
+    // we need to configure it to allow emulation of other platforms on amd64 hosts before these two will run.
+    // They do run locally, however.
+
+    //[DataRowAttribute("linux-arm", false, "/app", "linux/arm/v7")] // packaging framework-dependent because emulating arm on x64 Docker host doesn't work
+    //[DataRowAttribute("linux-arm64", false, "/app", "linux/arm64/v8")] // packaging framework-dependent because emulating arm64 on x64 Docker host doesn't work
+    
+    // this one should be skipped in all cases because we don't ship linux-x86 runtime packs, so we can't execute the 'apphost' version of the app
+    //[DataRowAttribute("linux-x86", false, "/app", "linux/386")] // packaging framework-dependent because missing runtime packs for x86 linux.
+    
+    // This one should be skipped because containers can't be configured to run on Linux hosts :(
+    //[DataRow("win-x64", true, "C:\\app", "windows/amd64")]
+
+    // As a result, we only have one actual data-driven test
     [DataRow("linux-x64", true, "/app", "linux/amd64")]
-    [TestMethod]
+    [DataTestMethod]
     public async Task CanPackageForAllSupportedContainerRIDs(string rid, bool isRIDSpecific, string workingDir, string dockerPlatform) {
-        if (rid == "win-x64") {
-            Assert.Inconclusive("Cannot run Windows containers on Linux hosts (or at the same time as Linux containers), so skipping for now");
-            return;
-        }
         string publishDirectory = await BuildLocalApp(tfm : "net7.0", rid : (isRIDSpecific ? rid : null));
 
         // Build the image
