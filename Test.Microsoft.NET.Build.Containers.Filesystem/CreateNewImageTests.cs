@@ -9,6 +9,10 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks;
 [TestClass]
 public class CreateNewImageTests
 {
+    public static string RuntimeGraphFilePath() =>
+        // TODO: The DOTNET_ROOT comes from the test host, but we have no idea what the SDK version is.
+        Path.Combine(Environment.GetEnvironmentVariable("DOTNET_ROOT"), "sdk", "7.0.100", "RuntimeIdentifierGraph.json");
+ 
     [TestMethod]
     public void CreateNewImage_Baseline()
     {
@@ -53,6 +57,7 @@ public class CreateNewImageTests
         task.WorkingDirectory = "app/";
         task.ContainerRuntimeIdentifier = "linux-arm64";
         task.Entrypoint = new TaskItem[] { new("dotnet"), new("build") };
+        task.RuntimeIdentifierGraphPath = RuntimeGraphFilePath();
 
         Assert.IsTrue(task.Execute());
         newProjectDir.Delete(true);
@@ -116,6 +121,7 @@ public class CreateNewImageTests
         cni.Entrypoint = new TaskItem[] { new("ParseContainerProperties_EndToEnd") };
         cni.ImageTags = pcp.NewContainerTags;
         cni.ContainerRuntimeIdentifier = "linux-x64";
+        cni.RuntimeIdentifierGraphPath = RuntimeGraphFilePath();
 
         Assert.IsTrue(cni.Execute());
         newProjectDir.Delete(true);
@@ -193,6 +199,7 @@ public class CreateNewImageTests
         cni.ImageTags = pcp.NewContainerTags;
         cni.ContainerEnvironmentVariables = pcp.NewContainerEnvironmentVariables;
         cni.ContainerRuntimeIdentifier = "linux-x64";
+        cni.RuntimeIdentifierGraphPath = RuntimeGraphFilePath();
 
         Assert.IsTrue(cni.Execute());
 
