@@ -15,7 +15,10 @@ public class RegistryTests
     {
         Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.LocalRegistry));
 
-        Image downloadedImage = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net6ImageTag, "linux-x64");
+        // TODO: The DOTNET_ROOT comes from the test host, but we have no idea what the SDK version is.
+        var ridgraphfile = Path.Combine(Environment.GetEnvironmentVariable("DOTNET_ROOT"), "sdk", "7.0.100", "RuntimeIdentifierGraph.json");
+
+        Image downloadedImage = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net6ImageTag, "linux-x64", ridgraphfile); // don't need rid graph for local registry
 
         Assert.IsNotNull(downloadedImage);
     }

@@ -10,6 +10,10 @@ namespace Test.Microsoft.NET.Build.Containers.Filesystem;
 [TestClass]
 public class EndToEnd
 {
+    public static string RuntimeGraphFilePath() =>
+        // TODO: The DOTNET_ROOT comes from the test host, but we have no idea what the SDK version is.
+        Path.Combine(Environment.GetEnvironmentVariable("DOTNET_ROOT"), "sdk", "7.0.100", "RuntimeIdentifierGraph.json");
+
     public static string NewImageName([CallerMemberName] string callerMemberName = "")
     {
         bool normalized = ContainerHelpers.NormalizeImageName(callerMemberName, out string normalizedName);
@@ -31,7 +35,7 @@ public class EndToEnd
 
         Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.LocalRegistry));
 
-        Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net6ImageTag, "linux-x64");
+        Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net6ImageTag, "linux-x64", RuntimeGraphFilePath());
 
         Layer l = Layer.FromDirectory(publishDirectory, "/app");
 
@@ -69,7 +73,7 @@ public class EndToEnd
 
         Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.LocalRegistry));
 
-        Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net6ImageTag, "linux-x64");
+        Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net6ImageTag, "linux-x64", RuntimeGraphFilePath());
 
         Layer l = Layer.FromDirectory(publishDirectory, "/app");
 
@@ -298,7 +302,7 @@ public class EndToEnd
         // Build the image
         Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.BaseImageSource));
 
-        Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net7ImageTag, rid);
+        Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net7ImageTag, rid, RuntimeGraphFilePath());
 
         Layer l = Layer.FromDirectory(publishDirectory, "/app");
 
