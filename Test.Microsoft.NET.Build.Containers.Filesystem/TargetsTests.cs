@@ -11,7 +11,7 @@ public class TargetsTests
     [TestMethod]
     public void CanSetEntrypointArgsToUseAppHost(bool useAppHost, params string[] entrypointArgs)
     {
-        var (project, _) = Evaluator.InitProject(new()
+        var (project, _) = ProjectInitializer.InitProject(new()
         {
             [UseAppHost] = useAppHost.ToString()
         }, projectName: $"{nameof(CanSetEntrypointArgsToUseAppHost)}_{useAppHost}_{String.Join("_", entrypointArgs)}");
@@ -31,7 +31,7 @@ public class TargetsTests
     [TestMethod]
     public void CanNormalizeInputContainerNames(string projectName, string expectedContainerImageName, bool shouldPass)
     {
-        var (project, _) = Evaluator.InitProject(new()
+        var (project, _) = ProjectInitializer.InitProject(new()
         {
             [AssemblyName] = projectName
         }, projectName: $"{nameof(CanNormalizeInputContainerNames)}_{projectName}_{expectedContainerImageName}_{shouldPass}");
@@ -48,7 +48,7 @@ public class TargetsTests
     [DataRow("7.0.100-preview.1", false)]
     [TestMethod]
     public void CanWarnOnInvalidSDKVersions(string sdkVersion, bool isAllowed) {
-        var (project, _) = Evaluator.InitProject(new()
+        var (project, _) = ProjectInitializer.InitProject(new()
         {
             ["NETCoreSdkVersion"] = sdkVersion,
             ["PublishProfile"] = "DefaultContainer"

@@ -9,7 +9,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
         [TestMethod]
         public void Baseline()
         {
-            var (project, _) = Evaluator.InitProject(new () {
+            var (project, _) = ProjectInitializer.InitProject(new () {
                 [ContainerBaseImage] = "mcr.microsoft.com/dotnet/runtime:7.0",
                 [ContainerRegistry] = "localhost:5010",
                 [ContainerImageName] = "dotnet/testimage",
@@ -29,7 +29,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
         [TestMethod]
         public void SpacesGetReplacedWithDashes()
         {
-             var (project, _) = Evaluator.InitProject(new () {
+             var (project, _) = ProjectInitializer.InitProject(new () {
                 [ContainerBaseImage] = "mcr microsoft com/dotnet runtime:7.0",
                 [ContainerRegistry] = "localhost:5010"
             });
@@ -45,7 +45,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
         [TestMethod]
         public void RegexCatchesInvalidContainerNames()
         {
-             var (project, logs) = Evaluator.InitProject(new () {
+             var (project, logs) = ProjectInitializer.InitProject(new () {
                 [ContainerBaseImage] = "mcr.microsoft.com/dotnet/runtime:7.0",
                 [ContainerRegistry] = "localhost:5010",
                 [ContainerImageName] = "dotnet testimage",
@@ -60,7 +60,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
         [TestMethod]
         public void RegexCatchesInvalidContainerTags()
         {
-            var (project, logs) = Evaluator.InitProject(new () {
+            var (project, logs) = ProjectInitializer.InitProject(new () {
                 [ContainerBaseImage] = "mcr.microsoft.com/dotnet/runtime:7.0",
                 [ContainerRegistry] = "localhost:5010",
                 [ContainerImageName] = "dotnet/testimage",
@@ -77,7 +77,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
         [TestMethod]
         public void CanOnlySupplyOneOfTagAndTags()
         {
-            var (project, logs) = Evaluator.InitProject(new () {
+            var (project, logs) = ProjectInitializer.InitProject(new () {
                 [ContainerBaseImage] = "mcr.microsoft.com/dotnet/runtime:7.0",
                 [ContainerRegistry] = "localhost:5010",
                 [ContainerImageName] = "dotnet/testimage",
