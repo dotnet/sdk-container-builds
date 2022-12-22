@@ -14,7 +14,7 @@ public class TargetsTests
         var (project, _) = Evaluator.InitProject(new()
         {
             [UseAppHost] = useAppHost.ToString()
-        });
+        }, projectName: $"{nameof(CanSetEntrypointArgsToUseAppHost)}_{useAppHost}_{String.Join("_", entrypointArgs)}");
         Assert.IsTrue(project.Build(ComputeContainerConfig));
         var computedEntrypointArgs = project.GetItems(ContainerEntrypoint).Select(i => i.EvaluatedInclude).ToArray();
         foreach (var (First, Second) in entrypointArgs.Zip(computedEntrypointArgs))
@@ -34,7 +34,7 @@ public class TargetsTests
         var (project, _) = Evaluator.InitProject(new()
         {
             [AssemblyName] = projectName
-        });
+        }, projectName: $"{nameof(CanNormalizeInputContainerNames)}_{projectName}_{expectedContainerImageName}_{shouldPass}");
         var instance = project.CreateProjectInstance(global::Microsoft.Build.Execution.ProjectInstanceSettings.None);
         Assert.AreEqual(shouldPass, instance.Build(new[]{ComputeContainerConfig}, null, null, out var outputs), "Build should have succeeded");
         Assert.AreEqual(expectedContainerImageName, instance.GetPropertyValue(ContainerImageName));
@@ -52,7 +52,7 @@ public class TargetsTests
         {
             ["NETCoreSdkVersion"] = sdkVersion,
             ["PublishProfile"] = "DefaultContainer"
-        });
+        }, projectName: $"{nameof(CanWarnOnInvalidSDKVersions)}_{sdkVersion}_{isAllowed}");
         var instance = project.CreateProjectInstance(global::Microsoft.Build.Execution.ProjectInstanceSettings.None);
         var derivedIsAllowed = Boolean.Parse(project.GetProperty("_IsSDKContainerAllowedVersion").EvaluatedValue);
         // var buildResult = instance.Build(new[]{"_ContainerVerifySDKVersion"}, null, null, out var outputs);

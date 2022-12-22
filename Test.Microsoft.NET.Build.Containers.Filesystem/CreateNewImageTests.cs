@@ -94,7 +94,7 @@ public class CreateNewImageTests
         pcp.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:7.0";
         pcp.ContainerRegistry = "localhost:5010";
         pcp.ContainerImageName = "dotnet/testimage";
-        pcp.ContainerImageTags = new [] {"5.0", "latest"};
+        pcp.ContainerImageTags = new [] { "5.0", "latest"};
 
         Assert.IsTrue(pcp.Execute());
         Assert.AreEqual("mcr.microsoft.com", pcp.ParsedContainerRegistry);

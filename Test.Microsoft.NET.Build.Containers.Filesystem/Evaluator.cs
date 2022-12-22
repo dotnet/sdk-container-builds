@@ -36,7 +36,7 @@ public static class Evaluator {
         if (CombinedTargetsLocation != null) File.Delete(CombinedTargetsLocation);
     }
 
-    public static (Project, CapturingLogger) InitProject(Dictionary<string, string> bonusProps, bool captureLogs = false, [CallerMemberName]string projectName = "")
+    public static (Project, CapturingLogger) InitProject(Dictionary<string, string> bonusProps, [CallerMemberName]string projectName = "")
     {
         var props = new Dictionary<string, string>();
         // required parameters
@@ -49,9 +49,11 @@ public static class Evaluator {
         // test setup parameters so that we can load the props/targets/tasks 
         props["ContainerCustomTasksAssembly"] = Path.GetFullPath(Path.Combine(".", "Microsoft.NET.Build.Containers.dll"));
         props["_IsTest"] = "true";
+
+        var safeBinlogFileName = projectName.Replace(" ", "_").Replace(":", "_").Replace("/", "_").Replace("\\", "_").Replace("*", "_");
         var loggers = new List<ILogger>
         {
-            new global::Microsoft.Build.Logging.BinaryLogger() {CollectProjectImports = global::Microsoft.Build.Logging.BinaryLogger.ProjectImportsCollectionMode.Embed, Verbosity = LoggerVerbosity.Diagnostic, Parameters = $"LogFile={projectName}.binlog" },
+            new global::Microsoft.Build.Logging.BinaryLogger() {CollectProjectImports = global::Microsoft.Build.Logging.BinaryLogger.ProjectImportsCollectionMode.Embed, Verbosity = LoggerVerbosity.Diagnostic, Parameters = $"LogFile={safeBinlogFileName}.binlog" },
             new global::Microsoft.Build.Logging.ConsoleLogger(LoggerVerbosity.Detailed)
         };
         CapturingLogger logs = new CapturingLogger();

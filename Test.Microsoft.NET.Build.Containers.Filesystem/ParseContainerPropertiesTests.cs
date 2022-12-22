@@ -23,7 +23,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
             Assert.AreEqual("7.0", instance.GetPropertyValue(ContainerBaseTag));
 
             Assert.AreEqual("dotnet/testimage", instance.GetPropertyValue(ContainerImageName));
-            CollectionAssert.AreEquivalent(new[] { "7.0", "latest" }, instance.GetPropertyValue(ContainerImageTags).Split(':'));
+            CollectionAssert.AreEquivalent(new[] { "7.0", "latest" }, instance.GetItems(ContainerImageTags).Select(i => i.EvaluatedInclude).ToArray());
         }
 
         [TestMethod]
@@ -50,12 +50,11 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
                 [ContainerRegistry] = "localhost:5010",
                 [ContainerImageName] = "dotnet testimage",
                 [ContainerImageTag] = "5.0"
-            }, captureLogs: true);
+            });
             
             var instance = project.CreateProjectInstance(global::Microsoft.Build.Execution.ProjectInstanceSettings.None);
             Assert.IsTrue(instance.Build(new[]{ComputeContainerConfig}, new [] { logs }, null, out var outputs));
-            Assert.IsTrue(logs.Messages.Count > 0);
-            Assert.AreEqual(ErrorCodes.CONTAINER001, logs.Messages[0].Code);
+            Assert.IsTrue(logs.Messages.Any(m => m.Code == ErrorCodes.CONTAINER001 && m.Importance == global::Microsoft.Build.Framework.MessageImportance.High));
         }
 
         [TestMethod]
@@ -66,7 +65,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
                 [ContainerRegistry] = "localhost:5010",
                 [ContainerImageName] = "dotnet/testimage",
                 [ContainerImageTag] = "5 0"
-            }, captureLogs: true);
+            });
 
             var instance = project.CreateProjectInstance(global::Microsoft.Build.Execution.ProjectInstanceSettings.None);
             Assert.IsFalse(instance.Build(new[]{ComputeContainerConfig},  new [] { logs }, null, out var outputs));
@@ -84,7 +83,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
                 [ContainerImageName] = "dotnet/testimage",
                 [ContainerImageTag] = "5.0",
                 [ContainerImageTags] = "latest;oldest"
-            }, captureLogs: true);
+            });
 
             var instance = project.CreateProjectInstance(global::Microsoft.Build.Execution.ProjectInstanceSettings.None);
             Assert.IsFalse(instance.Build(new[]{ComputeContainerConfig},  new [] { logs }, null, out var outputs));

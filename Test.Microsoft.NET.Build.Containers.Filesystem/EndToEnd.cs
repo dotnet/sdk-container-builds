@@ -147,7 +147,7 @@ public class EndToEnd
         File.Copy(repoGlobalJson, Path.Combine(newProjectDir.FullName, "global.json"));
 
         // 🤢
-        DirectoryInfo nupkgPath = new DirectoryInfo(Assembly.GetAssembly(this.GetType()).Location).Parent.Parent.Parent.Parent;
+        DirectoryInfo nupkgPath = new DirectoryInfo(Assembly.GetAssembly(this.GetType()).Location).Parent.Parent.Parent;
         nupkgPath = nupkgPath.GetDirectories("package")[0];
         FileInfo[] nupkgs = nupkgPath.GetFiles("*.nupkg");
         if (nupkgs == null || nupkgs.Length == 0)
