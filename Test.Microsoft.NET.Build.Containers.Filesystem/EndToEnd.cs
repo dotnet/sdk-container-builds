@@ -146,10 +146,9 @@ public class EndToEnd
         var repoGlobalJson = Path.Combine("..", "..", "..", "..", "global.json");
         File.Copy(repoGlobalJson, Path.Combine(newProjectDir.FullName, "global.json"));
 
+        var packagedir = new DirectoryInfo(CurrentFile.Relative("./package"));
         // 🤢
-        DirectoryInfo nupkgPath = new DirectoryInfo(Assembly.GetAssembly(this.GetType()).Location).Parent.Parent.Parent;
-        nupkgPath = nupkgPath.GetDirectories("package")[0];
-        FileInfo[] nupkgs = nupkgPath.GetFiles("*.nupkg");
+        FileInfo[] nupkgs = packagedir.GetFiles("*.nupkg");
         if (nupkgs == null || nupkgs.Length == 0)
         {
             // Build Microsoft.NET.Build.Containers.csproj & wait.
@@ -182,7 +181,7 @@ public class EndToEnd
         await dotnetNewNugetConfig.WaitForExitAsync();
         Assert.AreEqual(0, dotnetNewNugetConfig.ExitCode);
 
-        info.Arguments = $"nuget add source {nupkgPath.FullName} --name local-temp";
+        info.Arguments = $"nuget add source {packagedir.FullName} --name local-temp";
 
         // Set up temp folder as "nuget feed"
         Process dotnetNugetAddSource = Process.Start(info);
