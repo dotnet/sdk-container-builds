@@ -27,12 +27,6 @@ public class DockerRegistryManager
         Assert.AreEqual(0, proc.ExitCode, message);
     }
 
-    public static void LocateMSBuild()
-    {
-        var instances = MSBuildLocator.QueryVisualStudioInstances(new() { DiscoveryTypes = DiscoveryType.DotNetSdk, WorkingDirectory = Environment.CurrentDirectory });
-        MSBuildLocator.RegisterInstance(instances.First());
-    }
-
     [AssemblyInitialize]
     public static void StartAndPopulateDockerRegistry(TestContext context)
     {
@@ -57,7 +51,6 @@ public class DockerRegistryManager
         Exec("docker", $"pull {BaseImageSource}{BaseImage}:{BaseImageTag}");
         Exec("docker", $"tag {BaseImageSource}{BaseImage}:{BaseImageTag} {LocalRegistry}/{BaseImage}:{BaseImageTag}");
         Exec("docker", $"push {LocalRegistry}/{BaseImage}:{BaseImageTag}");
-        LocateMSBuild();
     }
 
     public static void ShutdownDockerRegistry()

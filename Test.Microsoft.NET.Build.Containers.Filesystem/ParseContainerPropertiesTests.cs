@@ -22,46 +22,8 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
             Assert.AreEqual("dotnet/runtime", instance.GetPropertyValue(ContainerBaseName));
             Assert.AreEqual("7.0", instance.GetPropertyValue(ContainerBaseTag));
 
-            Assert.AreEqual("dotnet/testimage", task.NewContainerImageName);
-            CollectionAssert.AreEquivalent(new[] { "7.0", "latest" }, task.NewContainerTags);
-        }
-
-        [TestMethod]
-        public void BaseRegistriesWithNoSchemeGetHttps()
-        {
-            ParseContainerProperties task = new ParseContainerProperties();
-            task.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:6.0";
-            task.ContainerRegistry = "localhost:5010";
-            task.ContainerImageName = "dotnet/testimage";
-            task.ContainerImageTags = new[] { "5.0" };
-
-            Assert.IsTrue(task.Execute());
-            Assert.AreEqual("mcr.microsoft.com", task.ParsedContainerRegistry);
-            Assert.AreEqual("dotnet/runtime", task.ParsedContainerImage);
-            Assert.AreEqual("6.0", task.ParsedContainerTag);
-
-            Assert.AreEqual("localhost:5010", task.NewContainerRegistry);
-            Assert.AreEqual("dotnet/testimage", task.NewContainerImageName);
-            CollectionAssert.AreEquivalent(new[] { "5.0" }, task.NewContainerTags);
-        }
-
-        [TestMethod]
-        public void UserRegistriesWithNoSchemeGetHttps()
-        {
-            ParseContainerProperties task = new ParseContainerProperties();
-            task.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:6.0";
-            task.ContainerRegistry = "localhost:5010";
-            task.ContainerImageName = "dotnet/testimage";
-            task.ContainerImageTags = new[] { "5.0" };
-
-            Assert.IsTrue(task.Execute());
-            Assert.AreEqual("mcr.microsoft.com", task.ParsedContainerRegistry);
-            Assert.AreEqual("dotnet/runtime", task.ParsedContainerImage);
-            Assert.AreEqual("6.0", task.ParsedContainerTag);
-
-            Assert.AreEqual("localhost:5010", task.NewContainerRegistry);
-            Assert.AreEqual("dotnet/testimage", task.NewContainerImageName);
-            CollectionAssert.AreEquivalent(new[] { "5.0" }, task.NewContainerTags);
+            Assert.AreEqual("dotnet/testimage", instance.GetPropertyValue(ContainerImageName));
+            CollectionAssert.AreEquivalent(new[] { "7.0", "latest" }, instance.GetPropertyValue(ContainerImageTags).Split(':'));
         }
 
         [TestMethod]
@@ -75,7 +37,7 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
             var instance = project.CreateProjectInstance(global::Microsoft.Build.Execution.ProjectInstanceSettings.None);
             Assert.IsTrue(instance.Build(new[]{ComputeContainerConfig}, null, null, out var outputs));
 
-            Assert.AreEqual("mcr-microsoft-com", instance.GetPropertyValue(ContainerBaseRegistry));
+            Assert.AreEqual("mcr-microsoft-com",instance.GetPropertyValue(ContainerBaseRegistry));
             Assert.AreEqual("dotnet-runtime", instance.GetPropertyValue(ContainerBaseName));
             Assert.AreEqual("7.0", instance.GetPropertyValue(ContainerBaseTag));
         }
@@ -92,8 +54,8 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
             
             var instance = project.CreateProjectInstance(global::Microsoft.Build.Execution.ProjectInstanceSettings.None);
             Assert.IsTrue(instance.Build(new[]{ComputeContainerConfig}, new [] { logs }, null, out var outputs));
-            Assert.IsTrue(logs.Warnings.Count > 0);
-            Assert.AreEqual(logs.Warnings[0].Code, ErrorCodes.CONTAINER001);
+            Assert.IsTrue(logs.Messages.Count > 0);
+            Assert.AreEqual(ErrorCodes.CONTAINER001, logs.Messages[0].Code);
         }
 
         [TestMethod]

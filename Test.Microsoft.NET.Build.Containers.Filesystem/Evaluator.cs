@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Locator;
@@ -35,7 +36,7 @@ public static class Evaluator {
         if (CombinedTargetsLocation != null) File.Delete(CombinedTargetsLocation);
     }
 
-    public static (Project, CapturingLogger?) InitProject(Dictionary<string, string> bonusProps, bool captureLogs = false)
+    public static (Project, CapturingLogger) InitProject(Dictionary<string, string> bonusProps, bool captureLogs = false, [CallerMemberName]string projectName = "")
     {
         var props = new Dictionary<string, string>();
         // required parameters
@@ -44,22 +45,17 @@ public static class Evaluator {
         props["_TargetFrameworkVersionWithoutV"] = "7.0";
         props["_NativeExecutableExtension"] = ".exe"; //TODO: windows/unix split here
         props["Version"] = "1.0.0"; // TODO: need to test non-compliant version strings here
-
+        props["NetCoreSdkVersion"] = "7.0.100"; // TODO: float this to current SDK?
         // test setup parameters so that we can load the props/targets/tasks 
         props["ContainerCustomTasksAssembly"] = Path.GetFullPath(Path.Combine(".", "Microsoft.NET.Build.Containers.dll"));
         props["_IsTest"] = "true";
         var loggers = new List<ILogger>
         {
-            // new Microsoft.Build.Logging.BinaryLogger() {CollectProjectImports = Microsoft.Build.Logging.BinaryLogger.ProjectImportsCollectionMode.Embed, Verbosity = LoggerVerbosity.Diagnostic, Parameters = "LogFile=blah.binlog" },
+            new global::Microsoft.Build.Logging.BinaryLogger() {CollectProjectImports = global::Microsoft.Build.Logging.BinaryLogger.ProjectImportsCollectionMode.Embed, Verbosity = LoggerVerbosity.Diagnostic, Parameters = $"LogFile={projectName}.binlog" },
             new global::Microsoft.Build.Logging.ConsoleLogger(LoggerVerbosity.Detailed)
         };
-        CapturingLogger? logs;
-        if (captureLogs) {
-            logs = new CapturingLogger();
-            loggers.Add(logs);
-        } else {
-            logs = null;
-        }
+        CapturingLogger logs = new CapturingLogger();
+        loggers.Add(logs);
 
         var collection = new ProjectCollection(null, loggers, ToolsetDefinitionLocations.Default);
         foreach (var kvp in bonusProps)
