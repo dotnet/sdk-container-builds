@@ -97,4 +97,18 @@ public class ContainerHelpersTests
             Assert.AreEqual(expectedError, errors);
         }
     }
+
+    [TestMethod]
+    [DataRow("FOO", true)]
+    [DataRow("foo_bar", true)]
+    [DataRow("foo-bar", false)]
+    [DataRow("foo.bar", false)]
+    [DataRow("foo bar", false)]
+    [DataRow("1_NAME", false)]
+    [DataRow("ASPNETCORE_URLS", true)]
+    [DataRow("ASPNETCORE_URLS2", true)]
+    public void CanRecognizeEnvironmentVariableNames(string envVarName, bool isValid) {
+        var success = ContainerHelpers.IsValidEnvironmentVariable(envVarName);
+        Assert.AreEqual(isValid, success, $"Expected {envVarName} to be {(isValid ? "valid" : "invalid")}");
+    }
 }
