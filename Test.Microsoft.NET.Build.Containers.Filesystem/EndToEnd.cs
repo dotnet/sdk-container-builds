@@ -22,6 +22,23 @@ public class EndToEnd
         return callerMemberName;
     }
 
+    public static async Task Execute(string command, string args)
+    {
+        var psi = new ProcessStartInfo(command, args)
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+        };
+        var proc = Process.Start(psi);
+        Assert.IsNotNull(proc);
+        await proc.WaitForExitAsync();
+        var stdout = proc.StandardOutput.ReadToEnd();
+        var stderr = proc.StandardError.ReadToEnd();
+        var message = $"StdOut:\n{stdout}\nStdErr:\n{stderr}";
+        Assert.AreEqual(0, proc.ExitCode, message);
+
+    }
+
     [TestMethod]
     public async Task ApiEndToEndWithRegistryPushAndPull()
     {
@@ -99,26 +116,12 @@ public class EndToEnd
             d.Delete(recursive: true);
         }
 
-        ProcessStartInfo psi = new("dotnet", "new console -f net6.0 -o MinimalTestApp")
-        {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-        };
-
-        Process dotnetNew = Process.Start(psi);
-
-        Assert.IsNotNull(dotnetNew);
-        await dotnetNew.WaitForExitAsync();
-        Assert.AreEqual(0, dotnetNew.ExitCode, await dotnetNew.StandardOutput.ReadToEndAsync() + await dotnetNew.StandardError.ReadToEndAsync());
-
+        await Execute("dotnet", "new console -f net7.0 -o MinimalTestApp");
         // Build project
 
-        Process publish = Process.Start("dotnet", "publish -bl MinimalTestApp -r linux-x64");
-        Assert.IsNotNull(publish);
-        await publish.WaitForExitAsync();
-        Assert.AreEqual(0, publish.ExitCode);
-
-        string publishDirectory = Path.Join("MinimalTestApp", "bin", "Debug", "net6.0", "linux-x64", "publish");
+        await Execute("dotnet", "publish -bl MinimalTestApp -r linux-x64");
+        
+        string publishDirectory = Path.Join("MinimalTestApp", "bin", "Debug", "net7.0", "linux-x64", "publish");
         return publishDirectory;
     }
 
@@ -143,10 +146,9 @@ public class EndToEnd
         var repoGlobalJson = Path.Combine("..", "..", "..", "..", "global.json");
         File.Copy(repoGlobalJson, Path.Combine(newProjectDir.FullName, "global.json"));
 
+        var packagedir = new DirectoryInfo(CurrentFile.Relative("./package"));
         // 🤢
-        DirectoryInfo nupkgPath = new DirectoryInfo(Assembly.GetAssembly(this.GetType()).Location).Parent.Parent.Parent.Parent;
-        nupkgPath = nupkgPath.GetDirectories("package")[0];
-        FileInfo[] nupkgs = nupkgPath.GetFiles("*.nupkg");
+        FileInfo[] nupkgs = packagedir.GetFiles("*.nupkg");
         if (nupkgs == null || nupkgs.Length == 0)
         {
             // Build Microsoft.NET.Build.Containers.csproj & wait.
@@ -179,7 +181,7 @@ public class EndToEnd
         await dotnetNewNugetConfig.WaitForExitAsync();
         Assert.AreEqual(0, dotnetNewNugetConfig.ExitCode);
 
-        info.Arguments = $"nuget add source {nupkgPath.FullName} --name local-temp";
+        info.Arguments = $"nuget add source {packagedir.FullName} --name local-temp";
 
         // Set up temp folder as "nuget feed"
         Process dotnetNugetAddSource = Process.Start(info);
