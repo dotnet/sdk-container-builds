@@ -97,15 +97,15 @@ public class CreateNewImageTests
         Assert.AreEqual(0, dotnetPublish.ExitCode);
 
         ParseContainerProperties pcp = new ParseContainerProperties();
-        pcp.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:6.0";
+        pcp.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:7.0";
         pcp.ContainerRegistry = "localhost:5010";
         pcp.ContainerImageName = "dotnet/testimage";
-        pcp.ContainerImageTags = new [] {"5.0", "latest"};
+        pcp.ContainerImageTags = new [] { "5.0", "latest"};
 
         Assert.IsTrue(pcp.Execute());
         Assert.AreEqual("mcr.microsoft.com", pcp.ParsedContainerRegistry);
         Assert.AreEqual("dotnet/runtime", pcp.ParsedContainerImage);
-        Assert.AreEqual("6.0", pcp.ParsedContainerTag);
+        Assert.AreEqual("7.0", pcp.ParsedContainerTag);
 
         Assert.AreEqual("dotnet/testimage", pcp.NewContainerImageName);
         CollectionAssert.AreEquivalent(new []{ "5.0", "latest"}, pcp.NewContainerTags);

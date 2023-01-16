@@ -3,7 +3,6 @@ using Microsoft.Build.Locator;
 
 namespace Test.Microsoft.NET.Build.Containers.Filesystem;
 
-[TestClass]
 public class DockerRegistryManager
 {
     public const string BaseImage = "dotnet/runtime";
@@ -15,27 +14,24 @@ public class DockerRegistryManager
     private static string s_registryContainerId;
 
     private static void Exec(string command, string args) {
-        var startInfo = new ProcessStartInfo(command, args){
+        var psi = new ProcessStartInfo(command, args)
+        {
+            RedirectStandardOutput = true,
             RedirectStandardError = true,
-            RedirectStandardOutput = true
         };
-        Process cmd = Process.Start(startInfo);
-        Assert.IsNotNull(cmd);
-        cmd.WaitForExit();
-        Assert.AreEqual(0, cmd.ExitCode, cmd.StandardOutput.ReadToEnd());
-    }
-
-    public static void LocateMSBuild()
-    {
-        var instances = MSBuildLocator.QueryVisualStudioInstances(new() { DiscoveryTypes = DiscoveryType.DotNetSdk, WorkingDirectory = Environment.CurrentDirectory });
-        MSBuildLocator.RegisterInstance(instances.First());
+        var proc = Process.Start(psi);
+        Assert.IsNotNull(proc);
+        proc.WaitForExit();
+        var stdout = proc.StandardOutput.ReadToEnd();
+        var stderr = proc.StandardError.ReadToEnd();
+        var message = $"StdOut:\n{stdout}\nStdErr:\n{stderr}";
+        Assert.AreEqual(0, proc.ExitCode, message);
     }
 
     [AssemblyInitialize]
     public static void StartAndPopulateDockerRegistry(TestContext context)
     {
-        Console.WriteLine(nameof(StartAndPopulateDockerRegistry));
-
+        context.WriteLine("Spawning local registry");
         ProcessStartInfo startRegistry = new("docker", "run --rm --publish 5010:5000 --detach registry:2")
         {
             RedirectStandardOutput = true,
@@ -51,7 +47,6 @@ public class DockerRegistryManager
         Assert.IsNotNull(registryContainerId);
         registryProcess.WaitForExit();
         Assert.AreEqual(0, registryProcess.ExitCode, $"Could not start Docker registry. Are you running one for manual testing?{Environment.NewLine}{errStream}");
-
         s_registryContainerId = registryContainerId;
 
         foreach (var tag in new[] { Net6ImageTag, Net7ImageTag })
@@ -60,10 +55,8 @@ public class DockerRegistryManager
             Exec("docker", $"tag {BaseImageSource}{BaseImage}:{tag} {LocalRegistry}/{BaseImage}:{tag}");
             Exec("docker", $"push {LocalRegistry}/{BaseImage}:{tag}");
         }
-        LocateMSBuild();
     }
 
-    [AssemblyCleanup]
     public static void ShutdownDockerRegistry()
     {
         Assert.IsNotNull(s_registryContainerId);

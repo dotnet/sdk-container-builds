@@ -26,6 +26,23 @@ public class EndToEnd
         return callerMemberName;
     }
 
+    public static async Task Execute(string command, string args)
+    {
+        var psi = new ProcessStartInfo(command, args)
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+        };
+        var proc = Process.Start(psi);
+        Assert.IsNotNull(proc);
+        await proc.WaitForExitAsync();
+        var stdout = proc.StandardOutput.ReadToEnd();
+        var stderr = proc.StandardError.ReadToEnd();
+        var message = $"StdOut:\n{stdout}\nStdErr:\n{stderr}";
+        Assert.AreEqual(0, proc.ExitCode, message);
+
+    }
+
     [TestMethod]
     public async Task ApiEndToEndWithRegistryPushAndPull()
     {
@@ -103,26 +120,11 @@ public class EndToEnd
             d.Delete(recursive: true);
         }
 
-        ProcessStartInfo psi = new("dotnet", $"new console -f {tfm} -o MinimalTestApp")
-        {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-        };
+        await Execute("dotnet", $"new console -f {tfm} -o MinimalTestApp");
+        // Build project
 
-        Process dotnetNew = Process.Start(psi);
-
-        Assert.IsNotNull(dotnetNew);
-        await dotnetNew.WaitForExitAsync();
-        Assert.AreEqual(0, dotnetNew.ExitCode, await dotnetNew.StandardOutput.ReadToEndAsync() + Environment.NewLine + await dotnetNew.StandardError.ReadToEndAsync());
-
-        ProcessStartInfo publishPSI = rid is null ? new("dotnet", $"publish -bl MinimalTestApp") : new("dotnet", $"publish -bl MinimalTestApp -r {rid} --self-contained"); 
-        publishPSI.RedirectStandardOutput = true;
-        publishPSI.RedirectStandardError = true;
-        Process publish = Process.Start(publishPSI);
-        Assert.IsNotNull(publish);
-        await publish.WaitForExitAsync();
-        Assert.AreEqual(0, publish.ExitCode, await publish.StandardOutput.ReadToEndAsync() + Environment.NewLine + await publish.StandardError.ReadToEndAsync());
-
+        await Execute("dotnet", $"publish -bl MinimalTestApp -r {rid} -f {tfm}");
+        
         string publishDirectory = Path.Join("MinimalTestApp", "bin", "Debug", tfm, rid, "publish");
         return publishDirectory;
     }
@@ -148,10 +150,9 @@ public class EndToEnd
         var repoGlobalJson = Path.Combine("..", "..", "..", "..", "global.json");
         File.Copy(repoGlobalJson, Path.Combine(newProjectDir.FullName, "global.json"));
 
+        var packagedir = new DirectoryInfo(CurrentFile.Relative("./package"));
         // 🤢
-        DirectoryInfo nupkgPath = new DirectoryInfo(Assembly.GetAssembly(this.GetType()).Location).Parent.Parent.Parent.Parent;
-        nupkgPath = nupkgPath.GetDirectories("package")[0];
-        FileInfo[] nupkgs = nupkgPath.GetFiles("*.nupkg");
+        FileInfo[] nupkgs = packagedir.GetFiles("*.nupkg");
         if (nupkgs == null || nupkgs.Length == 0)
         {
             // Build Microsoft.NET.Build.Containers.csproj & wait.
@@ -184,7 +185,7 @@ public class EndToEnd
         await dotnetNewNugetConfig.WaitForExitAsync();
         Assert.AreEqual(0, dotnetNewNugetConfig.ExitCode);
 
-        info.Arguments = $"nuget add source {nupkgPath.FullName} --name local-temp";
+        info.Arguments = $"nuget add source {packagedir.FullName} --name local-temp";
 
         // Set up temp folder as "nuget feed"
         Process dotnetNugetAddSource = Process.Start(info);
