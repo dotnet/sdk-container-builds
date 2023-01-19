@@ -9,10 +9,14 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks;
 [TestClass]
 public class CreateNewImageTests
 {
-    public static string RuntimeGraphFilePath() =>
-        // TODO: The DOTNET_ROOT comes from the test host, but we have no idea what the SDK version is.
-        Path.Combine(Environment.GetEnvironmentVariable("DOTNET_ROOT"), "sdk", "7.0.100", "RuntimeIdentifierGraph.json");
- 
+    public static string RuntimeGraphFilePath() {
+        DirectoryInfo sdksDir = new(Path.Combine(Environment.GetEnvironmentVariable("DOTNET_ROOT"), "sdk"));
+
+        var lastWrittenSdk = sdksDir.EnumerateDirectories().OrderByDescending(di => di.LastWriteTime).First();
+
+        return lastWrittenSdk.GetFiles("RuntimeIdentifierGraph.json").Single().FullName;
+    }
+
     [TestMethod]
     public void CreateNewImage_Baseline()
     {

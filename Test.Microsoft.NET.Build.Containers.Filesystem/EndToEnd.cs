@@ -10,9 +10,13 @@ namespace Test.Microsoft.NET.Build.Containers.Filesystem;
 [TestClass]
 public class EndToEnd
 {
-    public static string RuntimeGraphFilePath() =>
-        // TODO: The DOTNET_ROOT comes from the test host, but we have no idea what the SDK version is.
-        Path.Combine(Environment.GetEnvironmentVariable("DOTNET_ROOT"), "sdk", "7.0.100", "RuntimeIdentifierGraph.json");
+    public static string RuntimeGraphFilePath() {
+        DirectoryInfo sdksDir = new(Path.Combine(Environment.GetEnvironmentVariable("DOTNET_ROOT"), "sdk"));
+
+        var lastWrittenSdk = sdksDir.EnumerateDirectories().OrderByDescending(di => di.LastWriteTime).First();
+
+        return lastWrittenSdk.GetFiles("RuntimeIdentifierGraph.json").Single().FullName;
+    }
 
     public static string NewImageName([CallerMemberName] string callerMemberName = "")
     {
