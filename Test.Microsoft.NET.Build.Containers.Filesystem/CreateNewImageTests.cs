@@ -9,6 +9,14 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks;
 [TestClass]
 public class CreateNewImageTests
 {
+    public static string RuntimeGraphFilePath() {
+        DirectoryInfo sdksDir = new(Path.Combine(Environment.GetEnvironmentVariable("DOTNET_ROOT"), "sdk"));
+
+        var lastWrittenSdk = sdksDir.EnumerateDirectories().OrderByDescending(di => di.LastWriteTime).First();
+
+        return lastWrittenSdk.GetFiles("RuntimeIdentifierGraph.json").Single().FullName;
+    }
+
     [TestMethod]
     public void CreateNewImage_Baseline()
     {
@@ -34,7 +42,7 @@ public class CreateNewImageTests
         dotnetNew.WaitForExit();
         Assert.AreEqual(0, dotnetNew.ExitCode);
 
-        info.Arguments = "build --configuration release";
+        info.Arguments = "publish -c Release -r linux-arm64 --no-self-contained";
 
         Process dotnetPublish = Process.Start(info);
         Assert.IsNotNull(dotnetPublish);
@@ -47,11 +55,13 @@ public class CreateNewImageTests
         task.BaseImageTag = "7.0";
 
         task.OutputRegistry = "localhost:5010";
-        task.PublishDirectory = Path.Combine(newProjectDir.FullName, "bin", "release", "net7.0");
+        task.PublishDirectory = Path.Combine(newProjectDir.FullName, "bin", "Release", "net7.0", "linux-arm64", "publish");
         task.ImageName = "dotnet/testimage";
         task.ImageTags = new[] { "latest" };
         task.WorkingDirectory = "app/";
+        task.ContainerRuntimeIdentifier = "linux-arm64";
         task.Entrypoint = new TaskItem[] { new("dotnet"), new("build") };
+        task.RuntimeIdentifierGraphPath = RuntimeGraphFilePath();
 
         Assert.IsTrue(task.Execute());
         newProjectDir.Delete(true);
@@ -114,6 +124,8 @@ public class CreateNewImageTests
         cni.WorkingDirectory = "app/";
         cni.Entrypoint = new TaskItem[] { new("ParseContainerProperties_EndToEnd") };
         cni.ImageTags = pcp.NewContainerTags;
+        cni.ContainerRuntimeIdentifier = "linux-x64";
+        cni.RuntimeIdentifierGraphPath = RuntimeGraphFilePath();
 
         Assert.IsTrue(cni.Execute());
         newProjectDir.Delete(true);
@@ -190,6 +202,8 @@ public class CreateNewImageTests
         cni.Entrypoint = new TaskItem[] { new("/app/Tasks_EndToEnd_With_EnvironmentVariable_Validation") };
         cni.ImageTags = pcp.NewContainerTags;
         cni.ContainerEnvironmentVariables = pcp.NewContainerEnvironmentVariables;
+        cni.ContainerRuntimeIdentifier = "linux-x64";
+        cni.RuntimeIdentifierGraphPath = RuntimeGraphFilePath();
 
         Assert.IsTrue(cni.Execute());
 

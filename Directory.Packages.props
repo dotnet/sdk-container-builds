@@ -13,6 +13,7 @@
         <PackageVersion Include="MSTest.TestAdapter" Version="2.3.0-preview-20220810-02" />
         <PackageVersion Include="MSTest.TestFramework" Version="2.2.10" />
         <PackageVersion Include="Nerdbank.GitVersioning" Version="3.5.109" />
+        <PackageVersion Include="NuGet.Packaging" Version="6.3.1" />
         <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
         <PackageVersion Include="Valleysoft.DockerCredsProvider" Version="2.1.0" />
     </ItemGroup>

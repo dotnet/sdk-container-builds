@@ -7,9 +7,10 @@ public class DockerRegistryManager
 {
     public const string BaseImage = "dotnet/runtime";
     public const string BaseImageSource = "mcr.microsoft.com/";
-    public const string BaseImageTag = "7.0";
+    public const string Net6ImageTag = "6.0";
+    public const string Net7ImageTag = "7.0";
     public const string LocalRegistry = "localhost:5010";
-    public const string FullyQualifiedBaseImageDefault = $"{BaseImageSource}{BaseImage}:{BaseImageTag}";
+    public const string FullyQualifiedBaseImageDefault = $"{BaseImageSource}{BaseImage}:{Net6ImageTag}";
     private static string s_registryContainerId;
 
     private static void Exec(string command, string args) {
@@ -48,9 +49,12 @@ public class DockerRegistryManager
         Assert.AreEqual(0, registryProcess.ExitCode, $"Could not start Docker registry. Are you running one for manual testing?{Environment.NewLine}{errStream}");
         s_registryContainerId = registryContainerId;
 
-        Exec("docker", $"pull {BaseImageSource}{BaseImage}:{BaseImageTag}");
-        Exec("docker", $"tag {BaseImageSource}{BaseImage}:{BaseImageTag} {LocalRegistry}/{BaseImage}:{BaseImageTag}");
-        Exec("docker", $"push {LocalRegistry}/{BaseImage}:{BaseImageTag}");
+        foreach (var tag in new[] { Net6ImageTag, Net7ImageTag })
+        {
+            Exec("docker", $"pull {BaseImageSource}{BaseImage}:{tag}");
+            Exec("docker", $"tag {BaseImageSource}{BaseImage}:{tag} {LocalRegistry}/{BaseImage}:{tag}");
+            Exec("docker", $"push {LocalRegistry}/{BaseImage}:{tag}");
+        }
     }
 
     public static void ShutdownDockerRegistry()
