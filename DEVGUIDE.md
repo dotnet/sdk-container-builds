@@ -46,7 +46,7 @@ To use your locally built packages:
 
 ## Using the package when implicit SDK support is enabled
 
-If you are on SDK 7.0.2xx or greater, are a Web SDK project, and have `EnableSdkContainerSupport` set to `true` in your project file, you will need to use another mechanism to reference the generated package. You can do one of the following actions:
+If you are on SDK 7.0.200 or greater, are a Web SDK project, and have `EnableSdkContainerSupport` set to `true` in your project file, you will need to use another mechanism to reference the generated package. You can do one of the following actions:
 
 * Set `EnableSdkContainerSupport` to `false` in your project file and use a normal PackageReference as described above,
 * Keep `EnableSdkContainerSupport` set to `true` and set the `SdkContainerSupportPackageVersion` property to the version you built above,
