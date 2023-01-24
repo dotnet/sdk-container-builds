@@ -39,9 +39,18 @@ To use your locally built packages:
 * Run your test app to ensure it works
   * `docker run -it --rm -p 5010:80 myapp:1.0.0`
 
-**NOTE**: Rebuilding and restoring local NuGet packages may cause versioning conflicts due to NuGet caching earlier iterations with the same version number. Be sure to delete the `microsoft.net.build.containers` folder in the NuGet cache in between building and restoring new changes to this repo. For example:
+> **Note**
+> Rebuilding and restoring local NuGet packages may cause versioning conflicts due to NuGet caching earlier iterations with the same version number. Be sure to delete the `microsoft.net.build.containers` folder in the NuGet cache in between building and restoring new changes to this repo. For example:
   * `rmdir -Force -Recurse ~\.nuget\packages\microsoft.net.build.containers`
   * `rm -rf ~/.nuget/packages/microsoft.net.build.containers`
+
+## Using the package when implicit SDK support is enabled
+
+If you are on SDK 7.0.2xx or greater, are a Web SDK project, and have `EnableSdkContainerSupport` set to `true` in your project file, you will need to use another mechanism to reference the generated package. You can do one of the following actions:
+
+* Set `EnableSdkContainerSupport` to `false` in your project file and use a normal PackageReference as described above,
+* Keep `EnableSdkContainerSupport` set to `true` and set the `SdkContainerSupportPackageVersion` property to the version you built above,
+* Keep `EnableSdkContainerSupport` set to `true` and use `<PackageReference Update="Microsoft.Net.Build.Containers" Version="..." />` to update the version of the included PackageReference instead of using `Include` to create a new PackageReference.
 
 ## References
 
