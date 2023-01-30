@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
 
 namespace Microsoft.NET.Build.Containers.Tasks;
 
@@ -86,6 +87,20 @@ public partial class CreateNewImage : Microsoft.Build.Utilities.Task
         if(BuildEngine != null) Log.LogMessage(MessageImportance.High, message, formatParams);
     }
 
+    private async System.Threading.Tasks.Task AddCustomLayers(Image image, ITaskItem[] customLayers) {
+        foreach(var layer in customLayers) {
+            var digest = layer.ItemSpec;
+            var registry = layer.GetMetadata("Registry");
+            var repository = layer.GetMetadata("Repository");
+            if (!ContainerHelpers.IsDigest(digest)
+                || (String.IsNullOrEmpty(registry) || !ContainerHelpers.IsValidRegistry(registry))
+                || (String.IsNullOrEmpty(repository) || !ContainerHelpers.IsValidImageName(repository))) {
+                Log.LogError("InvalidLayer", KnownStrings.ErrorCodes.CONTAINER006, "Container.InvalidLayer", null, 0, 0, 0, 0, "Invalid layer item '{0}'. Layer items must have an Include value that is a digest, a Registry value that is a registry URI, and a Repository value that is a container image name", layer.ItemSpec);
+            }
+            image.AddLayer(await Layer.FromDigest(digest, registry, repository));
+        }
+    }
+
     public override bool Execute()
     {
         if (!Directory.Exists(PublishDirectory))
@@ -105,6 +120,13 @@ public partial class CreateNewImage : Microsoft.Build.Utilities.Task
 
         Layer newLayer = Layer.FromDirectory(PublishDirectory, WorkingDirectory);
         image.AddLayer(newLayer);
+
+        AddCustomLayers(image, ContainerLayers).Wait();
+        if (Log.HasLoggedErrors)
+        {
+            return false;
+        }
+
         image.WorkingDirectory = WorkingDirectory;
         image.SetEntrypoint(Entrypoint.Select(i => i.ItemSpec).ToArray(), EntrypointArgs.Select(i => i.ItemSpec).ToArray());
 

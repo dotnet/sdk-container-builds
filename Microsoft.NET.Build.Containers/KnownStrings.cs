@@ -29,5 +29,6 @@ public static class KnownStrings
         public static string CONTAINER001 = nameof(CONTAINER001);
         public static string CONTAINER004 = nameof(CONTAINER004);
         public static string CONTAINER005 = nameof(CONTAINER005);
+        public static string CONTAINER006 = nameof(CONTAINER006);
     }
 }

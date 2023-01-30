@@ -269,4 +269,7 @@ public static class ContainerHelpers
             return false;
         }
     }
+
+    public static bool IsDigest(string input) => AnchoredDigestRegexp.IsMatch(input);
+
 }

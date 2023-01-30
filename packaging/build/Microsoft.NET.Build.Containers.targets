@@ -127,6 +127,7 @@
                         Labels="@(ContainerLabel)"
                         ExposedPorts="@(ContainerPort)"
                         ContainerEnvironmentVariables="@(ContainerEnvironmentVariables)"
+                        ContainerLayers="@(ContainerLayer)"
                         ContainerRuntimeIdentifier="$(ContainerRuntimeIdentifier)"
                         RuntimeIdentifierGraphPath="$(RuntimeIdentifierGraphPath)"> <!-- The RID graph path is provided as a property by the SDK. -->
             <Output TaskParameter="GeneratedContainerManifest" PropertyName="GeneratedContainerManifest" />

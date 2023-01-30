@@ -147,7 +147,7 @@ public static class ReferenceParser
     /// anchoredDigestRegexp matches valid digests, anchored at the start and
     /// end of the matched string.
     /// </summary>
-    private static readonly Regex anchoredDigestRegexp = new(anchoredDigest);
+    public static readonly Regex AnchoredDigestRegexp = new(anchoredDigest);
 
     /// <summary>
     /// namePat is the format for the name component of references. The

@@ -105,6 +105,11 @@ partial class CreateNewImage
     [Required]
     public string RuntimeIdentifierGraphPath { get; set; }
 
+    /// <summary>
+    /// Additional layers to include in the container. These will be added to the generated manifest after the application layer.
+    /// </summary>
+    public ITaskItem[] ContainerLayers { get; set; }
+
     [Output]
     public string GeneratedContainerManifest { get; set; }
 
@@ -132,7 +137,7 @@ partial class CreateNewImage
         ContainerEnvironmentVariables = Array.Empty<ITaskItem>();
         ContainerRuntimeIdentifier = "";
         RuntimeIdentifierGraphPath = "";
-
+        ContainerLayers = Array.Empty<ITaskItem>();
         GeneratedContainerConfiguration = "";
         GeneratedContainerManifest = "";
     }
