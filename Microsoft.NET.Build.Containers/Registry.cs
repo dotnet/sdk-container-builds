@@ -130,7 +130,7 @@ public record struct Registry
     {
         var client = GetClient();
         var response = await client.GetAsync(new Uri(BaseUri, $"/v2/{repositoryName}/manifests/{reference}"));
-        response.EnsureSuccessStatusCode();
+        await response.CheckRegistryError();
         return response;
     }
 
@@ -138,7 +138,7 @@ public record struct Registry
     {
         var client = GetClient();
         var response = await client.GetAsync(new Uri(BaseUri, $"/v2/{repositoryName}/blobs/{digest}"));
-        response.EnsureSuccessStatusCode();
+        await response.CheckRegistryError();
         return response;
     }
 
@@ -230,8 +230,7 @@ public record struct Registry
         HttpClient client = GetClient();
 
         var response = await client.GetAsync(new Uri(BaseUri, $"/v2/{name}/blobs/{descriptor.Digest}"), HttpCompletionOption.ResponseHeadersRead);
-
-        response.EnsureSuccessStatusCode();
+        await response.CheckRegistryError();
 
         string tempTarballPath = ContentStore.GetTempFile();
         using (FileStream fs = File.Create(tempTarballPath))
@@ -281,8 +280,8 @@ public record struct Registry
             //    content.Headers.Add("Content-Range", $"0-{contents.Length - 1}");
             Debug.Assert(content.Headers.TryAddWithoutValidation("Content-Range", $"{chunkStart}-{chunkStart + bytesRead - 1}"));
 
-            HttpResponseMessage patchResponse = await client.PatchAsync(patchUri, content);
-
+            var patchResponse = await client.PatchAsync(patchUri, content);
+            await patchResponse.CheckRegistryError();
             // Fail the upload if the response code is not Accepted (202) or if uploading to Amazon ECR which returns back Created (201).
             if (!(patchResponse.StatusCode == HttpStatusCode.Accepted || (IsAmazonECRRegistry && patchResponse.StatusCode == HttpStatusCode.Created)))
             {
@@ -330,7 +329,7 @@ public record struct Registry
         Uri startUploadUri = new Uri(BaseUri, $"/v2/{name}/blobs/uploads/");
         
         HttpResponseMessage pushResponse = await client.PostAsync(startUploadUri, content: null);
-
+        await pushResponse.CheckRegistryError();
         if (pushResponse.StatusCode != HttpStatusCode.Accepted)
         {
             string errorMessage = $"Failed to upload blob to {startUploadUri}; received {pushResponse.StatusCode} with detail {await pushResponse.Content.ReadAsStringAsync()}";
@@ -348,11 +347,9 @@ public record struct Registry
     private readonly async Task FinishUploadSession(string digest, HttpClient client, UriBuilder uploadUri) {
         // PUT with digest to finalize
         uploadUri.Query += $"&digest={Uri.EscapeDataString(digest)}";
-
         var putUri = uploadUri.Uri;
-
-        HttpResponseMessage finalizeResponse = await client.PutAsync(putUri, content: null);
-
+        var finalizeResponse = await client.PutAsync(putUri, content: null);
+        await finalizeResponse.CheckRegistryError();
         if (finalizeResponse.StatusCode != HttpStatusCode.Created)
         {
             string errorMessage = $"Failed to finalize upload to {putUri}; received {finalizeResponse.StatusCode} with detail {await finalizeResponse.Content.ReadAsStringAsync()}";
@@ -383,7 +380,7 @@ public record struct Registry
     private readonly async Task<bool> BlobAlreadyUploaded(string name, string digest, HttpClient client)
     {
         HttpResponseMessage response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Head, new Uri(BaseUri, $"/v2/{name}/blobs/{digest}")));
-
+        // explicitly just checking 2002 or 404 here
         if (response.StatusCode == HttpStatusCode.OK)
         {
             return true;
@@ -440,7 +437,7 @@ public record struct Registry
 
             // Blob wasn't there; can we tell the server to get it from the base image?
             HttpResponseMessage pushResponse = await client.PostAsync(new Uri(reg.BaseUri, $"/v2/{name}/blobs/uploads/?mount={digest}&from={baseName}"), content: null);
-
+            await pushResponse.CheckRegistryError();
             if (pushResponse.StatusCode != HttpStatusCode.Created)
             {
                 // The blob wasn't already available in another namespace, so fall back to explicitly uploading it
@@ -485,21 +482,22 @@ public record struct Registry
         HttpContent manifestUploadContent = new StringContent(jsonString);
         manifestUploadContent.Headers.ContentType = new MediaTypeHeaderValue(MediaTypes.DockerManifestV2);
         var putResponse = await client.PutAsync(new Uri(BaseUri, $"/v2/{name}/manifests/{manifestDigest}"), manifestUploadContent);
-
-        if (!putResponse.IsSuccessStatusCode)
-        {
-            throw new ContainerHttpException("Registry push failed.", putResponse.RequestMessage?.RequestUri?.ToString(), jsonString);
-        }
+        await putResponse.CheckRegistryError();
         logProgressMessage($"Uploaded manifest to {RegistryName}");
 
         logProgressMessage($"Uploading tag {tag} to {RegistryName}");
         var putResponse2 = await client.PutAsync(new Uri(BaseUri, $"/v2/{name}/manifests/{tag}"), manifestUploadContent);
-
-        if (!putResponse2.IsSuccessStatusCode)
-        {
-            throw new ContainerHttpException("Registry push failed.", putResponse2.RequestMessage?.RequestUri?.ToString(), jsonString);
-        }
-
+        await putResponse2.CheckRegistryError();
         logProgressMessage($"Uploaded tag {tag} to {RegistryName}");
+    }
+}
+
+public static class HttpResponseExtensions {
+    public static async Task CheckRegistryError(this HttpResponseMessage response) {
+        if (!response.IsSuccessStatusCode) {
+            var message = $"Failed to {response.RequestMessage?.Method} from registry, received {response.StatusCode} instead of a successful status.";
+            var errorBody = (response.Content.Headers?.ContentType?.MediaType?.Contains("json") ?? false) ? await response.Content.ReadAsStringAsync() : null;
+            throw new ContainerHttpException(message, response.RequestMessage?.RequestUri?.ToString(), errorBody);
+        }
     }
 }
