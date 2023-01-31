@@ -201,6 +201,14 @@ public record struct Registry
         foreach (var r in R.InheritedRuntimes) AddRidAndDescendantsToSet(runtimeDescriptionSet, r, dotnetRuntimeGraph);
     }
 
+    public async Task<Descriptor> GetBlobInformation(string name, string digest) {
+        var client = GetClient();
+        var request = new HttpRequestMessage(HttpMethod.Head, new Uri(BaseUri, $"/v2/{name}/blobs/{digest}"));
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        return new Descriptor(response.Content.Headers.ContentType?.MediaType!,  digest, response.Content.Headers.ContentLength ?? 0);
+    }
+
     /// <summary>
     /// Ensure a blob associated with <paramref name="name"/> from the registry is available locally.
     /// </summary>

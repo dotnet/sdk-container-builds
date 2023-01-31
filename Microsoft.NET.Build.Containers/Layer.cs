@@ -21,9 +21,8 @@ public record struct Layer
     }
 
     public static async Task<Layer> FromDigest(string digest, string registry, string repository) {
-        // TODO: download the layer from the registry to the local ContentStore and construct a BackingFile and descriptor for that
-        var descriptor = new Descriptor(MediaTypes.OciImageLayerV1TarGzip, digest, 12345);
         var r = new Registry(ContainerHelpers.TryExpandRegistryToUri(registry));
+        var descriptor = await r.GetBlobInformation(repository, digest);
         var _ = await r.DownloadBlob(repository, descriptor);
         return new() {
             BackingFile = ContentStore.PathForDescriptor(descriptor),
