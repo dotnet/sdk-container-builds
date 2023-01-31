@@ -27,10 +27,6 @@ public record struct ManifestListV2(int schemaVersion, string mediaType, Platfor
 
 public record struct Registry
 {
-    private const string DockerManifestV2 = "application/vnd.docker.distribution.manifest.v2+json";
-    private const string DockerManifestListV2 = "application/vnd.docker.distribution.manifest.list.v2+json";
-    private const string DockerContainerV1 = "application/vnd.docker.container.image.v1+json";
-
     private readonly Uri BaseUri;
     private readonly string RegistryName => BaseUri.Host;
 
@@ -100,8 +96,8 @@ public record struct Registry
         var initialManifestResponse = await GetManifest(repositoryName, reference);
         
         return initialManifestResponse.Content.Headers.ContentType?.MediaType switch {
-            DockerManifestV2 => await TryReadSingleImage(repositoryName, await initialManifestResponse.Content.ReadFromJsonAsync<ManifestV2>()),
-            DockerManifestListV2 => await TryPickBestImageFromManifestList(repositoryName, reference, await initialManifestResponse.Content.ReadFromJsonAsync<ManifestListV2>(), runtimeIdentifier, runtimeIdentifierGraphPath),
+            MediaTypes.DockerManifestV2 => await TryReadSingleImage(repositoryName, await initialManifestResponse.Content.ReadFromJsonAsync<ManifestV2>()),
+            MediaTypes.DockerManifestListV2 => await TryPickBestImageFromManifestList(repositoryName, reference, await initialManifestResponse.Content.ReadFromJsonAsync<ManifestListV2>(), runtimeIdentifier, runtimeIdentifierGraphPath),
             var unknownMediaType => throw new NotImplementedException($"The manifest for {repositoryName}:{reference} from registry {BaseUri} was an unknown type: {unknownMediaType}. Please raise an issue at https://github.com/dotnet/sdk-container-builds/issues with this message.")
         };
     }
@@ -270,7 +266,7 @@ public record struct Registry
             int bytesRead = await contents.ReadAsync(chunkBackingStore);
 
             ByteArrayContent content = new (chunkBackingStore, offset: 0, count: bytesRead);
-            content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+            content.Headers.ContentType = new MediaTypeHeaderValue(MediaTypes.OctetStream);
             content.Headers.ContentLength = bytesRead;
 
             // manual because ACR throws an error with the .NET type {"Range":"bytes 0-84521/*","Reason":"the Content-Range header format is invalid"}
@@ -311,7 +307,7 @@ public record struct Registry
 
     private readonly async Task<UriBuilder> UploadBlobWhole(string name, string digest, Stream contents, HttpClient client, UriBuilder uploadUri) {
         StreamContent content = new StreamContent(contents);
-        content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+        content.Headers.ContentType = new MediaTypeHeaderValue(MediaTypes.OctetStream);
         content.Headers.ContentLength = contents.Length;
         HttpResponseMessage patchResponse = await client.PatchAsync(uploadUri.Uri, content);
         if (patchResponse.StatusCode != HttpStatusCode.Accepted)
@@ -407,10 +403,10 @@ public record struct Registry
         HttpClient client = new(clientHandler);
 
         client.DefaultRequestHeaders.Accept.Clear();
-        client.DefaultRequestHeaders.Accept.Add(new("application/json"));
-        client.DefaultRequestHeaders.Accept.Add(new(DockerManifestListV2));
-        client.DefaultRequestHeaders.Accept.Add(new(DockerManifestV2));
-        client.DefaultRequestHeaders.Accept.Add(new(DockerContainerV1));
+        client.DefaultRequestHeaders.Accept.Add(new(MediaTypes.Json));
+        client.DefaultRequestHeaders.Accept.Add(new(MediaTypes.DockerManifestListV2));
+        client.DefaultRequestHeaders.Accept.Add(new(MediaTypes.DockerManifestV2));
+        client.DefaultRequestHeaders.Accept.Add(new(MediaTypes.DockerContainerV1));
 
         client.DefaultRequestHeaders.Add("User-Agent", ".NET Container Library");
 
@@ -479,7 +475,7 @@ public record struct Registry
         logProgressMessage($"Uploading manifest to registry {RegistryName} as blob {manifestDigest}");
         string jsonString = JsonSerializer.SerializeToNode(x.manifest)?.ToJsonString() ?? "";
         HttpContent manifestUploadContent = new StringContent(jsonString);
-        manifestUploadContent.Headers.ContentType = new MediaTypeHeaderValue(DockerManifestV2);
+        manifestUploadContent.Headers.ContentType = new MediaTypeHeaderValue(MediaTypes.DockerManifestV2);
         var putResponse = await client.PutAsync(new Uri(BaseUri, $"/v2/{name}/manifests/{manifestDigest}"), manifestUploadContent);
 
         if (!putResponse.IsSuccessStatusCode)

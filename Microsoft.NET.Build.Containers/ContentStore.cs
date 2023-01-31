@@ -32,12 +32,13 @@ public static class ContentStore
 
         string extension = descriptor.MediaType switch
         {
-            "application/vnd.docker.image.rootfs.diff.tar.gzip"
-            or "application/vnd.oci.image.layer.v1.tar+gzip"
-            or "application/vnd.docker.image.rootfs.foreign.diff.tar.gzip"
+            MediaTypes.DockerImageRootFsDiffTarGzip
+            or MediaTypes.OciImageLayerV1TarGzip
+            or MediaTypes.DockerImageRootFsForeignDiffTarGzip
                 => ".tar.gz",
-            "application/vnd.docker.image.rootfs.diff.tar"
-            or "application/vnd.oci.image.layer.v1.tar"
+            MediaTypes.DockerImageRootFsDiffTar
+            or MediaTypes.OciImageLayerV1Tar
+            or MediaTypes.DockerImageRootFsForeignDiffTar
                 => ".tar",
             _ => throw new ArgumentException($"Unrecognized mediaType '{descriptor.MediaType}'")
         };
