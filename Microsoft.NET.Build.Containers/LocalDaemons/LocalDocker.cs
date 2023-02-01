@@ -10,9 +10,9 @@ namespace Microsoft.NET.Build.Containers;
 
 public class LocalDocker
 {
-    public static async Task Load(Image x, string name, string tag, string baseName)
+    public static async Task Load(Image image, ImageReference sourceReference, ImageReference destinationReference)
     {
-        // call `docker load` and get it ready to recieve input
+        // call `docker load` and get it ready to receive input
         ProcessStartInfo loadInfo = new("docker", $"load");
         loadInfo.RedirectStandardInput = true;
         loadInfo.RedirectStandardOutput = true;
@@ -27,7 +27,7 @@ public class LocalDocker
 
         // Create new stream tarball
 
-        await WriteImageToStream(x, name, tag, loadProcess.StandardInput.BaseStream).ConfigureAwait(false);
+        await WriteImageToStream(image, sourceReference, destinationReference, loadProcess.StandardInput.BaseStream).ConfigureAwait(false);
 
         loadProcess.StandardInput.Close();
 
@@ -39,7 +39,7 @@ public class LocalDocker
         }
     }
 
-    public static async Task WriteImageToStream(Image x, string name, string tag, Stream imageStream)
+    private static async Task WriteImageToStream(Image image, ImageReference sourceReference, ImageReference destinationReference, Stream imageStream)
     {
         using TarWriter writer = new(imageStream, TarEntryFormat.Pax, leaveOpen: true);
 
@@ -47,11 +47,11 @@ public class LocalDocker
         // Feed each layer tarball into the stream
         JsonArray layerTarballPaths = new JsonArray();
 
-        foreach (var d in x.LayerDescriptors)
+        foreach (var d in image.LayerDescriptors)
         {
-            if (x.originatingRegistry is {} registry)
+            if (sourceReference.Registry is {} registry)
             {
-                string localPath = await registry.DownloadBlob(x.OriginatingName, d).ConfigureAwait(false);
+                string localPath = await registry.DownloadBlob(sourceReference.Repository, d).ConfigureAwait(false);;
 
                 // Stuff that (uncompressed) tarball into the image tar stream
                 // TODO uncompress!!
@@ -65,9 +65,9 @@ public class LocalDocker
             }        }
 
         // add config
-        string configTarballPath = $"{Image.GetSha(x.config)}.json";
+        string configTarballPath = $"{Image.GetSha(image.config)}.json";
 
-        using (MemoryStream configStream = new MemoryStream(Encoding.UTF8.GetBytes(x.config.ToJsonString())))
+        using (MemoryStream configStream = new MemoryStream(Encoding.UTF8.GetBytes(image.config.ToJsonString())))
         {
             PaxTarEntry configEntry = new(TarEntryType.RegularFile, configTarballPath)
             {
@@ -80,7 +80,7 @@ public class LocalDocker
         // Add manifest
         JsonArray tagsNode = new()
         {
-            name + ":" + tag
+            destinationReference.RepositoryAndTag
         };
 
         JsonNode manifestNode = new JsonArray(new JsonObject

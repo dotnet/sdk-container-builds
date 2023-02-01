@@ -28,7 +28,7 @@ public class EndToEnd
         }
     }
 
-    public static string RuntimeGraphFilePath() 
+    public static string RuntimeGraphFilePath()
     {
         string dotnetRoot = ToolsetUtils.GetDotNetPath();
         DirectoryInfo sdksDir = new(Path.Combine(dotnetRoot, "sdk"));
@@ -70,11 +70,13 @@ public class EndToEnd
 
         x.AddLayer(l);
 
-        x.SetEntrypoint(new [] {"/app/MinimalTestApp" });
+        x.SetEntrypoint(new[] { "/app/MinimalTestApp" });
 
         // Push the image back to the local registry
+        var sourceReference = new ImageReference(registry, DockerRegistryManager.BaseImage, DockerRegistryManager.Net6ImageTag);
+        var destinationReference = new ImageReference(registry, NewImageName(), "latest");
 
-        await registry.Push(x, NewImageName(), "latest", DockerRegistryManager.BaseImage, Console.WriteLine).ConfigureAwait(false);
+        await registry.Push(x, sourceReference, destinationReference, Console.WriteLine).ConfigureAwait(false);
 
         // pull it back locally
         new BasicCommand(TestContext, "docker", "pull", $"{DockerRegistryManager.LocalRegistry}/{NewImageName()}:latest")
@@ -107,11 +109,13 @@ public class EndToEnd
 
         x.AddLayer(l);
 
-        x.SetEntrypoint(new [] { "/app/MinimalTestApp" });
+        x.SetEntrypoint(new[] { "/app/MinimalTestApp" });
 
         // Load the image into the local Docker daemon
+        var sourceReference = new ImageReference(registry, DockerRegistryManager.BaseImage, DockerRegistryManager.Net6ImageTag);
+        var destinationReference = new ImageReference(registry, NewImageName(), "latest");
 
-        await LocalDocker.Load(x, NewImageName(), "latest", DockerRegistryManager.BaseImage).ConfigureAwait(false);
+        await LocalDocker.Load(x, sourceReference, destinationReference).ConfigureAwait(false);
 
         // Run the image
         new BasicCommand(TestContext, "docker", "run", "--rm", "--tty", $"{NewImageName()}:latest")
@@ -119,7 +123,7 @@ public class EndToEnd
             .Should().Pass();
     }
 
-    private string BuildLocalApp([CallerMemberName]string testName = "TestName", string tfm = "net6.0", string rid = "linux-x64")
+    private string BuildLocalApp([CallerMemberName] string testName = "TestName", string tfm = "net6.0", string rid = "linux-x64")
     {
         string workingDirectory = Path.Combine(TestSettings.TestArtifactsDirectory, testName);
 
@@ -166,6 +170,9 @@ public class EndToEnd
         File.Copy(repoGlobalJson, Path.Combine(newProjectDir.FullName, "global.json"));
 
         var packagedir = new DirectoryInfo(CurrentFile.Relative("./package"));
+
+        // do not pollute the primary/global NuGet package store with the private package(s)
+        var env = new (string, string)[] { new("NUGET_PACKAGES", privateNuGetAssets.FullName) };
         // 🤢
         FileInfo[] nupkgs = packagedir.GetFiles("*.nupkg");
         if (nupkgs == null || nupkgs.Length == 0)
@@ -206,11 +213,11 @@ public class EndToEnd
 
         // Build & publish the project
         new DotnetCommand(
-            TestContext, 
-            "publish", 
-            "/p:publishprofile=DefaultContainer", 
-            "/p:runtimeidentifier=linux-x64", 
-            "/bl", 
+            TestContext,
+            "publish",
+            "/p:publishprofile=DefaultContainer",
+            "/p:runtimeidentifier=linux-x64",
+            "/bl",
             $"/p:ContainerBaseImage={DockerRegistryManager.FullyQualifiedBaseImageDefault}",
             $"/p:ContainerRegistry={DockerRegistryManager.LocalRegistry}",
             $"/p:ContainerImageName={imageName}",
@@ -278,23 +285,23 @@ public class EndToEnd
         privateNuGetAssets.Delete(true);
     }
 
-    // These two are commented because the Github Actions runers don't let us easily configure the Docker Buildx config - 
+    // These two are commented because the Github Actions runners don't let us easily configure the Docker Buildx config -
     // we need to configure it to allow emulation of other platforms on amd64 hosts before these two will run.
     // They do run locally, however.
 
     //[DataRowAttribute("linux-arm", false, "/app", "linux/arm/v7")] // packaging framework-dependent because emulating arm on x64 Docker host doesn't work
     //[DataRowAttribute("linux-arm64", false, "/app", "linux/arm64/v8")] // packaging framework-dependent because emulating arm64 on x64 Docker host doesn't work
-    
+
     // this one should be skipped in all cases because we don't ship linux-x86 runtime packs, so we can't execute the 'apphost' version of the app
     //[DataRowAttribute("linux-x86", false, "/app", "linux/386")] // packaging framework-dependent because missing runtime packs for x86 linux.
-    
+
     // This one should be skipped because containers can't be configured to run on Linux hosts :(
     //[DataRow("win-x64", true, "C:\\app", "windows/amd64")]
 
     // As a result, we only have one actual data-driven test
     [DataRow("linux-x64", true, "/app", "linux/amd64")]
     [DataTestMethod]
-    public async Task CanPackageForAllSupportedContainerRIDs(string rid, bool isRIDSpecific, string workingDir, string dockerPlatform) 
+    public async Task CanPackageForAllSupportedContainerRIDs(string rid, bool isRIDSpecific, string workingDir, string dockerPlatform)
     {
         string publishDirectory = isRIDSpecific ? BuildLocalApp(tfm: "net7.0", rid: rid) : BuildLocalApp(tfm: "net7.0");
 
@@ -313,8 +320,9 @@ public class EndToEnd
         x.SetEntrypoint(entryPoint);
 
         // Load the image into the local Docker daemon
-
-        await LocalDocker.Load(x, NewImageName(), rid, DockerRegistryManager.BaseImage).ConfigureAwait(false);
+        var sourceReference = new ImageReference(registry, DockerRegistryManager.BaseImage, DockerRegistryManager.Net7ImageTag);
+        var destinationReference = new ImageReference(registry, NewImageName(), rid);
+        await LocalDocker.Load(x, sourceReference, destinationReference).ConfigureAwait(false); ;
 
         // Run the image
         new BasicCommand(
@@ -330,11 +338,15 @@ public class EndToEnd
             .Should()
             .Pass();
 
-        string[] DecideEntrypoint(string rid, bool isRIDSpecific, string appName, string workingDir) {
+        string[] DecideEntrypoint(string rid, bool isRIDSpecific, string appName, string workingDir)
+        {
             var binary = rid.StartsWith("win", StringComparison.Ordinal) ? $"{appName}.exe" : appName;
-            if (isRIDSpecific) {
+            if (isRIDSpecific)
+            {
                 return new[] { $"{workingDir}/{binary}" };
-            } else {
+            }
+            else
+            {
                 return new[] { "dotnet", $"{workingDir}/{binary}.dll" };
             }
         }

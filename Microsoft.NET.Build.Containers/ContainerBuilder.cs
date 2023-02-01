@@ -16,11 +16,15 @@ public static class ContainerBuilder
         if (isDockerPull) {
             throw new ArgumentException("Don't know how to pull images from local daemons at the moment");
         }
+
         Registry baseRegistry = new Registry(ContainerHelpers.TryExpandRegistryToUri(registryName));
+        ImageReference sourceImageReference = new(baseRegistry, baseName, baseTag);
+        var isDockerPush = String.IsNullOrEmpty(outputRegistry);
+        var destinationImageReferences = imageTags.Select(t => new ImageReference(isDockerPush ? null : new Registry(ContainerHelpers.TryExpandRegistryToUri(outputRegistry!)), imageName, t));
 
         var img = await baseRegistry.GetImageManifest(baseName, baseTag, containerRuntimeIdentifier, ridGraphPath).ConfigureAwait(false);
         if (img is null) {
-            throw new ArgumentException($"Could not find image {baseName}:{baseTag} in registry {registryName} matching RuntimeIdentifier {containerRuntimeIdentifier}");
+            throw new ArgumentException($"Could not find image {sourceImageReference} matching RuntimeIdentifier {containerRuntimeIdentifier}");
         }
 
         img.WorkingDirectory = workingDir;
@@ -36,8 +40,7 @@ public static class ContainerBuilder
 
         img.SetEntrypoint(entrypoint, entrypointArgs);
 
-        var isDockerPush = String.IsNullOrEmpty(outputRegistry);
-        Registry? outputReg = isDockerPush ? null : new Registry(ContainerHelpers.TryExpandRegistryToUri(outputRegistry!));
+        
 
         foreach (var label in labels)
         {
@@ -60,18 +63,18 @@ public static class ContainerBuilder
             img.ExposePort(number, type);
         }
 
-        foreach (var tag in imageTags)
+        foreach (var destinationImageReference in destinationImageReferences)
         {
-            if (isDockerPush)
+            if (destinationImageReference.Registry is { } outReg)
             {
                 try
                 {
-                    LocalDocker.Load(img, imageName, tag, baseName).Wait();
-                    Console.WriteLine("Containerize: Pushed container '{0}:{1}' to Docker daemon", imageName, tag);
+                    outReg.Push(img, sourceImageReference, destinationImageReference, (message) => Console.WriteLine($"Containerize: {message}")).Wait();
+                    Console.WriteLine($"Containerize: Pushed container '{destinationImageReference.RepositoryAndTag}' to registry '{outputRegistry}'");
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"Containerize: error CONTAINER001: Failed to push to local docker registry: {e}");
+                    Console.WriteLine($"Containerize: error CONTAINER001: Failed to push to output registry: {e}");
                     Environment.ExitCode = -1;
                 }
             }
@@ -79,12 +82,12 @@ public static class ContainerBuilder
             {
                 try
                 {
-                    outputReg?.Push(img, imageName, tag, imageName, (message) => Console.WriteLine($"Containerize: {message}")).Wait();
-                    Console.WriteLine($"Containerize: Pushed container '{imageName}:{tag}' to registry '{outputRegistry}'");
+                    LocalDocker.Load(img, sourceImageReference, destinationImageReference).Wait();
+                    Console.WriteLine("Containerize: Pushed container '{0}' to Docker daemon", destinationImageReference.RepositoryAndTag);
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"Containerize: error CONTAINER001: Failed to push to output registry: {e}");
+                    Console.WriteLine($"Containerize: error CONTAINER001: Failed to push to local docker registry: {e}");
                     Environment.ExitCode = -1;
                 }
             }
