@@ -75,20 +75,26 @@ public static class ContainerBuilder
                 catch (Exception e)
                 {
                     Console.WriteLine($"Containerize: error CONTAINER001: Failed to push to output registry: {e}");
-                    Environment.ExitCode = -1;
+                    Environment.ExitCode = 1;
                 }
             }
             else
             {
+                var localDaemon = new LocalDocker();
+                if (!(await localDaemon.IsAvailable())) { 
+                    Console.WriteLine("Containerize: error CONTAINER007: The Docker daemon is not available, but pushing to a local daemon was requested. Please start Docker and try again.");
+                    Environment.ExitCode = 7;
+                    return;
+                }
                 try
                 {
-                    LocalDocker.Load(img, sourceImageReference, destinationImageReference).Wait();
+                    localDaemon.Load(img, sourceImageReference, destinationImageReference).Wait();
                     Console.WriteLine("Containerize: Pushed container '{0}' to Docker daemon", destinationImageReference.RepositoryAndTag);
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine($"Containerize: error CONTAINER001: Failed to push to local docker registry: {e}");
-                    Environment.ExitCode = -1;
+                    Environment.ExitCode = 1;
                 }
             }
         }

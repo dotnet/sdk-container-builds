@@ -115,7 +115,7 @@ public class EndToEnd
         var sourceReference = new ImageReference(registry, DockerRegistryManager.BaseImage, DockerRegistryManager.Net6ImageTag);
         var destinationReference = new ImageReference(registry, NewImageName(), "latest");
 
-        await LocalDocker.Load(x, sourceReference, destinationReference).ConfigureAwait(false);
+        await new LocalDocker().Load(x, sourceReference, destinationReference).ConfigureAwait(false);
 
         // Run the image
         new BasicCommand(TestContext, "docker", "run", "--rm", "--tty", $"{NewImageName()}:latest")
@@ -322,7 +322,7 @@ public class EndToEnd
         // Load the image into the local Docker daemon
         var sourceReference = new ImageReference(registry, DockerRegistryManager.BaseImage, DockerRegistryManager.Net7ImageTag);
         var destinationReference = new ImageReference(registry, NewImageName(), rid);
-        await LocalDocker.Load(x, sourceReference, destinationReference).ConfigureAwait(false); ;
+        await new LocalDocker().Load(x, sourceReference, destinationReference).ConfigureAwait(false);
 
         // Run the image
         new BasicCommand(

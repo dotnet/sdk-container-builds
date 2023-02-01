@@ -8,9 +8,9 @@ using System.Text.Json.Nodes;
 
 namespace Microsoft.NET.Build.Containers;
 
-public class LocalDocker
+public class LocalDocker: ILocalDaemon
 {
-    public static async Task Load(Image image, ImageReference sourceReference, ImageReference destinationReference)
+    public async Task Load(Image image, ImageReference sourceReference, ImageReference destinationReference)
     {
         // call `docker load` and get it ready to receive input
         ProcessStartInfo loadInfo = new("docker", $"load");
@@ -36,6 +36,31 @@ public class LocalDocker
         if (loadProcess.ExitCode != 0)
         {
             throw new DockerLoadException($"Failed to load image to local Docker daemon. stdout: {await loadProcess.StandardError.ReadToEndAsync().ConfigureAwait(false)}");
+        }
+    }
+
+    public async Task<bool> IsAvailable()
+    {
+        var config = await GetConfig();
+        if (config is null) return false;
+        if (config.RootElement.TryGetProperty("ServerErrors", out var errorProperty)
+            && errorProperty.ValueKind == JsonValueKind.Array 
+            && errorProperty.GetArrayLength() > 0) return false;
+        return true;
+    }
+
+    private async Task<JsonDocument?> GetConfig() {
+        var psi = new ProcessStartInfo("docker", "info --format='{{json .}}'") {
+            RedirectStandardOutput = true
+        };
+        var proc = Process.Start(psi);
+        if (proc is null) return null;
+        await proc.WaitForExitAsync();
+        if (proc.ExitCode != 0) return null;
+        try {
+            return await JsonDocument.ParseAsync(proc.StandardOutput.BaseStream);
+        } catch {
+            return null;
         }
     }
 

@@ -157,9 +157,14 @@ public partial class CreateNewImage : Microsoft.Build.Utilities.Task
         {
             if (IsDockerPush)
             {
+                var localDaemon = new LocalDocker();
+                if (!localDaemon.IsAvailable().GetAwaiter().GetResult()) { 
+                    Log.LogError("The Docker daemon is not available, but pushing to a local daemon was requested. Please start Docker and try again.");
+                    return false;
+                }
                 try
                 {
-                    LocalDocker.Load(image, sourceImageReference, destinationImageReference).Wait();
+                    localDaemon.Load(image, sourceImageReference, destinationImageReference).Wait();
                     SafeLog("Pushed container '{0}' to Docker daemon", destinationImageReference.RepositoryAndTag);
                 }
                 catch (AggregateException ex) when (ex.InnerException is DockerLoadException dle)
