@@ -47,28 +47,28 @@ public class LocalDocker: ILocalDaemon
 
     public async Task<bool> IsAvailable()
     {
-        var config = await GetConfig();
-        logger(config is null ? "config is null" : $"config is {config.RootElement.ToString()}");
-        if (config is null) return false;
-        if (config.RootElement.TryGetProperty("ServerErrors", out var errorProperty)
-            && errorProperty.ValueKind == JsonValueKind.Array 
-            && errorProperty.GetArrayLength() > 0) return false;
-        return true;
+
+        try {
+            var config = await GetConfig();
+            if (config.RootElement.TryGetProperty("ServerErrors", out var errorProperty)
+                && errorProperty.ValueKind == JsonValueKind.Array 
+                && errorProperty.GetArrayLength() > 0) return false;
+            return true;
+        } catch (Exception ex) {
+            logger($"Error while reading daemon config: {ex}");
+            return false;
+        }
     }
 
-    private async Task<JsonDocument?> GetConfig() {
+    private async Task<JsonDocument> GetConfig() {
         var psi = new ProcessStartInfo("docker", "info --format='{{json .}}'") {
             RedirectStandardOutput = true
         };
         var proc = Process.Start(psi);
-        if (proc is null) return null;
+        if (proc is null) throw new Exception("Failed to start docker client process");
         await proc.WaitForExitAsync();
-        if (proc.ExitCode != 0) return null;
-        try {
-            return await JsonDocument.ParseAsync(proc.StandardOutput.BaseStream);
-        } catch {
-            return null;
-        }
+        if (proc.ExitCode != 0) throw new Exception($"Failed to get docker info - {await proc.StandardOutput.ReadToEndAsync()}");
+        return await JsonDocument.ParseAsync(proc.StandardOutput.BaseStream);
     }
 
     private static async Task WriteImageToStream(Image image, ImageReference sourceReference, ImageReference destinationReference, Stream imageStream)
