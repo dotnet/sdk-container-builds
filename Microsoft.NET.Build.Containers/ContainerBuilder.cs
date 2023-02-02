@@ -80,7 +80,7 @@ public static class ContainerBuilder
             }
             else
             {
-                var localDaemon = new LocalDocker();
+                var localDaemon = new LocalDocker(Console.WriteLine);
                 if (!(await localDaemon.IsAvailable())) { 
                     Console.WriteLine("Containerize: error CONTAINER007: The Docker daemon is not available, but pushing to a local daemon was requested. Please start Docker and try again.");
                     Environment.ExitCode = 7;

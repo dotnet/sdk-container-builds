@@ -10,6 +10,12 @@ namespace Microsoft.NET.Build.Containers;
 
 public class LocalDocker: ILocalDaemon
 {
+    private readonly Action<string> logger;
+
+    public LocalDocker(Action<string> logger) {
+        this.logger = logger;
+    }
+
     public async Task Load(Image image, ImageReference sourceReference, ImageReference destinationReference)
     {
         // call `docker load` and get it ready to receive input
@@ -42,6 +48,7 @@ public class LocalDocker: ILocalDaemon
     public async Task<bool> IsAvailable()
     {
         var config = await GetConfig();
+        logger(config is null ? "config is null" : $"config is {config.RootElement.ToString()}");
         if (config is null) return false;
         if (config.RootElement.TryGetProperty("ServerErrors", out var errorProperty)
             && errorProperty.ValueKind == JsonValueKind.Array 

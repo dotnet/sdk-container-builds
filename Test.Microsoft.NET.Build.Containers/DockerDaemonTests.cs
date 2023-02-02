@@ -11,7 +11,7 @@ public class DockerDaemonTests {
         // mimic no daemon running by setting the DOCKER_HOST to a nonexistent socket
         try {
             System.Environment.SetEnvironmentVariable("DOCKER_HOST", "tcp://123.123.123.123:12345");
-            var available = await new LocalDocker().IsAvailable();
+            var available = await new LocalDocker(Console.WriteLine).IsAvailable();
             Assert.IsFalse(available, "No daemon should be listening at that port");
         } finally {
             System.Environment.SetEnvironmentVariable("DOCKER_HOST", null);
@@ -20,7 +20,7 @@ public class DockerDaemonTests {
 
     [TestMethod]
     public async Task Can_detect_when_daemon_is_running() {
-        var available = await new LocalDocker().IsAvailable();
+        var available = await new LocalDocker(Console.WriteLine).IsAvailable();
         Assert.IsFalse(available, "No daemon should be listening at that port");
     }
 }
