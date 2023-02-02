@@ -161,7 +161,7 @@ public class CreateNewImageTests
 
         ParseContainerProperties pcp = new ParseContainerProperties();
         pcp.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:6.0";
-        pcp.ContainerRegistry = "localhost:5010";
+        pcp.ContainerRegistry = "";
         pcp.ContainerImageName = "dotnet/envvarvalidation";
         pcp.ContainerImageTag = "latest";
 
