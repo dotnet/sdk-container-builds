@@ -62,12 +62,13 @@ public class LocalDocker: ILocalDaemon
 
     private async Task<JsonDocument> GetConfig() {
         var psi = new ProcessStartInfo("docker", "info --format='{{json .}}'") {
-            RedirectStandardOutput = true
+            RedirectStandardOutput = true,
+            RedirectStandardError = true
         };
         var proc = Process.Start(psi);
         if (proc is null) throw new Exception("Failed to start docker client process");
         await proc.WaitForExitAsync();
-        if (proc.ExitCode != 0) throw new Exception($"Failed to get docker info - {await proc.StandardOutput.ReadToEndAsync()}");
+        if (proc.ExitCode != 0) throw new Exception($"Failed to get docker info({proc.ExitCode})\n{await proc.StandardOutput.ReadToEndAsync()}\n{await proc.StandardError.ReadToEndAsync()}");
         return await JsonDocument.ParseAsync(proc.StandardOutput.BaseStream);
     }
 
