@@ -29,7 +29,7 @@ public class CreateNewImageTests
         }
     }
 
-    public static string RuntimeGraphFilePath() 
+    public static string RuntimeGraphFilePath()
     {
         string dotnetRoot = ToolsetUtils.GetDotNetPath();
         DirectoryInfo sdksDir = new(Path.Combine(dotnetRoot, "sdk"));
@@ -161,7 +161,7 @@ public class CreateNewImageTests
 
         ParseContainerProperties pcp = new ParseContainerProperties();
         pcp.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:6.0";
-        pcp.ContainerRegistry = "";
+        pcp.ContainerRegistry = "localhost:5010";
         pcp.ContainerImageName = "dotnet/envvarvalidation";
         pcp.ContainerImageTag = "latest";
 
