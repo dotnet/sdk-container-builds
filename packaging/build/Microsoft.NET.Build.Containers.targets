@@ -113,7 +113,6 @@
             <ContainerInformationUrl Condition="'$(ContainerInformationUrl)' == '' and '$(PackageProjectUrl)' != ''">$(PackageProjectUrl)</ContainerInformationUrl>
             <ContainerDocumentationUrl Condition="'$(ContainerDocumentationUrl)' == '' and '$(PackageProjectUrl)' != ''">$(PackageProjectUrl)</ContainerDocumentationUrl>
             <ContainerVersion Condition="'$(ContainerVersion)' == '' and '$(PackageVersion)' != ''">$(PackageVersion)</ContainerVersion>
-            <ContainerVendor Condition="'$(ContainerVendor)' == '' and '$(PackageOwners)' != ''">$(PackageOwners)</ContainerVendor>
             <ContainerLicenseExpression Condition="'$(ContainerLicenseExpression)' == '' and '$(PackageLicenseExpression)' != ''">$(PackageLicenseExpression)</ContainerLicenseExpression>
             <ContainerTitle Condition="'$(ContainerTitle)' == '' and '$(Title)' != ''">$(Title)</ContainerTitle>
         </PropertyGroup>
@@ -134,8 +133,8 @@
             <ContainerLabel Condition="'$(ContainerGenerateLabelsImageBaseName)' == 'true' and '$(ContainerBaseImage)' != ''" Include="org.opencontainers.image.base.name" Value="$(ContainerBaseImage)" />
         </ItemGroup>
 
-        <!-- These sourcelink-derived properties are onyl allowed to flow to generated artifacts if `PublishRepositoryUrl` is set as a user signal for opt-in.
-              In addition, the 'nice' property names are currently set by NuGet Pack targets and so we have to use the private/generic names here.  -->
+        <!-- These sourcelink-derived properties are only allowed to flow to generated artifacts if `PublishRepositoryUrl` is set as a user signal for opt-in.
+             In addition, the 'nice' property names are currently set by NuGet Pack targets and so we have to use the private/generic names here.  -->
         <ItemGroup Label="Source control label assignment" Condition="'$(ContainerGenerateLabels)' == 'true' and '$(PublishRepositoryUrl)' == 'true'">
             <ContainerLabel Condition="'$(ContainerGenerateLabelsImageSource)' == 'true' and '$(PrivateRepositoryUrl)' != ''" Include="org.opencontainers.image.source" Value="$(PrivateRepositoryUrl)" />
             <ContainerLabel Condition="'$(ContainerGenerateLabelsImageRevision)' == 'true' and '$(SourceRevisionId)' != ''" Include="org.opencontainers.image.revision" Value="$(SourceRevisionId)" />
