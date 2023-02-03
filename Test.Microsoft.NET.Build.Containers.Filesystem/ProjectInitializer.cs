@@ -6,7 +6,7 @@ using Microsoft.Build.Locator;
 namespace Test.Microsoft.NET.Build.Containers;
 
 public static class ProjectInitializer {
-    private static string CombinedTargetsLocation;
+    private static string? CombinedTargetsLocation;
 
     private static string CombineFiles(string propsFile, string targetsFile)
     {
@@ -16,7 +16,9 @@ public static class ProjectInitializer {
         combinedContent.AddRange(propsContent[..^1]);
         combinedContent.AddRange(targetsContent[1..]);
         var tempTargetLocation = Path.Combine(Path.GetTempPath(), "Containers", "Microsoft.NET.Build.Containers.targets");
-        Directory.CreateDirectory(Path.GetDirectoryName(tempTargetLocation));
+        string? directoryName = Path.GetDirectoryName(tempTargetLocation);
+        Assert.IsNotNull(directoryName);
+        Directory.CreateDirectory(directoryName);
         File.WriteAllLines(tempTargetLocation, combinedContent);
         return tempTargetLocation;
     }

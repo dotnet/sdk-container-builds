@@ -3,14 +3,36 @@ using Microsoft.NET.Build.Containers.Tasks;
 using System.Diagnostics;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Microsoft.DotNet.CommandUtils;
+using Test.Microsoft.NET.Build.Containers.Filesystem;
 
 namespace Test.Microsoft.NET.Build.Containers.Tasks;
 
 [TestClass]
 public class CreateNewImageTests
 {
-    public static string RuntimeGraphFilePath() {
-        DirectoryInfo sdksDir = new(Path.Combine(Environment.GetEnvironmentVariable("DOTNET_ROOT"), "sdk"));
+    private TestContext? testContextInstance;
+
+    /// <summary>
+    ///Gets or sets the test context which provides
+    ///information about and functionality for the current test run.
+    ///</summary>
+    public TestContext TestContext
+    {
+        get
+        {
+            return testContextInstance ?? throw new InvalidOperationException($"{nameof(TestContext)} is null.");
+        }
+        set
+        {
+            testContextInstance = value;
+        }
+    }
+
+    public static string RuntimeGraphFilePath() 
+    {
+        string dotnetRoot = ToolsetUtils.GetDotNetPath();
+        DirectoryInfo sdksDir = new(Path.Combine(dotnetRoot, "sdk"));
 
         var lastWrittenSdk = sdksDir.EnumerateDirectories().OrderByDescending(di => di.LastWriteTime).First();
 
@@ -29,25 +51,15 @@ public class CreateNewImageTests
 
         newProjectDir.Create();
 
-        ProcessStartInfo info = new ProcessStartInfo
-        {
-            WorkingDirectory = newProjectDir.FullName,
-            FileName = "dotnet",
-            Arguments = "new console -f net7.0"
-        };
+        new DotnetCommand(TestContext, "new", "console", "-f", "net7.0")
+            .WithWorkingDirectory(newProjectDir.FullName)
+            .Execute()
+            .Should().Pass();
 
-        // Create the project to pack
-        Process dotnetNew = Process.Start(info);
-        Assert.IsNotNull(dotnetNew);
-        dotnetNew.WaitForExit();
-        Assert.AreEqual(0, dotnetNew.ExitCode);
-
-        info.Arguments = "publish -c Release -r linux-arm64 --no-self-contained";
-
-        Process dotnetPublish = Process.Start(info);
-        Assert.IsNotNull(dotnetPublish);
-        dotnetPublish.WaitForExit();
-        Assert.AreEqual(0, dotnetPublish.ExitCode);
+        new DotnetCommand(TestContext, "publish", "-c", "Release", "-r", "linux-arm64", "--no-self-contained")
+            .WithWorkingDirectory(newProjectDir.FullName)
+            .Execute()
+            .Should().Pass();
 
         CreateNewImage task = new CreateNewImage();
         task.BaseRegistry = "mcr.microsoft.com";
@@ -79,26 +91,15 @@ public class CreateNewImageTests
 
         newProjectDir.Create();
 
-        ProcessStartInfo info = new ProcessStartInfo
-        {
-            WorkingDirectory = newProjectDir.FullName,
-            FileName = "dotnet",
-            Arguments = "new console -f net7.0",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-        };
+        new DotnetCommand(TestContext, "new", "console", "-f", "net7.0")
+            .WithWorkingDirectory(newProjectDir.FullName)
+            .Execute()
+            .Should().Pass();
 
-        Process dotnetNew = Process.Start(info);
-        Assert.IsNotNull(dotnetNew);
-        dotnetNew.WaitForExit();
-        Assert.AreEqual(0, dotnetNew.ExitCode);
-
-        info.Arguments = "build --configuration release";
-
-        Process dotnetPublish = Process.Start(info);
-        Assert.IsNotNull(dotnetPublish);
-        dotnetPublish.WaitForExit();
-        Assert.AreEqual(0, dotnetPublish.ExitCode);
+        new DotnetCommand(TestContext, "build", "--configuration", "release")
+            .WithWorkingDirectory(newProjectDir.FullName)
+            .Execute()
+            .Should().Pass();
 
         ParseContainerProperties pcp = new ParseContainerProperties();
         pcp.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:7.0";
@@ -146,29 +147,17 @@ public class CreateNewImageTests
 
         newProjectDir.Create();
 
-        ProcessStartInfo info = new ProcessStartInfo
-        {
-            WorkingDirectory = newProjectDir.FullName,
-            FileName = "dotnet",
-            Arguments = "new console -f net7.0",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true
-        };
-
-        Process dotnetNew = Process.Start(info);
-        Assert.IsNotNull(dotnetNew);
-        dotnetNew.WaitForExit();
-        Assert.AreEqual(0, dotnetNew.ExitCode, dotnetNew.StandardOutput.ReadToEnd());
+        new DotnetCommand(TestContext, "new", "console", "-f", "net7.0")
+            .WithWorkingDirectory(newProjectDir.FullName)
+            .Execute()
+            .Should().Pass();
 
         File.WriteAllText(Path.Combine(newProjectDir.FullName, "Program.cs"), $"Console.Write(Environment.GetEnvironmentVariable(\"GoodEnvVar\"));");
 
-        info.Arguments = "build --configuration release /p:runtimeidentifier=linux-x64";
-
-        Process dotnetBuildRelease = Process.Start(info);
-        Assert.IsNotNull(dotnetBuildRelease);
-        dotnetBuildRelease.WaitForExit();
-        dotnetBuildRelease.Kill();
-        Assert.AreEqual(0, dotnetBuildRelease.ExitCode);
+        new DotnetCommand(TestContext, "build", "--configuration", "release", "/p:runtimeidentifier=linux-x64")
+            .WithWorkingDirectory(newProjectDir.FullName)
+            .Execute()
+            .Should().Pass();
 
         ParseContainerProperties pcp = new ParseContainerProperties();
         pcp.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:6.0";
@@ -207,16 +196,9 @@ public class CreateNewImageTests
 
         Assert.IsTrue(cni.Execute());
 
-        ProcessStartInfo runInfo = new("docker", $"run --rm {pcp.NewContainerImageName}:latest")
-        {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-        };
-
-        Process run = Process.Start(runInfo);
-        Assert.IsNotNull(run);
-        run.WaitForExit();
-        Assert.AreEqual(0, run.ExitCode);
-        Assert.AreEqual("Foo", run.StandardOutput.ReadToEnd());
+        new BasicCommand(TestContext, "docker", "run", "--rm", $"{pcp.NewContainerImageName}:latest")
+            .Execute()
+            .Should().Pass()
+            .And.HaveStdOut("Foo");
     }
 }
