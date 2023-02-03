@@ -21,6 +21,6 @@ public class DockerDaemonTests {
     [TestMethod]
     public async Task Can_detect_when_daemon_is_running() {
         var available = await new LocalDocker(Console.WriteLine).IsAvailable();
-        Assert.IsFalse(available, "No daemon should be listening at that port");
+        Assert.IsTrue(available, "Should have found a working daemon");
     }
 }
