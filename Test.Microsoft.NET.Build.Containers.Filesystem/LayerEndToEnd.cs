@@ -77,11 +77,11 @@ public class LayerEndToEnd
         }
 
         Assert.AreEqual(Convert.ToHexString(hashBytes), l.Descriptor.Digest.Substring("sha256:".Length), ignoreCase: true);
-        Assert.AreEqual(Convert.ToHexString(uncompressedHashBytes), l.Descriptor.UncompressedDigest.Substring("sha256:".Length), ignoreCase: true);
+        Assert.AreEqual(Convert.ToHexString(uncompressedHashBytes), l.Descriptor.UncompressedDigest?.Substring("sha256:".Length), ignoreCase: true);
     }
 
-    TransientTestFolder testSpecificArtifactRoot;
-    string priorArtifactRoot;
+    TransientTestFolder? testSpecificArtifactRoot;
+    string? priorArtifactRoot;
 
     [TestInitialize]
     public void TestInitialize()

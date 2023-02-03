@@ -15,12 +15,13 @@ public class RegistryTests
     {
         Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.LocalRegistry));
 
+        string dotnetRoot = ToolsetUtils.GetDotNetPath();
         // TODO: The DOTNET_ROOT comes from the test host, but we have no idea what the SDK version is.
-        var ridgraphfile = Path.Combine(Environment.GetEnvironmentVariable("DOTNET_ROOT"), "sdk", "7.0.100", "RuntimeIdentifierGraph.json");
+        var ridgraphfile = Path.Combine(dotnetRoot, "sdk", "7.0.100", "RuntimeIdentifierGraph.json");
 
         // Don't need rid graph for local registry image pulls - since we're only pushing single image manifests (not manifest lists)
         // as part of our setup, we could put literally anything in here. The file at the passed-in path would only get read when parsing manifests lists.
-        Image downloadedImage = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net6ImageTag, "linux-x64", ridgraphfile);
+        Image? downloadedImage = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net6ImageTag, "linux-x64", ridgraphfile);
 
         Assert.IsNotNull(downloadedImage);
     }

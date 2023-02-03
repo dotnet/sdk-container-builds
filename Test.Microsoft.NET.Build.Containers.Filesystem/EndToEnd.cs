@@ -1,17 +1,37 @@
-﻿using Microsoft.NET.Build.Containers;
+﻿using Microsoft.DotNet.CommandUtils;
+using Microsoft.NET.Build.Containers;
 using System.Diagnostics;
-using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Threading;
+using System.Security.Policy;
+using System.Xml.Linq;
 
 namespace Test.Microsoft.NET.Build.Containers.Filesystem;
-#nullable disable
 
 [TestClass]
 public class EndToEnd
 {
-    public static string RuntimeGraphFilePath() {
-        DirectoryInfo sdksDir = new(Path.Combine(Environment.GetEnvironmentVariable("DOTNET_ROOT"), "sdk"));
+    private TestContext? testContextInstance;
+
+    /// <summary>
+    ///Gets or sets the test context which provides
+    ///information about and functionality for the current test run.
+    ///</summary>
+    public TestContext TestContext
+    {
+        get
+        {
+            return testContextInstance ?? throw new InvalidOperationException($"{nameof(TestContext)} is null.");
+        }
+        set
+        {
+            testContextInstance = value;
+        }
+    }
+
+    public static string RuntimeGraphFilePath() 
+    {
+        string dotnetRoot = ToolsetUtils.GetDotNetPath();
+        DirectoryInfo sdksDir = new(Path.Combine(dotnetRoot, "sdk"));
 
         var lastWrittenSdk = sdksDir.EnumerateDirectories().OrderByDescending(di => di.LastWriteTime).First();
 
@@ -20,43 +40,31 @@ public class EndToEnd
 
     public static string NewImageName([CallerMemberName] string callerMemberName = "")
     {
-        bool normalized = ContainerHelpers.NormalizeImageName(callerMemberName, out string normalizedName);
-
+        bool normalized = ContainerHelpers.NormalizeImageName(callerMemberName, out string? normalizedName);
         if (!normalized)
         {
-            return normalizedName;
+            return normalizedName!;
         }
 
         return callerMemberName;
     }
 
-    public static async Task Execute(string command, string args)
-    {
-        var psi = new ProcessStartInfo(command, args)
-        {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-        };
-        var proc = Process.Start(psi);
-        Assert.IsNotNull(proc);
-        await proc.WaitForExitAsync();
-        var stdout = proc.StandardOutput.ReadToEnd();
-        var stderr = proc.StandardError.ReadToEnd();
-        var message = $"StdOut:\n{stdout}\nStdErr:\n{stderr}";
-        Assert.AreEqual(0, proc.ExitCode, message);
-
-    }
-
     [TestMethod]
     public async Task ApiEndToEndWithRegistryPushAndPull()
     {
-        string publishDirectory = await BuildLocalApp();
+        string publishDirectory = BuildLocalApp();
 
         // Build the image
 
         Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.LocalRegistry));
 
-        Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net6ImageTag, "linux-x64", RuntimeGraphFilePath());
+        Image? x = await registry.GetImageManifest(
+            DockerRegistryManager.BaseImage,
+            DockerRegistryManager.Net6ImageTag,
+            "linux-x64",
+            RuntimeGraphFilePath());
+
+        Assert.IsNotNull(x);
 
         Layer l = Layer.FromDirectory(publishDirectory, "/app");
 
@@ -69,32 +77,31 @@ public class EndToEnd
         await registry.Push(x, NewImageName(), "latest", DockerRegistryManager.BaseImage, Console.WriteLine);
 
         // pull it back locally
-
-        Process pull = Process.Start("docker", $"pull {DockerRegistryManager.LocalRegistry}/{NewImageName()}:latest");
-        Assert.IsNotNull(pull);
-        await pull.WaitForExitAsync();
-        Assert.AreEqual(0, pull.ExitCode);
+        new BasicCommand(TestContext, "docker", "pull", $"{DockerRegistryManager.LocalRegistry}/{NewImageName()}:latest")
+            .Execute()
+            .Should().Pass();
 
         // Run the image
-
-        ProcessStartInfo runInfo = new("docker", $"run --rm --tty {DockerRegistryManager.LocalRegistry}/{NewImageName()}:latest");
-        Process run = Process.Start(runInfo);
-        Assert.IsNotNull(run);
-        await run.WaitForExitAsync();
-
-        Assert.AreEqual(0, run.ExitCode);
+        new BasicCommand(TestContext, "docker", "run", "--rm", "--tty", $"{DockerRegistryManager.LocalRegistry}/{NewImageName()}:latest")
+            .Execute()
+            .Should().Pass();
     }
 
     [TestMethod]
     public async Task ApiEndToEndWithLocalLoad()
     {
-        string publishDirectory = await BuildLocalApp();
+        string publishDirectory = BuildLocalApp();
 
         // Build the image
 
         Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.LocalRegistry));
 
-        Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net6ImageTag, "linux-x64", RuntimeGraphFilePath());
+        Image? x = await registry.GetImageManifest(
+            DockerRegistryManager.BaseImage,
+            DockerRegistryManager.Net6ImageTag,
+            "linux-x64",
+            RuntimeGraphFilePath());
+        Assert.IsNotNull(x);
 
         Layer l = Layer.FromDirectory(publishDirectory, "/app");
 
@@ -107,16 +114,12 @@ public class EndToEnd
         await LocalDocker.Load(x, NewImageName(), "latest", DockerRegistryManager.BaseImage);
 
         // Run the image
-
-        ProcessStartInfo runInfo = new("docker", $"run --rm --tty {NewImageName()}:latest");
-        Process run = Process.Start(runInfo);
-        Assert.IsNotNull(run);
-        await run.WaitForExitAsync();
-
-        Assert.AreEqual(0, run.ExitCode);
+        new BasicCommand(TestContext, "docker", "run", "--rm", "--tty", $"{NewImageName()}:latest")
+            .Execute()
+            .Should().Pass();
     }
 
-    private static async Task<string> BuildLocalApp(string tfm = "net6.0", string rid = "linux-x64")
+    private string BuildLocalApp(string tfm = "net6.0", string rid = "linux-x64")
     {
         DirectoryInfo d = new DirectoryInfo("MinimalTestApp");
         if (d.Exists)
@@ -124,11 +127,14 @@ public class EndToEnd
             d.Delete(recursive: true);
         }
 
-        await Execute("dotnet", $"new console -f {tfm} -o MinimalTestApp");
-        // Build project
+        new DotnetCommand(TestContext, "new", "console", "-f", tfm, "-o", "MinimalTestApp")
+            .Execute()
+            .Should().Pass();
 
-        await Execute("dotnet", $"publish -bl MinimalTestApp -r {rid} -f {tfm}");
-        
+        new DotnetCommand(TestContext, "publish", "-bl", "MinimalTestApp", "-r", rid, "-f", tfm)
+            .Execute()
+            .Should().Pass();
+
         string publishDirectory = Path.Join("MinimalTestApp", "bin", "Debug", tfm, rid, "publish");
         return publishDirectory;
     }
@@ -164,79 +170,72 @@ public class EndToEnd
             Assert.Fail("No nupkg found in expected package folder. You may need to rerun the build");
         }
 
-        ProcessStartInfo info = new ProcessStartInfo
-        {
-            WorkingDirectory = newProjectDir.FullName,
-            FileName = "dotnet",
-            Arguments = "new webapi -f net7.0",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-        };
 
-        // do not pollute the primary/global NuGet package store with the private package(s)
-        info.Environment["NUGET_PACKAGES"] = privateNuGetAssets.FullName;
+        new DotnetCommand(TestContext, "new", "webapi", "-f", "net7.0")
+            .WithWorkingDirectory(newProjectDir.FullName)
+            // do not pollute the primary/global NuGet package store with the private package(s)
+            .WithEnvironmentVariable("NUGET_PACKAGES", privateNuGetAssets.FullName)
+            .Execute()
+            .Should().Pass();
 
-        // Create the project to pack
-        Process dotnetNew = Process.Start(info);
-        Assert.IsNotNull(dotnetNew);
-        await dotnetNew.WaitForExitAsync();
-        Assert.AreEqual(0, dotnetNew.ExitCode);
+        new DotnetCommand(TestContext, "new", "nugetconfig")
+            .WithWorkingDirectory(newProjectDir.FullName)
+            .Execute()
+            .Should().Pass();
 
-        // Give it a unique nugetconfig
-        info.Arguments = "new nugetconfig";
-        Process dotnetNewNugetConfig = Process.Start(info);
-        Assert.IsNotNull(dotnetNewNugetConfig);
-        await dotnetNewNugetConfig.WaitForExitAsync();
-        Assert.AreEqual(0, dotnetNewNugetConfig.ExitCode);
-
-        info.Arguments = $"nuget add source {packagedir.FullName} --name local-temp";
-
-        // Set up temp folder as "nuget feed"
-        Process dotnetNugetAddSource = Process.Start(info);
-        Assert.IsNotNull(dotnetNugetAddSource);
-        await dotnetNugetAddSource.WaitForExitAsync();
-        Assert.AreEqual(0, dotnetNugetAddSource.ExitCode);
+        new DotnetCommand(TestContext, "nuget", "add", "source", packagedir.FullName, "--name", "local-temp")
+            .WithEnvironmentVariable("NUGET_PACKAGES", privateNuGetAssets.FullName)
+            .WithWorkingDirectory(newProjectDir.FullName)
+            .Execute()
+            .Should().Pass();
 
         // Add package to the project
-        info.Arguments = $"add package Microsoft.NET.Build.Containers --prerelease -f net7.0";
-        Process dotnetPackageAdd = Process.Start(info);
-        Assert.IsNotNull(dotnetPackageAdd);
-        await dotnetPackageAdd.WaitForExitAsync();
-        Assert.AreEqual(0, dotnetPackageAdd.ExitCode, dotnetPackageAdd.StandardOutput.ReadToEnd());
+        new DotnetCommand(TestContext, "add", "package", "Microsoft.NET.Build.Containers", "--prerelease", "-f", "net7.0")
+            .WithEnvironmentVariable("NUGET_PACKAGES", privateNuGetAssets.FullName)
+            .WithWorkingDirectory(newProjectDir.FullName)
+            .Execute()
+            .Should().Pass();
 
         string imageName = NewImageName();
         string imageTag = "1.0";
 
-        info.Arguments = $"publish /p:publishprofile=DefaultContainer /p:runtimeidentifier=linux-x64 /bl" +
-                          $" /p:ContainerBaseImage={DockerRegistryManager.FullyQualifiedBaseImageDefault}" +
-                          $" /p:ContainerRegistry={DockerRegistryManager.LocalRegistry}" +
-                          $" /p:ContainerImageName={imageName}" +
-                          $" /p:Version={imageTag}";
-
         // Build & publish the project
-        Process publish = Process.Start(info);
-        Assert.IsNotNull(publish);
-        await publish.WaitForExitAsync();
-        Assert.AreEqual(0, publish.ExitCode, publish.StandardOutput.ReadToEnd());
+        new DotnetCommand(
+            TestContext, 
+            "publish", 
+            "/p:publishprofile=DefaultContainer", 
+            "/p:runtimeidentifier=linux-x64", 
+            "/bl", 
+            $"/p:ContainerBaseImage={DockerRegistryManager.FullyQualifiedBaseImageDefault}",
+            $"/p:ContainerRegistry={DockerRegistryManager.LocalRegistry}",
+            $"/p:ContainerImageName={imageName}",
+            $"/p:Version={imageTag}")
+            .WithEnvironmentVariable("NUGET_PACKAGES", privateNuGetAssets.FullName)
+            .WithWorkingDirectory(newProjectDir.FullName)
+            .Execute()
+            .Should().Pass();
 
-        Process pull = Process.Start("docker", $"pull {DockerRegistryManager.LocalRegistry}/{imageName}:{imageTag}");
-        Assert.IsNotNull(pull);
-        await pull.WaitForExitAsync();
-        Assert.AreEqual(0, pull.ExitCode);
+        new BasicCommand(TestContext, "docker", "pull", $"{DockerRegistryManager.LocalRegistry}/{imageName}:{imageTag}")
+            .Execute()
+            .Should().Pass();
 
         var containerName = "test-container-1";
-        ProcessStartInfo runInfo = new("docker", $"run --rm --name {containerName} --publish 5017:80 --detach {DockerRegistryManager.LocalRegistry}/{imageName}:{imageTag}")
-        {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-        };
+        CommandResult processResult = new BasicCommand(
+            TestContext,
+            "docker",
+            "run",
+            "--rm",
+            "--name",
+            containerName,
+            "--publish",
+            "5017:80",
+            "--detach",
+            $"{DockerRegistryManager.LocalRegistry}/{imageName}:{imageTag}")
+        .Execute();
+        processResult.Should().Pass();
+        Assert.IsNotNull(processResult.StdOut);
 
-        Process run = Process.Start(runInfo);
-        Assert.IsNotNull(run);
-        await run.WaitForExitAsync();
-        Assert.AreEqual(0, run.ExitCode);
-
-        string appContainerId = (await run.StandardOutput.ReadToEndAsync()).Trim();
+        string appContainerId = processResult.StdOut.Trim();
 
         bool everSucceeded = false;
 
@@ -260,26 +259,15 @@ public class EndToEnd
             await Task.Delay(TimeSpan.FromSeconds(1));
         }
 
-        ProcessStartInfo logsPsi = new("docker", $"logs {appContainerId}") {
-            RedirectStandardOutput = true
-        };
+        new BasicCommand(TestContext, "docker", "logs", appContainerId)
+            .Execute()
+            .Should().Pass();
 
-        Process logs = Process.Start(logsPsi);
-        Assert.IsNotNull(logs);
-        await logs.WaitForExitAsync();
+        Assert.AreEqual(true, everSucceeded, "http://localhost:5017/weatherforecast never responded.");
 
-        Assert.AreEqual(true, everSucceeded, logs.StandardOutput.ReadToEnd());
-
-
-        ProcessStartInfo stopPsi = new("docker", $"stop {appContainerId}")
-        {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-        };
-        Process stop = Process.Start(stopPsi);
-        Assert.IsNotNull(stop);
-        await stop.WaitForExitAsync();
-        Assert.AreEqual(0, stop.ExitCode, stop.StandardOutput.ReadToEnd() + stop.StandardError.ReadToEnd());
+        new BasicCommand(TestContext, "docker", "stop", appContainerId)
+            .Execute()
+            .Should().Pass();
 
         newProjectDir.Delete(true);
         privateNuGetAssets.Delete(true);
@@ -301,13 +289,15 @@ public class EndToEnd
     // As a result, we only have one actual data-driven test
     [DataRow("linux-x64", true, "/app", "linux/amd64")]
     [DataTestMethod]
-    public async Task CanPackageForAllSupportedContainerRIDs(string rid, bool isRIDSpecific, string workingDir, string dockerPlatform) {
-        string publishDirectory = await BuildLocalApp(tfm : "net7.0", rid : (isRIDSpecific ? rid : null));
+    public async Task CanPackageForAllSupportedContainerRIDs(string rid, bool isRIDSpecific, string workingDir, string dockerPlatform) 
+    {
+        string publishDirectory = isRIDSpecific ? BuildLocalApp(tfm: "net7.0", rid: rid) : BuildLocalApp(tfm: "net7.0");
 
         // Build the image
         Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.BaseImageSource));
 
-        Image x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net7ImageTag, rid, RuntimeGraphFilePath());
+        Image? x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net7ImageTag, rid, RuntimeGraphFilePath());
+        Assert.IsNotNull(x);
 
         Layer l = Layer.FromDirectory(publishDirectory, "/app");
 
@@ -321,17 +311,19 @@ public class EndToEnd
 
         await LocalDocker.Load(x, NewImageName(), rid, DockerRegistryManager.BaseImage);
 
-        var args = $"run --rm --tty --platform {dockerPlatform} {NewImageName()}:{rid}";
         // Run the image
-        ProcessStartInfo runInfo = new("docker", args) {
-            RedirectStandardError = true,
-            RedirectStandardOutput = true,
-        };
-        Process run = Process.Start(runInfo);
-        Assert.IsNotNull(run);
-        await run.WaitForExitAsync();
-
-        Assert.AreEqual(0, run.ExitCode, $"Arguments: {args}\n{run.StandardOutput.ReadToEnd()}\n{run.StandardError.ReadToEnd()}");
+        new BasicCommand(
+            TestContext,
+            "docker",
+            "run",
+            "--rm",
+            "--tty",
+            "--platform",
+            dockerPlatform,
+            $"{NewImageName()}:{rid}")
+            .Execute()
+            .Should()
+            .Pass();
 
         string[] DecideEntrypoint(string rid, bool isRIDSpecific, string appName, string workingDir) {
             var binary = rid.StartsWith("win") ? $"{appName}.exe" : appName;
