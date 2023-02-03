@@ -61,7 +61,7 @@ public class LocalDocker: ILocalDaemon
     }
 
     private async Task<JsonDocument> GetConfig() {
-        var psi = new ProcessStartInfo("docker", "info --format='{{json .}}'") {
+        var psi = new ProcessStartInfo("docker", "info --format=\"{{json .}}\"") {
             RedirectStandardOutput = true,
             RedirectStandardError = true
         };
