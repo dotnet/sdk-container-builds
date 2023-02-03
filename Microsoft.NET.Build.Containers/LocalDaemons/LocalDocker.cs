@@ -8,11 +8,12 @@ using System.Text.Json.Nodes;
 
 namespace Microsoft.NET.Build.Containers;
 
-public class LocalDocker: ILocalDaemon
+public class LocalDocker : ILocalDaemon
 {
     private readonly Action<string> logger;
 
-    public LocalDocker(Action<string> logger) {
+    public LocalDocker(Action<string> logger)
+    {
         this.logger = logger;
     }
 
@@ -47,21 +48,31 @@ public class LocalDocker: ILocalDaemon
 
     public async Task<bool> IsAvailable()
     {
-
-        try {
+        try
+        {
             var config = await GetConfig();
-            if (config.RootElement.TryGetProperty("ServerErrors", out var errorProperty)
-                && errorProperty.ValueKind == JsonValueKind.Array 
-                && errorProperty.GetArrayLength() > 0) return false;
-            return true;
-        } catch (Exception ex) {
+            if (!config.RootElement.TryGetProperty("ServerErrors", out var errorProperty)) {
+                return true;
+            } else if (errorProperty.ValueKind == JsonValueKind.Array && errorProperty.GetArrayLength() == 0) {
+                return true;
+            } else {
+                // we have errors, turn them into a string and log them
+                var messages = String.Join(Environment.NewLine, errorProperty.EnumerateArray());
+                logger($"The daemon server reported errors: {messages}");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
             logger($"Error while reading daemon config: {ex}");
             return false;
         }
     }
 
-    private async Task<JsonDocument> GetConfig() {
-        var psi = new ProcessStartInfo("docker", "info --format=\"{{json .}}\"") {
+    private async Task<JsonDocument> GetConfig()
+    {
+        var psi = new ProcessStartInfo("docker", "info --format=\"{{json .}}\"")
+        {
             RedirectStandardOutput = true,
             RedirectStandardError = true
         };
@@ -82,7 +93,7 @@ public class LocalDocker: ILocalDaemon
 
         foreach (var d in image.LayerDescriptors)
         {
-            if (sourceReference.Registry is {} registry)
+            if (sourceReference.Registry is { } registry)
             {
                 string localPath = await registry.DownloadBlob(sourceReference.Repository, d).ConfigureAwait(false);;
 
@@ -95,7 +106,8 @@ public class LocalDocker: ILocalDaemon
             else
             {
                 throw new NotImplementedException("Need a good error for 'couldn't download a thing because no link to registry'");
-            }        }
+            }
+        }
 
         // add config
         string configTarballPath = $"{Image.GetSha(image.config)}.json";
