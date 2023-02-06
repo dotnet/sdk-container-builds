@@ -1,3 +1,4 @@
+using System.Formats.Tar;
 using Microsoft.NET.Build.Containers;
 using System.IO.Compression;
 using System.Security.Cryptography;
@@ -22,10 +23,14 @@ public class LayerEndToEnd
         Console.WriteLine(l.Descriptor);
 
         //Assert.AreEqual("application/vnd.oci.image.layer.v1.tar", l.Descriptor.MediaType); // TODO: configurability
-        Assert.IsTrue(l.Descriptor.Size is >= 135 and <= 200, $"'l.Descriptor.Size' should be between 135 and 200, but is {l.Descriptor.Size}"); // TODO: determinism!
+        Assert.IsTrue(l.Descriptor.Size is >= 135 and <= 300, $"'l.Descriptor.Size' should be between 135 and 300, but is {l.Descriptor.Size}"); // TODO: determinism!
         //Assert.AreEqual("sha256:26140bc75f2fcb3bf5da7d3b531d995c93d192837e37df0eb5ca46e2db953124", l.Descriptor.Digest); // TODO: determinism!
 
         VerifyDescriptorInfo(l);
+
+        var allEntries = LoadAllTarEntries(l.BackingFile);
+        Assert.IsTrue(allEntries.TryGetValue("app/", out var appEntryType) && appEntryType == TarEntryType.Directory, "Missing app directory entry");
+        Assert.IsTrue(allEntries.TryGetValue("app/TestFile.txt", out var fileEntryType) && fileEntryType == TarEntryType.RegularFile, "Missing TestFile.txt file entry");
     }
 
     [TestMethod]
@@ -51,10 +56,16 @@ public class LayerEndToEnd
         Console.WriteLine(l.Descriptor);
 
         //Assert.AreEqual("application/vnd.oci.image.layer.v1.tar", l.Descriptor.MediaType); // TODO: configurability
-        Assert.IsTrue(l.Descriptor.Size is >= 150 and <= 200, $"'l.Descriptor.Size' should be between 150 and 200, but is {l.Descriptor.Size}"); // TODO: determinism!
+        Assert.IsTrue(l.Descriptor.Size is >= 150 and <= 500, $"'l.Descriptor.Size' should be between 150 and 500, but is {l.Descriptor.Size}"); // TODO: determinism!
         //Assert.AreEqual("sha256:26140bc75f2fcb3bf5da7d3b531d995c93d192837e37df0eb5ca46e2db953124", l.Descriptor.Digest); // TODO: determinism!
 
         VerifyDescriptorInfo(l);
+        
+        var allEntries = LoadAllTarEntries(l.BackingFile);
+        Assert.IsTrue(allEntries.TryGetValue("app/", out var appEntryType) && appEntryType == TarEntryType.Directory, "Missing app directory entry");
+        Assert.IsTrue(allEntries.TryGetValue("app/TestFile.txt", out var fileEntryType) && fileEntryType == TarEntryType.RegularFile, "Missing TestFile.txt file entry");
+        Assert.IsTrue(allEntries.TryGetValue("app/subfolder/", out var subfolderType) && subfolderType == TarEntryType.Directory, "Missing subfolder directory entry");
+        Assert.IsTrue(allEntries.TryGetValue("app/subfolder/TestFile.txt", out var subfolderFileEntryType) && subfolderFileEntryType == TarEntryType.RegularFile, "Missing subfolder/TestFile.txt file entry");
     }
 
     private static void VerifyDescriptorInfo(Layer l)
@@ -101,5 +112,22 @@ public class LayerEndToEnd
         {
             ContentStore.ArtifactRoot = priorArtifactRoot;
         }
+    }
+    
+    
+    private static IDictionary<string, TarEntryType> LoadAllTarEntries(string file)
+    {
+        using var gzip = new GZipStream(File.OpenRead(file), CompressionMode.Decompress);
+        using var tar = new TarReader(gzip);
+        
+        var entries = new Dictionary<string, TarEntryType>();
+        
+        TarEntry? entry;
+        while ((entry = tar.GetNextEntry()) != null)
+        {
+            entries[entry.Name] = entry.EntryType;
+        }
+
+        return entries;
     }
 }
