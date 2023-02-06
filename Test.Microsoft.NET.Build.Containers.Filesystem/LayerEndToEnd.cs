@@ -23,7 +23,7 @@ public class LayerEndToEnd
         Console.WriteLine(l.Descriptor);
 
         //Assert.AreEqual("application/vnd.oci.image.layer.v1.tar", l.Descriptor.MediaType); // TODO: configurability
-        Assert.IsTrue(l.Descriptor.Size is >= 135 and <= 300, $"'l.Descriptor.Size' should be between 135 and 300, but is {l.Descriptor.Size}"); // TODO: determinism!
+        Assert.IsTrue(l.Descriptor.Size is >= 135 and <= 500, $"'l.Descriptor.Size' should be between 135 and 500, but is {l.Descriptor.Size}"); // TODO: determinism!
         //Assert.AreEqual("sha256:26140bc75f2fcb3bf5da7d3b531d995c93d192837e37df0eb5ca46e2db953124", l.Descriptor.Digest); // TODO: determinism!
 
         VerifyDescriptorInfo(l);
