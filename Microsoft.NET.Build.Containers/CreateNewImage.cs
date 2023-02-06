@@ -19,9 +19,9 @@ public partial class CreateNewImage : Microsoft.Build.Utilities.Task
     /// </summary>
     public string ToolPath { get; set; }
 
-    private bool IsDockerPush { get => String.IsNullOrEmpty(OutputRegistry); }
+    private bool IsDaemonPush { get => String.IsNullOrEmpty(OutputRegistry); }
 
-    private bool IsDockerPull { get => String.IsNullOrEmpty(BaseRegistry); }
+    private bool IsDaemonPull { get => String.IsNullOrEmpty(BaseRegistry); }
 
     private void SetPorts(Image image, ITaskItem[] exposedPorts)
     {
@@ -69,10 +69,18 @@ public partial class CreateNewImage : Microsoft.Build.Utilities.Task
         }
     }
 
+    private ILocalDaemon GetLocalDaemon(Action<string> logger) {
+        var daemon = LocalContainerDaemon switch {
+            KnownDaemonTypes.Docker => new LocalDocker(logger),
+            _ => throw new ArgumentException($"Unknown local container daemon type '{LocalContainerDaemon}'. Valid local container daemon types are {String.Join(",", KnownDaemonTypes.SupportedLocalDaemonTypes)}", nameof(LocalContainerDaemon))
+        };
+        return daemon;
+    }
+
     private Lazy<Registry?> SourceRegistry
     {
         get {
-            if(IsDockerPull) {
+            if(IsDaemonPull) {
                 return new Lazy<Registry?>(() => null);
             } else {
                 return new Lazy<Registry?>(() => new Registry(ContainerHelpers.TryExpandRegistryToUri(BaseRegistry)));
@@ -82,13 +90,14 @@ public partial class CreateNewImage : Microsoft.Build.Utilities.Task
 
     private Lazy<Registry?> DestinationRegistry {
         get {
-            if(IsDockerPush) {
+            if(IsDaemonPush) {
                 return new Lazy<Registry?>(() => null);
             } else {
                 return new Lazy<Registry?>(() => new Registry(ContainerHelpers.TryExpandRegistryToUri(OutputRegistry)));
             }
         }
     }
+
     private static void SetEnvironmentVariables(Image img, ITaskItem[] envVars)
     {
         foreach (ITaskItem envVar in envVars)
@@ -152,20 +161,19 @@ public partial class CreateNewImage : Microsoft.Build.Utilities.Task
         GeneratedContainerManifest =  JsonSerializer.Serialize(image.manifest);
         GeneratedContainerConfiguration = image.config.ToJsonString();
 
-
         foreach (var destinationImageReference in destinationImageReferences)
         {
-            if (IsDockerPush)
+            if (IsDaemonPush)
             {
-                var localDaemon = new LocalDocker(msg => Log.LogMessage(msg));
-                if (!localDaemon.IsAvailable().GetAwaiter().GetResult()) { 
-                    Log.LogError("The Docker daemon is not available, but pushing to a local daemon was requested. Please start Docker and try again.");
+                var localDaemon = GetLocalDaemon(msg => Log.LogMessage(msg));
+                if (!localDaemon.IsAvailable().GetAwaiter().GetResult()) {
+                    Log.LogError("The local daemon is not available, but pushing to a local daemon was requested. Please start the daemon and try again.");
                     return false;
                 }
                 try
                 {
                     localDaemon.Load(image, sourceImageReference, destinationImageReference).Wait();
-                    SafeLog("Pushed container '{0}' to Docker daemon", destinationImageReference.RepositoryAndTag);
+                    SafeLog("Pushed container '{0}' to local daemon", destinationImageReference.RepositoryAndTag);
                 }
                 catch (AggregateException ex) when (ex.InnerException is DockerLoadException dle)
                 {

@@ -193,6 +193,7 @@ public class CreateNewImageTests
         cni.ContainerEnvironmentVariables = pcp.NewContainerEnvironmentVariables;
         cni.ContainerRuntimeIdentifier = "linux-x64";
         cni.RuntimeIdentifierGraphPath = RuntimeGraphFilePath();
+        cni.LocalContainerDaemon = global::Microsoft.NET.Build.Containers.KnownDaemonTypes.Docker;
 
         Assert.IsTrue(cni.Execute());
 

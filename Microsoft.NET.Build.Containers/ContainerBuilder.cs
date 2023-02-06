@@ -10,10 +10,18 @@ using System.Threading.Tasks;
 
 public static class ContainerBuilder
 {
-    public static async Task Containerize(DirectoryInfo folder, string workingDir, string registryName, string baseName, string baseTag, string[] entrypoint, string[] entrypointArgs, string imageName, string[] imageTags, string? outputRegistry, string[] labels, Port[] exposedPorts, string[] envVars, string containerRuntimeIdentifier, string ridGraphPath)
+    private static ILocalDaemon GetLocalDaemon(string localDaemonType, Action<string> logger) {
+        var daemon = localDaemonType switch {
+            KnownDaemonTypes.Docker => new LocalDocker(logger),
+            _ => throw new ArgumentException($"Unknown local container daemon type '{localDaemonType}'. Valid local container daemon types are {String.Join(",", KnownDaemonTypes.SupportedLocalDaemonTypes)}", nameof(localDaemonType))
+        };
+        return daemon;
+    }
+    public static async Task Containerize(DirectoryInfo folder, string workingDir, string registryName, string baseName, string baseTag, string[] entrypoint, string[] entrypointArgs, string imageName, string[] imageTags, string? outputRegistry, string[] labels, Port[] exposedPorts, string[] envVars, string containerRuntimeIdentifier, string ridGraphPath, string localContainerDaemon)
     {
-        var isDockerPull = String.IsNullOrEmpty(registryName);
-        if (isDockerPull) {
+        var isDaemonPull = String.IsNullOrEmpty(registryName);
+        if (isDaemonPull)
+        {
             throw new NotSupportedException("Don't know how to pull images from local daemons at the moment");
         }
 
@@ -36,8 +44,6 @@ public static class ContainerBuilder
         img.AddLayer(l);
 
         img.SetEntrypoint(entrypoint, entrypointArgs);
-
-        
 
         foreach (var label in labels)
         {
@@ -77,8 +83,10 @@ public static class ContainerBuilder
             }
             else
             {
-                var localDaemon = new LocalDocker(Console.WriteLine);
-                if (!(await localDaemon.IsAvailable())) { 
+                
+                var localDaemon = GetLocalDaemon(localContainerDaemon, Console.WriteLine);
+                if (!(await localDaemon.IsAvailable()))
+                {
                     Console.WriteLine("Containerize: error CONTAINER007: The Docker daemon is not available, but pushing to a local daemon was requested. Please start Docker and try again.");
                     Environment.ExitCode = 7;
                     return;
