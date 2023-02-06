@@ -23,9 +23,6 @@ public static class ContainerBuilder
         var destinationImageReferences = imageTags.Select(t => new ImageReference(isDockerPush ? null : new Registry(ContainerHelpers.TryExpandRegistryToUri(outputRegistry!)), imageName, t));
 
         var img = await baseRegistry.GetImageManifest(baseName, baseTag, containerRuntimeIdentifier, ridGraphPath).ConfigureAwait(false);
-        if (img is null) {
-            throw new ImageNotFoundException($"Could not find image {sourceImageReference} matching RuntimeIdentifier {containerRuntimeIdentifier}");
-        }
 
         img.WorkingDirectory = workingDir;
 

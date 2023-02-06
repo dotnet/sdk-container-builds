@@ -91,19 +91,19 @@ public record struct Registry
     /// </summary>
     private readonly bool SupportsParallelUploads => !IsAmazonECRRegistry;
 
-    public async Task<Image?> GetImageManifest(string repositoryName, string reference, string runtimeIdentifier, string runtimeIdentifierGraphPath)
+    public async Task<Image> GetImageManifest(string repositoryName, string reference, string runtimeIdentifier, string runtimeIdentifierGraphPath)
     {
         var client = GetClient();
         var initialManifestResponse = await GetManifest(repositoryName, reference).ConfigureAwait(false);
 
         return initialManifestResponse.Content.Headers.ContentType?.MediaType switch {
-            DockerManifestV2 => await TryReadSingleImage(repositoryName, await initialManifestResponse.Content.ReadFromJsonAsync<ManifestV2>().ConfigureAwait(false)).ConfigureAwait(false),
-            DockerManifestListV2 => await TryPickBestImageFromManifestList(repositoryName, reference, await initialManifestResponse.Content.ReadFromJsonAsync<ManifestListV2>().ConfigureAwait(false), runtimeIdentifier, runtimeIdentifierGraphPath).ConfigureAwait(false),
+            DockerManifestV2 => await ReadSingleImage(repositoryName, await initialManifestResponse.Content.ReadFromJsonAsync<ManifestV2>()).ConfigureAwait(false),
+            DockerManifestListV2 => await PickBestImageFromManifestList(repositoryName, reference, await initialManifestResponse.Content.ReadFromJsonAsync<ManifestListV2>(), runtimeIdentifier, runtimeIdentifierGraphPath).ConfigureAwait(false),
             var unknownMediaType => throw new NotImplementedException($"The manifest for {repositoryName}:{reference} from registry {BaseUri} was an unknown type: {unknownMediaType}. Please raise an issue at https://github.com/dotnet/sdk-container-builds/issues with this message.")
         };
     }
 
-    private async Task<Image?> TryReadSingleImage(string repositoryName, ManifestV2 manifest) {
+    private async Task<Image> ReadSingleImage(string repositoryName, ManifestV2 manifest) {
         var config = manifest.config;
         string configSha = config.digest;
 
@@ -115,16 +115,16 @@ public record struct Registry
         return new Image(manifest, configDoc);
     }
 
-    async Task<Image?> TryPickBestImageFromManifestList(string repositoryName, string reference, ManifestListV2 manifestList, string runtimeIdentifier, string runtimeIdentifierGraphPath) {
+    async Task<Image> PickBestImageFromManifestList(string repositoryName, string reference, ManifestListV2 manifestList, string runtimeIdentifier, string runtimeIdentifierGraphPath) {
         var runtimeGraph = GetRuntimeGraphForDotNet(runtimeIdentifierGraphPath);
         var (ridDict, graphForManifestList) = ConstructRuntimeGraphForManifestList(manifestList, runtimeGraph);
         var bestManifestRid = CheckIfRidExistsInGraph(graphForManifestList, ridDict.Keys, runtimeIdentifier);
         if (bestManifestRid is null) {
-            throw new ArgumentException($"The runtimeIdentifier '{runtimeIdentifier}' is not supported. The supported RuntimeIdentifiers for the base image {repositoryName}:{reference} are {String.Join(",", graphForManifestList.Runtimes.Keys)}");
+            throw new BaseImageNotFoundException(runtimeIdentifier, repositoryName, reference, graphForManifestList.Runtimes.Keys);
         }
         var matchingManifest = ridDict[bestManifestRid];
         var manifestResponse = await GetManifest(repositoryName, matchingManifest.digest).ConfigureAwait(false);
-        return await TryReadSingleImage(repositoryName, await manifestResponse.Content.ReadFromJsonAsync<ManifestV2>().ConfigureAwait(false)).ConfigureAwait(false);
+        return await ReadSingleImage(repositoryName, await manifestResponse.Content.ReadFromJsonAsync<ManifestV2>()).ConfigureAwait(false);
     }
 
     private async Task<HttpResponseMessage> GetManifest(string repositoryName, string reference)
