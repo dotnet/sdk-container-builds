@@ -14,7 +14,7 @@ public static class ContainerBuilder
     {
         var isDockerPull = String.IsNullOrEmpty(registryName);
         if (isDockerPull) {
-            throw new ArgumentException("Don't know how to pull images from local daemons at the moment");
+            throw new NotSupportedException("Don't know how to pull images from local daemons at the moment");
         }
 
         Registry baseRegistry = new Registry(ContainerHelpers.TryExpandRegistryToUri(registryName));
@@ -24,7 +24,7 @@ public static class ContainerBuilder
 
         var img = await baseRegistry.GetImageManifest(baseName, baseTag, containerRuntimeIdentifier, ridGraphPath).ConfigureAwait(false);
         if (img is null) {
-            throw new ArgumentException($"Could not find image {sourceImageReference} matching RuntimeIdentifier {containerRuntimeIdentifier}");
+            throw new ImageNotFoundException($"Could not find image {sourceImageReference} matching RuntimeIdentifier {containerRuntimeIdentifier}");
         }
 
         img.WorkingDirectory = workingDir;
@@ -74,7 +74,7 @@ public static class ContainerBuilder
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"Containerize: error CONTAINER001: Failed to push to output registry: {e}");
+                    Console.WriteLine($"Containerize: error CONTAINER001: Failed to push to output registry: {e.Message}");
                     Environment.ExitCode = 1;
                 }
             }
@@ -93,7 +93,7 @@ public static class ContainerBuilder
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"Containerize: error CONTAINER001: Failed to push to local docker registry: {e}");
+                    Console.WriteLine($"Containerize: error CONTAINER001: Failed to push to local docker registry: {e.Message}");
                     Environment.ExitCode = 1;
                 }
             }
