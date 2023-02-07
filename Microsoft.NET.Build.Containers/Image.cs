@@ -29,9 +29,10 @@ public class Image
         this.OriginatingName = name;
         this.originatingRegistry = registry;
         // these next values are inherited from the parent image, so we need to seed our new image with them.
-        this.labels = ReadLabelsFromConfig(config);
-        this.exposedPorts = ReadPortsFromConfig(config);
-        this.environmentVariables = ReadEnvVarsFromConfig(config);
+        var imageConfig = config["config"];
+        this.labels = ReadLabelsFromConfig(imageConfig);
+        this.exposedPorts = ReadPortsFromConfig(imageConfig);
+        this.environmentVariables = ReadEnvVarsFromConfig(imageConfig);
     }
 
     public IEnumerable<Descriptor> LayerDescriptors
@@ -95,7 +96,7 @@ public class Image
         return envVarJson;
     }
 
-    private static HashSet<Label> ReadLabelsFromConfig(JsonNode inputConfig)
+    private static HashSet<Label> ReadLabelsFromConfig(JsonNode? inputConfig)
     {
         if (inputConfig is JsonObject config && config["Labels"] is JsonObject labelsJson)
         {
@@ -117,9 +118,9 @@ public class Image
         }
     }
 
-    private static Dictionary<string, string> ReadEnvVarsFromConfig(JsonNode inputConfig)
+    private static Dictionary<string, string> ReadEnvVarsFromConfig(JsonNode? inputConfig)
     {
-        if (inputConfig is JsonObject config && config["config"]!["Env"] is JsonArray envVarJson)
+        if (inputConfig is JsonObject config && config["Env"] is JsonArray envVarJson)
         {
             var envVars = new Dictionary<string, string>();
             foreach (var entry in envVarJson)
@@ -142,7 +143,7 @@ public class Image
         }
     }
 
-    private static HashSet<Port> ReadPortsFromConfig(JsonNode inputConfig)
+    private static HashSet<Port> ReadPortsFromConfig(JsonNode? inputConfig)
     {
         if (inputConfig is JsonObject config && config["ExposedPorts"] is JsonObject portsJson)
         {

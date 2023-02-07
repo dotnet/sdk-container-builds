@@ -96,6 +96,9 @@ public record struct Registry
 
     public async Task<Image?> GetImageManifest(string repositoryName, string reference, string runtimeIdentifier, string runtimeIdentifierGraphPath)
     {
+        if (repositoryName == "scratch") {
+            return GenerateNewEmptyImage();
+        }
         var client = GetClient();
         var initialManifestResponse = await GetManifest(repositoryName, reference);
         
@@ -104,6 +107,12 @@ public record struct Registry
             DockerManifestListV2 => await TryPickBestImageFromManifestList(repositoryName, reference, await initialManifestResponse.Content.ReadFromJsonAsync<ManifestListV2>(), runtimeIdentifier, runtimeIdentifierGraphPath),
             var unknownMediaType => throw new NotImplementedException($"The manifest for {repositoryName}:{reference} from registry {BaseUri} was an unknown type: {unknownMediaType}. Please raise an issue at https://github.com/dotnet/sdk-container-builds/issues with this message.")
         };
+    }
+
+    private Image GenerateNewEmptyImage()
+    {
+        
+        throw new NotImplementedException();
     }
 
     private async Task<Image?> TryReadSingleImage(string repositoryName, ManifestV2 manifest) {
