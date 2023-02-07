@@ -112,7 +112,7 @@ namespace Microsoft.DotNet.CommandUtils
 
         internal static bool ArgumentContainsWhitespace(string argument)
         {
-            return argument.Contains(" ") || argument.Contains("\t") || argument.Contains("\n");
+            return argument.Contains(' ') || argument.Contains('\t') || argument.Contains('\n');
         }
 
         /// <summary>

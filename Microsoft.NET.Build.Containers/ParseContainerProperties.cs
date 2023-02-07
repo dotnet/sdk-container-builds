@@ -96,7 +96,7 @@ public class ParseContainerProperties : Microsoft.Build.Utilities.Task
         }
         validTags = v.ToArray();
         invalidTags = i.ToArray();
-        return invalidTags.Count() == 0;
+        return invalidTags.Length == 0;
     }
 
     public override bool Execute()

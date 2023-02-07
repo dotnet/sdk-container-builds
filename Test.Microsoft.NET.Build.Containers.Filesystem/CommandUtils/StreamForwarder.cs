@@ -99,12 +99,9 @@ namespace Microsoft.DotNet.CommandUtils
             }
         }
 
-        private void ThrowIfNull(object obj)
+        private static void ThrowIfNull(object obj)
         {
-            if (obj == null)
-            {
-                throw new ArgumentNullException(nameof(obj));
-            }
+            ArgumentNullException.ThrowIfNull(obj);
         }
 
         private void ThrowIfForwarderSet()

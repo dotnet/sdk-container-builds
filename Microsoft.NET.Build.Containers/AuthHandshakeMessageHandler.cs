@@ -136,7 +136,7 @@ public partial class AuthHandshakeMessageHandler : DelegatingHandler
             var tokenResponse = await base.SendAsync(message, cancellationToken).ConfigureAwait(false);
             tokenResponse.EnsureSuccessStatusCode();
 
-            TokenResponse? token = JsonSerializer.Deserialize<TokenResponse>(tokenResponse.Content.ReadAsStream());
+            TokenResponse? token = JsonSerializer.Deserialize<TokenResponse>(tokenResponse.Content.ReadAsStream(cancellationToken));
             if (token is null)
             {
                 throw new ArgumentException("Could not deserialize token from JSON");

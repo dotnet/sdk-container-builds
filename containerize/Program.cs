@@ -82,11 +82,11 @@ var labelsOpt = new Option<string[]>(
         var badLabels = labels.Where((v) => v.Split('=').Length != 2);
 
         // Is there a non-zero number of Labels that didn't split into two elements? If so, assume invalid input and error out
-        if (badLabels.Count() != 0)
+        if (badLabels.Any())
         {
             result.ErrorMessage = "Incorrectly formatted labels: " + badLabels.Aggregate((x, y) => x = x + ";" + y);
 
-            return new string[] { };
+            return Array.Empty<string>();
         }
         return labels;
     })
@@ -116,7 +116,7 @@ var portsOpt = new Option<Port[]>(
             }
         }
 
-        if (badPorts.Count() != 0)
+        if (badPorts.Count != 0)
         {
             var builder = new StringBuilder();
             builder.AppendLine("Incorrectly formatted ports:");
@@ -125,7 +125,7 @@ var portsOpt = new Option<Port[]>(
                 builder.AppendLine($"\t{badPort}:\t({string.Join(", ", errors)})");
             }
             result.ErrorMessage = builder.ToString();
-            return new Port[] { };
+            return Array.Empty<Port>();
         }
         return goodPorts.ToArray();
     }
@@ -141,11 +141,11 @@ var envVarsOpt = new Option<string[]>(
         var envVars = result.Tokens.Select(x => x.Value).ToArray();
         var badEnvVars = envVars.Where((v) => v.Split('=').Length != 2);
 
-        if (badEnvVars.Count() != 0)
+        if (badEnvVars.Any())
         {
             result.ErrorMessage = "Incorrectly formatted environment variables: " + badEnvVars.Aggregate((x, y) => x = x + ";" + y);
 
-            return new string[] { };
+            return Array.Empty<string>();
         }
         return envVars;
     })
