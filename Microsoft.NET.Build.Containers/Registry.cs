@@ -143,7 +143,7 @@ public record struct Registry
         return response;
     }
 
-    private string? CheckIfRidExistsInGraph(RuntimeGraph graphForManifestList, IEnumerable<string> leafRids, string userRid) => leafRids.FirstOrDefault(leaf => graphForManifestList.AreCompatible(leaf, userRid));
+    private static string? CheckIfRidExistsInGraph(RuntimeGraph graphForManifestList, IEnumerable<string> leafRids, string userRid) => leafRids.FirstOrDefault(leaf => graphForManifestList.AreCompatible(leaf, userRid));
 
     private (IReadOnlyDictionary<string, PlatformSpecificManifest>, RuntimeGraph) ConstructRuntimeGraphForManifestList(ManifestListV2 manifestList, RuntimeGraph dotnetRuntimeGraph)
     {
@@ -162,7 +162,7 @@ public record struct Registry
         return (ridDict, graph);
     }
 
-    private string? CreateRidForPlatform(PlatformInformation platform)
+    private static string? CreateRidForPlatform(PlatformInformation platform)
     {   
         // we only support linux and windows containers explicitly, so anything else we should skip past.
         // there are theoretically other platforms/architectures that Docker supports (s390x?), but we are
@@ -193,7 +193,7 @@ public record struct Registry
         return $"{osPart}{versionPart ?? ""}-{platformPart}";
     }
 
-    private RuntimeGraph GetRuntimeGraphForDotNet(string ridGraphPath) => JsonRuntimeFormat.ReadRuntimeGraph(ridGraphPath);
+    private static RuntimeGraph GetRuntimeGraphForDotNet(string ridGraphPath) => JsonRuntimeFormat.ReadRuntimeGraph(ridGraphPath);
 
     private void AddRidAndDescendantsToSet(HashSet<RuntimeDescription> runtimeDescriptionSet, string rid, RuntimeGraph dotnetRuntimeGraph)
     {
@@ -338,7 +338,7 @@ public record struct Registry
         else return await UploadBlobWhole(name, digest, contents, client, uploadUri).ConfigureAwait(false);
     }
 
-    private readonly async Task FinishUploadSession(string digest, HttpClient client, UriBuilder uploadUri) {
+    private static async Task FinishUploadSession(string digest, HttpClient client, UriBuilder uploadUri) {
         // PUT with digest to finalize
         uploadUri.Query += $"&digest={Uri.EscapeDataString(digest)}";
 
@@ -466,13 +466,13 @@ public record struct Registry
 
         using (MemoryStream stringStream = new MemoryStream(Encoding.UTF8.GetBytes(x.config.ToJsonString())))
         {
-            var configDigest = x.GetDigest(x.config);
+            var configDigest = Image.GetDigest(x.config);
             logProgressMessage($"Uploading config to registry at blob {configDigest}");
             await UploadBlob(name, configDigest, stringStream).ConfigureAwait(false);
             logProgressMessage($"Uploaded config to registry");
         }
 
-        var manifestDigest = x.GetDigest(x.manifest);
+        var manifestDigest = Image.GetDigest(x.manifest);
         logProgressMessage($"Uploading manifest to registry {RegistryName} as blob {manifestDigest}");
         string jsonString = JsonSerializer.SerializeToNode(x.manifest)?.ToJsonString() ?? "";
         HttpContent manifestUploadContent = new StringContent(jsonString);

@@ -68,7 +68,7 @@ public partial class CreateNewImage : Microsoft.Build.Utilities.Task
         }
     }
 
-    private void SetEnvironmentVariables(Image img, ITaskItem[] envVars)
+    private static void SetEnvironmentVariables(Image img, ITaskItem[] envVars)
     {
         foreach (ITaskItem envVar in envVars)
         {

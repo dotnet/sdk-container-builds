@@ -241,7 +241,7 @@ public class Image
         RecalculateDigest();
     }
 
-    public string GetDigest(JsonNode json)
+    public static string GetDigest(JsonNode json)
     {
         string hashString;
 
@@ -250,7 +250,7 @@ public class Image
         return $"sha256:{hashString}";
     }
 
-    public string GetDigest<T>(T item)
+    public static string GetDigest<T>(T item)
     {
         var node = JsonSerializer.SerializeToNode(item);
         if (node is not null) return GetDigest(node);
