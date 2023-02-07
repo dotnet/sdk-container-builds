@@ -7,7 +7,7 @@ namespace Test.Microsoft.NET.Build.Containers.Filesystem;
 /// </summary>
 internal sealed class TransientTestFolder : IDisposable
 {
-    public readonly string Path = Combine(GetTempPath(), GetRandomFileName());
+    public readonly string Path = Combine(TestSettings.TestArtifactsDirectory, GetRandomFileName());
     public readonly DirectoryInfo DirectoryInfo;
 
     public TransientTestFolder()

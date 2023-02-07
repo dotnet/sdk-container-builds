@@ -119,31 +119,36 @@ public class EndToEnd
             .Should().Pass();
     }
 
-    private string BuildLocalApp(string tfm = "net6.0", string rid = "linux-x64")
+    private string BuildLocalApp([CallerMemberName]string testName = "TestName", string tfm = "net6.0", string rid = "linux-x64")
     {
-        DirectoryInfo d = new DirectoryInfo("MinimalTestApp");
+        string workingDirectory = Path.Combine(TestSettings.TestArtifactsDirectory, testName);
+
+        DirectoryInfo d = new DirectoryInfo(Path.Combine(workingDirectory, "MinimalTestApp"));
         if (d.Exists)
         {
             d.Delete(recursive: true);
         }
+        Directory.CreateDirectory(workingDirectory);
 
         new DotnetCommand(TestContext, "new", "console", "-f", tfm, "-o", "MinimalTestApp")
+            .WithWorkingDirectory(workingDirectory)
             .Execute()
             .Should().Pass();
 
         new DotnetCommand(TestContext, "publish", "-bl", "MinimalTestApp", "-r", rid, "-f", tfm)
+            .WithWorkingDirectory(workingDirectory)
             .Execute()
             .Should().Pass();
 
-        string publishDirectory = Path.Join("MinimalTestApp", "bin", "Debug", tfm, rid, "publish");
+        string publishDirectory = Path.Join(workingDirectory, "MinimalTestApp", "bin", "Debug", tfm, rid, "publish");
         return publishDirectory;
     }
 
     [TestMethod]
     public async Task EndToEnd_NoAPI()
     {
-        DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "CreateNewImageTest"));
-        DirectoryInfo privateNuGetAssets = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "ContainerNuGet"));
+        DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(TestSettings.TestArtifactsDirectory, "CreateNewImageTest"));
+        DirectoryInfo privateNuGetAssets = new DirectoryInfo(Path.Combine(TestSettings.TestArtifactsDirectory, "ContainerNuGet"));
 
         if (newProjectDir.Exists)
         {
