@@ -112,11 +112,12 @@ public record struct Registry
     private Image GenerateNewEmptyImage()
     {
         var config = new JsonObject(new KeyValuePair<string, JsonNode?>[]{
-            new("RootFS", new JsonObject(new KeyValuePair<string, JsonNode?>[]{
-                new("Type", "layers"),
-                new("Layers", new JsonArray())
+            new("rootfs", new JsonObject(new KeyValuePair<string, JsonNode?>[]{
+                new("type", "layers"),
+                new("diff_ids", new JsonArray())
             })),
-            new ("Config", new JsonObject())
+            new ("config", new JsonObject()),
+            new ("history", new JsonArray())
         });
         return new Image(new ManifestV2(2, DockerManifestV2, new ManifestConfig(), new List<ManifestLayer>()), config, "scratch", null);
     }
