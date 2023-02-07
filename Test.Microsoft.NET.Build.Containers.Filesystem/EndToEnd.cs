@@ -62,7 +62,7 @@ public class EndToEnd
             DockerRegistryManager.BaseImage,
             DockerRegistryManager.Net6ImageTag,
             "linux-x64",
-            RuntimeGraphFilePath());
+            RuntimeGraphFilePath()).ConfigureAwait(false);
 
         Assert.IsNotNull(x);
 
@@ -74,7 +74,7 @@ public class EndToEnd
 
         // Push the image back to the local registry
 
-        await registry.Push(x, NewImageName(), "latest", DockerRegistryManager.BaseImage, Console.WriteLine);
+        await registry.Push(x, NewImageName(), "latest", DockerRegistryManager.BaseImage, Console.WriteLine).ConfigureAwait(false);
 
         // pull it back locally
         new BasicCommand(TestContext, "docker", "pull", $"{DockerRegistryManager.LocalRegistry}/{NewImageName()}:latest")
@@ -100,7 +100,7 @@ public class EndToEnd
             DockerRegistryManager.BaseImage,
             DockerRegistryManager.Net6ImageTag,
             "linux-x64",
-            RuntimeGraphFilePath());
+            RuntimeGraphFilePath()).ConfigureAwait(false);
         Assert.IsNotNull(x);
 
         Layer l = Layer.FromDirectory(publishDirectory, "/app");
@@ -111,7 +111,7 @@ public class EndToEnd
 
         // Load the image into the local Docker daemon
 
-        await LocalDocker.Load(x, NewImageName(), "latest", DockerRegistryManager.BaseImage);
+        await LocalDocker.Load(x, NewImageName(), "latest", DockerRegistryManager.BaseImage).ConfigureAwait(false);
 
         // Run the image
         new BasicCommand(TestContext, "docker", "run", "--rm", "--tty", $"{NewImageName()}:latest")
@@ -251,7 +251,7 @@ public class EndToEnd
         {
             try
             {
-                var response = await client.GetAsync("http://localhost:5017/weatherforecast");
+                var response = await client.GetAsync("http://localhost:5017/weatherforecast").ConfigureAwait(false);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -261,7 +261,7 @@ public class EndToEnd
             }
             catch { }
 
-            await Task.Delay(TimeSpan.FromSeconds(1));
+            await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
         }
 
         new BasicCommand(TestContext, "docker", "logs", appContainerId)
@@ -301,7 +301,7 @@ public class EndToEnd
         // Build the image
         Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.BaseImageSource));
 
-        Image? x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net7ImageTag, rid, RuntimeGraphFilePath());
+        Image? x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net7ImageTag, rid, RuntimeGraphFilePath()).ConfigureAwait(false);
         Assert.IsNotNull(x);
 
         Layer l = Layer.FromDirectory(publishDirectory, "/app");
@@ -314,7 +314,7 @@ public class EndToEnd
 
         // Load the image into the local Docker daemon
 
-        await LocalDocker.Load(x, NewImageName(), rid, DockerRegistryManager.BaseImage);
+        await LocalDocker.Load(x, NewImageName(), rid, DockerRegistryManager.BaseImage).ConfigureAwait(false);
 
         // Run the image
         new BasicCommand(

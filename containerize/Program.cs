@@ -193,7 +193,7 @@ root.SetHandler(async (context) =>
     string[] _envVars = context.ParseResult.GetValueForOption(envVarsOpt) ?? Array.Empty<string>();
     string _rid = context.ParseResult.GetValueForOption(ridOpt) ?? "";
     string _ridGraphPath = context.ParseResult.GetValueForOption(ridGraphPathOpt) ?? "";
-    await ContainerBuilder.Containerize(_publishDir, _workingDir, _baseReg, _baseName, _baseTag, _entrypoint, _entrypointArgs, _name, _tags, _outputReg, _labels, _ports, _envVars, _rid, _ridGraphPath);
+    await ContainerBuilder.Containerize(_publishDir, _workingDir, _baseReg, _baseName, _baseTag, _entrypoint, _entrypointArgs, _name, _tags, _outputReg, _labels, _ports, _envVars, _rid, _ridGraphPath).ConfigureAwait(false);
 });
 
-return await root.InvokeAsync(args);
+return await root.InvokeAsync(args).ConfigureAwait(false);

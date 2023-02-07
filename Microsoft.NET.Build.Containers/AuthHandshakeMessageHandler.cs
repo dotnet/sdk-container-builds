@@ -103,7 +103,7 @@ public partial class AuthHandshakeMessageHandler : DelegatingHandler
         {
             try
             {
-                privateRepoCreds = await CredsProvider.GetCredentialsAsync(registry);
+                privateRepoCreds = await CredsProvider.GetCredentialsAsync(registry).ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -133,7 +133,7 @@ public partial class AuthHandshakeMessageHandler : DelegatingHandler
             var message = new HttpRequestMessage(HttpMethod.Get, builder.ToString());
             message.Headers.Authorization = header;
 
-            var tokenResponse = await base.SendAsync(message, cancellationToken);
+            var tokenResponse = await base.SendAsync(message, cancellationToken).ConfigureAwait(false);
             tokenResponse.EnsureSuccessStatusCode();
 
             TokenResponse? token = JsonSerializer.Deserialize<TokenResponse>(tokenResponse.Content.ReadAsStream());
@@ -171,17 +171,17 @@ public partial class AuthHandshakeMessageHandler : DelegatingHandler
         {
             try
             {
-                var response = await base.SendAsync(request, cancellationToken);
+                var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
                 if (response is { StatusCode: HttpStatusCode.OK })
                 {
                     return response;
                 }
                 else if (response is { StatusCode: HttpStatusCode.Unauthorized } && TryParseAuthenticationInfo(response, out string? scheme, out AuthInfo? authInfo))
                 {
-                    if (await GetAuthenticationAsync(request.RequestUri.Host, scheme, authInfo.Realm, authInfo.Service, authInfo.Scope, cancellationToken) is AuthenticationHeaderValue authentication)
+                    if (await GetAuthenticationAsync(request.RequestUri.Host, scheme, authInfo.Realm, authInfo.Service, authInfo.Scope, cancellationToken).ConfigureAwait(false) is AuthenticationHeaderValue authentication)
                     {
                         request.Headers.Authorization = AuthHeaderCache.AddOrUpdate(request.RequestUri, authentication);
-                        return await base.SendAsync(request, cancellationToken);
+                        return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
                     }
                     return response;
                 }
@@ -197,7 +197,7 @@ public partial class AuthHandshakeMessageHandler : DelegatingHandler
                 // TODO: log in a way that is MSBuild-friendly
                 Console.WriteLine($"Encountered a SocketException with message \"{se.Message}\". Pausing before retry.");
 
-                await Task.Delay(TimeSpan.FromSeconds(1.0 * Math.Pow(2, retryCount)), cancellationToken);
+                await Task.Delay(TimeSpan.FromSeconds(1.0 * Math.Pow(2, retryCount)), cancellationToken).ConfigureAwait(false);
 
                 // retry
                 continue;
