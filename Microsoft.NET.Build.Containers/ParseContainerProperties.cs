@@ -177,7 +177,7 @@ public class ParseContainerProperties : Microsoft.Build.Utilities.Task
 
         ParsedContainerRegistry = outputReg ?? "";
         ParsedContainerImage = outputImage ?? "";
-        ParsedContainerTag = outputTag ?? "";
+        ParsedContainerTag = outputTag ?? "latest";
         NewContainerRegistry = ContainerRegistry;
         NewContainerTags = validTags;
 
