@@ -111,7 +111,14 @@ public record struct Registry
 
     private Image GenerateNewEmptyImage()
     {
-        return new Image(new ManifestV2(2, DockerManifestV2, new ManifestConfig(), new List<ManifestLayer>()), new JsonObject(), "scratch", null);
+        var config = new JsonObject(new KeyValuePair<string, JsonNode?>[]{
+            new("RootFS", new JsonObject(new KeyValuePair<string, JsonNode?>[]{
+                new("Type", "layers"),
+                new("Layers", new JsonArray())
+            })),
+            new ("Config", new JsonObject())
+        });
+        return new Image(new ManifestV2(2, DockerManifestV2, new ManifestConfig(), new List<ManifestLayer>()), config, "scratch", null);
     }
 
     private async Task<Image?> TryReadSingleImage(string repositoryName, ManifestV2 manifest) {
