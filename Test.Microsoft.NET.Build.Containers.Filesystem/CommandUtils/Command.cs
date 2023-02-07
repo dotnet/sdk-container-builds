@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.DotNet.CommandUtils
 {
-    internal class Command
+    internal sealed class Command
     {
         private readonly Process _process;
 

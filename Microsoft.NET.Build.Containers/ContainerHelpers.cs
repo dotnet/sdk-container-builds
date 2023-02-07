@@ -8,7 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using static ReferenceParser;
 
-record Label(string name, string value);
+internal sealed record Label(string name, string value);
 
 // Explicitly lowercase to ease parsing - the incoming values are
 // lowercased by spec

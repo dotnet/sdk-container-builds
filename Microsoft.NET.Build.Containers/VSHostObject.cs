@@ -8,7 +8,7 @@ using Microsoft.Build.Framework;
 
 namespace Microsoft.NET.Build.Containers.Tasks;
 
-internal class VSHostObject
+internal sealed class VSHostObject
 {
     private const string CredentialItemSpecName = "MsDeployCredential";
     private const string UserMetaDataName = "UserName";

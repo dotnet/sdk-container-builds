@@ -3,7 +3,7 @@
 
 namespace Microsoft.DotNet.CommandUtils
 {
-    internal class DotnetCommand : TestCommand
+    internal sealed class DotnetCommand : TestCommand
     {
         private string _executableFilePath = "dotnet";
 

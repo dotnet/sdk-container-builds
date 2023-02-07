@@ -22,7 +22,7 @@ public partial class AuthHandshakeMessageHandler : DelegatingHandler
 {
     private const int MaxRequestRetries = 5; // Arbitrary but seems to work ok for chunked uploads to ghcr.io
 
-    private record AuthInfo(Uri Realm, string Service, string? Scope);
+    private sealed record AuthInfo(Uri Realm, string Service, string? Scope);
 
     /// <summary>
     /// the www-authenticate header must have realm, service, and scope information, so this method parses it into that shape if present
@@ -71,7 +71,7 @@ public partial class AuthHandshakeMessageHandler : DelegatingHandler
     /// <remarks>
     /// <see href="https://docs.docker.com/registry/spec/auth/token/#token-response-fields"/>
     /// </remarks>
-    private record TokenResponse(string? token, string? access_token, int? expires_in, DateTimeOffset? issued_at)
+    private sealed record TokenResponse(string? token, string? access_token, int? expires_in, DateTimeOffset? issued_at)
     {
         public string ResolvedToken => token ?? access_token ?? throw new ArgumentException("Token response had neither token nor access_token.");
     }
