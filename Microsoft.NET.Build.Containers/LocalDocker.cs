@@ -47,7 +47,7 @@ public class LocalDocker
 
         foreach (var d in x.LayerDescriptors)
         {
-            if (x.originatingRegistry is {} registry)
+            if (x.originatingRegistry is { } registry)
             {
                 string localPath = await registry.DownloadBlob(x.OriginatingName, d);
 
@@ -59,8 +59,21 @@ public class LocalDocker
             }
             else
             {
-                throw new NotImplementedException("Need a good error for 'couldn't download a thing because no link to registry'");
-            }        }
+                // try a last-chance load from local if no registry present
+                string localPath = ContentStore.PathForDescriptor(d);
+                if (File.Exists(localPath))
+                {
+                    // Assume file is up to date and just return it
+                    string layerTarballPath = $"{d.Digest.Substring("sha256:".Length)}/layer.tar";
+                    await writer.WriteEntryAsync(localPath, layerTarballPath);
+                    layerTarballPaths.Add(layerTarballPath);
+                }
+                else
+                {
+                    throw new NotImplementedException("Need a good error for 'couldn't download a thing because no link to registry'");
+                }
+            }
+        }
 
         // add config
         string configTarballPath = $"{Image.GetSha(x.config)}.json";
