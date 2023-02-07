@@ -111,8 +111,7 @@ public record struct Registry
 
     private Image GenerateNewEmptyImage()
     {
-        
-        throw new NotImplementedException();
+        return new Image(new ManifestV2(2, DockerManifestV2, new ManifestConfig(), new List<ManifestLayer>()), new JsonObject(), "scratch", null);
     }
 
     private async Task<Image?> TryReadSingleImage(string repositoryName, ManifestV2 manifest) {
