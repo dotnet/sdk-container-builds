@@ -77,7 +77,7 @@ public record struct Registry
     /// Google Artifact Registry locations (one for each availability zone) are of the form "ZONE-docker.pkg.dev".
     /// </remarks>
     public readonly bool IsGoogleArtifactRegistry {
-        get => RegistryName.EndsWith("-docker.pkg.dev");
+        get => RegistryName.EndsWith("-docker.pkg.dev", StringComparison.Ordinal);
     }
 
     /// <summary>

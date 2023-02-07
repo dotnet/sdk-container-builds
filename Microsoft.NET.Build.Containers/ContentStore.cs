@@ -29,7 +29,7 @@ public static class ContentStore
     {
         string digest = descriptor.Digest;
 
-        Debug.Assert(digest.StartsWith("sha256:"));
+        Debug.Assert(digest.StartsWith("sha256:", StringComparison.Ordinal));
 
         string contentHash = digest.Substring("sha256:".Length);
 

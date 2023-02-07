@@ -331,7 +331,7 @@ public class EndToEnd
             .Pass();
 
         string[] DecideEntrypoint(string rid, bool isRIDSpecific, string appName, string workingDir) {
-            var binary = rid.StartsWith("win") ? $"{appName}.exe" : appName;
+            var binary = rid.StartsWith("win", StringComparison.Ordinal) ? $"{appName}.exe" : appName;
             if (isRIDSpecific) {
                 return new[] { $"{workingDir}/{binary}" };
             } else {

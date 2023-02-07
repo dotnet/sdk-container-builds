@@ -80,7 +80,7 @@ public static class ContainerHelpers
     /// </summary>
     public static Uri TryExpandRegistryToUri(string alreadyValidatedDomain)
     {
-        var prefix = alreadyValidatedDomain.StartsWith("localhost") ? "http" : "https";
+        var prefix = alreadyValidatedDomain.StartsWith("localhost", StringComparison.Ordinal) ? "http" : "https";
         return new Uri($"{prefix}://{alreadyValidatedDomain}");
     }
 
