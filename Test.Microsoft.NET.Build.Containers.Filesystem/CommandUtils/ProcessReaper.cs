@@ -20,7 +20,7 @@ namespace Microsoft.DotNet.CommandUtils
     /// The reaper also suppresses SIGINT in the current process to allow the target
     /// process to handle the signal.
     /// </remarks>
-    internal class ProcessReaper : IDisposable
+    internal sealed class ProcessReaper : IDisposable
     {
         private readonly Process _process;
         private SafeWaitHandle? _job;

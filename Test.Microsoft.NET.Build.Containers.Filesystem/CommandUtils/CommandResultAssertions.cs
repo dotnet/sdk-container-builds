@@ -7,7 +7,7 @@ using FluentAssertions.Execution;
 
 namespace Microsoft.DotNet.CommandUtils
 {
-    internal class CommandResultAssertions
+    internal sealed class CommandResultAssertions
     {
         private readonly CommandResult _commandResult;
 

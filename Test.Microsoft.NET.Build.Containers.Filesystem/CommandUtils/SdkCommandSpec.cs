@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace Microsoft.DotNet.CommandUtils
 {
-    internal class SdkCommandSpec
+    internal sealed class SdkCommandSpec
     {
         public string? FileName { get; set; }
 

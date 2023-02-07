@@ -1,9 +1,9 @@
-﻿using Microsoft.DotNet.CommandUtils;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using Microsoft.DotNet.CommandUtils;
 using Microsoft.NET.Build.Containers;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Security.Policy;
-using System.Xml.Linq;
 
 namespace Test.Microsoft.NET.Build.Containers.Filesystem;
 
@@ -62,7 +62,7 @@ public class EndToEnd
             DockerRegistryManager.BaseImage,
             DockerRegistryManager.Net6ImageTag,
             "linux-x64",
-            RuntimeGraphFilePath());
+            RuntimeGraphFilePath()).ConfigureAwait(false);
 
         Assert.IsNotNull(x);
 
@@ -74,7 +74,7 @@ public class EndToEnd
 
         // Push the image back to the local registry
 
-        await registry.Push(x, NewImageName(), "latest", DockerRegistryManager.BaseImage, Console.WriteLine);
+        await registry.Push(x, NewImageName(), "latest", DockerRegistryManager.BaseImage, Console.WriteLine).ConfigureAwait(false);
 
         // pull it back locally
         new BasicCommand(TestContext, "docker", "pull", $"{DockerRegistryManager.LocalRegistry}/{NewImageName()}:latest")
@@ -100,7 +100,7 @@ public class EndToEnd
             DockerRegistryManager.BaseImage,
             DockerRegistryManager.Net6ImageTag,
             "linux-x64",
-            RuntimeGraphFilePath());
+            RuntimeGraphFilePath()).ConfigureAwait(false);
         Assert.IsNotNull(x);
 
         Layer l = Layer.FromDirectory(publishDirectory, "/app");
@@ -111,7 +111,7 @@ public class EndToEnd
 
         // Load the image into the local Docker daemon
 
-        await LocalDocker.Load(x, NewImageName(), "latest", DockerRegistryManager.BaseImage);
+        await LocalDocker.Load(x, NewImageName(), "latest", DockerRegistryManager.BaseImage).ConfigureAwait(false);
 
         // Run the image
         new BasicCommand(TestContext, "docker", "run", "--rm", "--tty", $"{NewImageName()}:latest")
@@ -119,31 +119,36 @@ public class EndToEnd
             .Should().Pass();
     }
 
-    private string BuildLocalApp(string tfm = "net6.0", string rid = "linux-x64")
+    private string BuildLocalApp([CallerMemberName]string testName = "TestName", string tfm = "net6.0", string rid = "linux-x64")
     {
-        DirectoryInfo d = new DirectoryInfo("MinimalTestApp");
+        string workingDirectory = Path.Combine(TestSettings.TestArtifactsDirectory, testName);
+
+        DirectoryInfo d = new DirectoryInfo(Path.Combine(workingDirectory, "MinimalTestApp"));
         if (d.Exists)
         {
             d.Delete(recursive: true);
         }
+        Directory.CreateDirectory(workingDirectory);
 
         new DotnetCommand(TestContext, "new", "console", "-f", tfm, "-o", "MinimalTestApp")
+            .WithWorkingDirectory(workingDirectory)
             .Execute()
             .Should().Pass();
 
         new DotnetCommand(TestContext, "publish", "-bl", "MinimalTestApp", "-r", rid, "-f", tfm)
+            .WithWorkingDirectory(workingDirectory)
             .Execute()
             .Should().Pass();
 
-        string publishDirectory = Path.Join("MinimalTestApp", "bin", "Debug", tfm, rid, "publish");
+        string publishDirectory = Path.Join(workingDirectory, "MinimalTestApp", "bin", "Debug", tfm, rid, "publish");
         return publishDirectory;
     }
 
     [TestMethod]
     public async Task EndToEnd_NoAPI()
     {
-        DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "CreateNewImageTest"));
-        DirectoryInfo privateNuGetAssets = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "ContainerNuGet"));
+        DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(TestSettings.TestArtifactsDirectory, "CreateNewImageTest"));
+        DirectoryInfo privateNuGetAssets = new DirectoryInfo(Path.Combine(TestSettings.TestArtifactsDirectory, "ContainerNuGet"));
 
         if (newProjectDir.Exists)
         {
@@ -246,7 +251,7 @@ public class EndToEnd
         {
             try
             {
-                var response = await client.GetAsync("http://localhost:5017/weatherforecast");
+                var response = await client.GetAsync("http://localhost:5017/weatherforecast").ConfigureAwait(false);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -256,7 +261,7 @@ public class EndToEnd
             }
             catch { }
 
-            await Task.Delay(TimeSpan.FromSeconds(1));
+            await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
         }
 
         new BasicCommand(TestContext, "docker", "logs", appContainerId)
@@ -296,7 +301,7 @@ public class EndToEnd
         // Build the image
         Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.BaseImageSource));
 
-        Image? x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net7ImageTag, rid, RuntimeGraphFilePath());
+        Image? x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net7ImageTag, rid, RuntimeGraphFilePath()).ConfigureAwait(false);
         Assert.IsNotNull(x);
 
         Layer l = Layer.FromDirectory(publishDirectory, "/app");
@@ -309,7 +314,7 @@ public class EndToEnd
 
         // Load the image into the local Docker daemon
 
-        await LocalDocker.Load(x, NewImageName(), rid, DockerRegistryManager.BaseImage);
+        await LocalDocker.Load(x, NewImageName(), rid, DockerRegistryManager.BaseImage).ConfigureAwait(false);
 
         // Run the image
         new BasicCommand(
@@ -326,7 +331,7 @@ public class EndToEnd
             .Pass();
 
         string[] DecideEntrypoint(string rid, bool isRIDSpecific, string appName, string workingDir) {
-            var binary = rid.StartsWith("win") ? $"{appName}.exe" : appName;
+            var binary = rid.StartsWith("win", StringComparison.Ordinal) ? $"{appName}.exe" : appName;
             if (isRIDSpecific) {
                 return new[] { $"{workingDir}/{binary}" };
             } else {

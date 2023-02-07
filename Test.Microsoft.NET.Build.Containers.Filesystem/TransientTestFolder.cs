@@ -1,4 +1,7 @@
-﻿using static System.IO.Path;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using static System.IO.Path;
 
 namespace Test.Microsoft.NET.Build.Containers.Filesystem;
 
@@ -7,7 +10,7 @@ namespace Test.Microsoft.NET.Build.Containers.Filesystem;
 /// </summary>
 internal sealed class TransientTestFolder : IDisposable
 {
-    public readonly string Path = Combine(GetTempPath(), GetRandomFileName());
+    public readonly string Path = Combine(TestSettings.TestArtifactsDirectory, GetRandomFileName());
     public readonly DirectoryInfo DirectoryInfo;
 
     public TransientTestFolder()

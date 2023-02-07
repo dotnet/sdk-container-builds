@@ -112,7 +112,7 @@ namespace Microsoft.DotNet.CommandUtils
 
         internal static bool ArgumentContainsWhitespace(string argument)
         {
-            return argument.Contains(" ") || argument.Contains("\t") || argument.Contains("\n");
+            return argument.Contains(' ') || argument.Contains('\t') || argument.Contains('\n');
         }
 
         /// <summary>
@@ -163,7 +163,7 @@ namespace Microsoft.DotNet.CommandUtils
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        private static IEnumerable<string> EscapeArgArray(IEnumerable<string> args)
+        private static List<string> EscapeArgArray(IEnumerable<string> args)
         {
             var escapedArgs = new List<string>();
 
@@ -184,7 +184,7 @@ namespace Microsoft.DotNet.CommandUtils
         /// </summary>
         /// <param name="arguments"></param>
         /// <returns></returns>
-        private static IEnumerable<string> EscapeArgArrayForCmd(IEnumerable<string> arguments)
+        private static List<string> EscapeArgArrayForCmd(IEnumerable<string> arguments)
         {
             var escapedArgs = new List<string>();
 

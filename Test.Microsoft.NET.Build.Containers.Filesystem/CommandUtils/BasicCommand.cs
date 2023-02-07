@@ -3,7 +3,7 @@
 
 namespace Microsoft.DotNet.CommandUtils
 {
-    internal class BasicCommand : TestCommand
+    internal sealed class BasicCommand : TestCommand
     {
         private readonly string _processName;
 

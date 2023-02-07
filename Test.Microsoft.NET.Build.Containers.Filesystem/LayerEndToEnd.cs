@@ -1,7 +1,11 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Formats.Tar;
 using Microsoft.NET.Build.Containers;
 using System.IO.Compression;
 using System.Security.Cryptography;
+using System.Globalization;
 
 namespace Test.Microsoft.NET.Build.Containers.Filesystem;
 
@@ -87,8 +91,8 @@ public class LayerEndToEnd
             }
         }
 
-        Assert.AreEqual(Convert.ToHexString(hashBytes), l.Descriptor.Digest.Substring("sha256:".Length), ignoreCase: true);
-        Assert.AreEqual(Convert.ToHexString(uncompressedHashBytes), l.Descriptor.UncompressedDigest?.Substring("sha256:".Length), ignoreCase: true);
+        Assert.AreEqual(Convert.ToHexString(hashBytes), l.Descriptor.Digest.Substring("sha256:".Length), ignoreCase: true, CultureInfo.InvariantCulture);
+        Assert.AreEqual(Convert.ToHexString(uncompressedHashBytes), l.Descriptor.UncompressedDigest?.Substring("sha256:".Length), ignoreCase: true, CultureInfo.InvariantCulture);
     }
 
     TransientTestFolder? testSpecificArtifactRoot;
@@ -115,7 +119,7 @@ public class LayerEndToEnd
     }
     
     
-    private static IDictionary<string, TarEntryType> LoadAllTarEntries(string file)
+    private static Dictionary<string, TarEntryType> LoadAllTarEntries(string file)
     {
         using var gzip = new GZipStream(File.OpenRead(file), CompressionMode.Decompress);
         using var tar = new TarReader(gzip);

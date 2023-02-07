@@ -1,7 +1,7 @@
-using System.Collections;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using Microsoft.NET.Build.Containers.Tasks;
-using System.Diagnostics;
-using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.DotNet.CommandUtils;
 using Test.Microsoft.NET.Build.Containers.Filesystem;
@@ -42,7 +42,7 @@ public class CreateNewImageTests
     [TestMethod]
     public void CreateNewImage_Baseline()
     {
-        DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), nameof(CreateNewImage_Baseline)));
+        DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(TestSettings.TestArtifactsDirectory, nameof(CreateNewImage_Baseline)));
 
         if (newProjectDir.Exists)
         {
@@ -82,7 +82,7 @@ public class CreateNewImageTests
     [TestMethod]
     public void ParseContainerProperties_EndToEnd()
     {
-        DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), nameof(ParseContainerProperties_EndToEnd)));
+        DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(TestSettings.TestArtifactsDirectory, nameof(ParseContainerProperties_EndToEnd)));
 
         if (newProjectDir.Exists)
         {
@@ -138,7 +138,7 @@ public class CreateNewImageTests
     [TestMethod]
     public void Tasks_EndToEnd_With_EnvironmentVariable_Validation()
     {
-        DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), nameof(Tasks_EndToEnd_With_EnvironmentVariable_Validation)));
+        DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(TestSettings.TestArtifactsDirectory, nameof(Tasks_EndToEnd_With_EnvironmentVariable_Validation)));
 
         if (newProjectDir.Exists)
         {
