@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using System.Formats.Tar;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace Microsoft.NET.Build.Containers;
@@ -50,7 +51,7 @@ public class LocalDocker : ILocalDaemon
     {
         try
         {
-            var config = await GetConfig();
+            var config = await GetConfig().ConfigureAwait(false);
             if (!config.RootElement.TryGetProperty("ServerErrors", out var errorProperty)) {
                 return true;
             } else if (errorProperty.ValueKind == JsonValueKind.Array && errorProperty.GetArrayLength() == 0) {
@@ -78,9 +79,9 @@ public class LocalDocker : ILocalDaemon
         };
         var proc = Process.Start(psi);
         if (proc is null) throw new Exception("Failed to start docker client process");
-        await proc.WaitForExitAsync();
-        if (proc.ExitCode != 0) throw new Exception($"Failed to get docker info({proc.ExitCode})\n{await proc.StandardOutput.ReadToEndAsync()}\n{await proc.StandardError.ReadToEndAsync()}");
-        return await JsonDocument.ParseAsync(proc.StandardOutput.BaseStream);
+        await proc.WaitForExitAsync().ConfigureAwait(false);
+        if (proc.ExitCode != 0) throw new Exception($"Failed to get docker info({proc.ExitCode})\n{await proc.StandardOutput.ReadToEndAsync().ConfigureAwait(false)}\n{await proc.StandardError.ReadToEndAsync().ConfigureAwait(false)}");
+        return await JsonDocument.ParseAsync(proc.StandardOutput.BaseStream).ConfigureAwait(false);
     }
 
     private static async Task WriteImageToStream(Image image, ImageReference sourceReference, ImageReference destinationReference, Stream imageStream)

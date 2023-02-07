@@ -97,8 +97,8 @@ public record struct Registry
         var initialManifestResponse = await GetManifest(repositoryName, reference).ConfigureAwait(false);
 
         return initialManifestResponse.Content.Headers.ContentType?.MediaType switch {
-            DockerManifestV2 => await ReadSingleImage(repositoryName, await initialManifestResponse.Content.ReadFromJsonAsync<ManifestV2>()).ConfigureAwait(false),
-            DockerManifestListV2 => await PickBestImageFromManifestList(repositoryName, reference, await initialManifestResponse.Content.ReadFromJsonAsync<ManifestListV2>(), runtimeIdentifier, runtimeIdentifierGraphPath).ConfigureAwait(false),
+            DockerManifestV2 => await ReadSingleImage(repositoryName, await initialManifestResponse.Content.ReadFromJsonAsync<ManifestV2>().ConfigureAwait(false)).ConfigureAwait(false),
+            DockerManifestListV2 => await PickBestImageFromManifestList(repositoryName, reference, await initialManifestResponse.Content.ReadFromJsonAsync<ManifestListV2>().ConfigureAwait(false), runtimeIdentifier, runtimeIdentifierGraphPath).ConfigureAwait(false),
             var unknownMediaType => throw new NotImplementedException($"The manifest for {repositoryName}:{reference} from registry {BaseUri} was an unknown type: {unknownMediaType}. Please raise an issue at https://github.com/dotnet/sdk-container-builds/issues with this message.")
         };
     }
@@ -124,7 +124,7 @@ public record struct Registry
         }
         var matchingManifest = ridDict[bestManifestRid];
         var manifestResponse = await GetManifest(repositoryName, matchingManifest.digest).ConfigureAwait(false);
-        return await ReadSingleImage(repositoryName, await manifestResponse.Content.ReadFromJsonAsync<ManifestV2>()).ConfigureAwait(false);
+        return await ReadSingleImage(repositoryName, await manifestResponse.Content.ReadFromJsonAsync<ManifestV2>().ConfigureAwait(false)).ConfigureAwait(false);
     }
 
     private async Task<HttpResponseMessage> GetManifest(string repositoryName, string reference)
