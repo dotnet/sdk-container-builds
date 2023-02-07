@@ -3,7 +3,6 @@
 
 using System.CommandLine;
 using Microsoft.NET.Build.Containers;
-using System.Text.Json;
 using System.CommandLine.Parsing;
 using System.Text;
 

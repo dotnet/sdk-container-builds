@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using System.Formats.Tar;
 using System.Text;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace Microsoft.NET.Build.Containers;

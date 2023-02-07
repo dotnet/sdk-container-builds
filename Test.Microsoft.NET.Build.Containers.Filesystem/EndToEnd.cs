@@ -3,10 +3,7 @@
 
 using Microsoft.DotNet.CommandUtils;
 using Microsoft.NET.Build.Containers;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Security.Policy;
-using System.Xml.Linq;
 
 namespace Test.Microsoft.NET.Build.Containers.Filesystem;
 

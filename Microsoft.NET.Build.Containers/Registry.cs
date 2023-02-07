@@ -1,21 +1,15 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using NuGet.Packaging;
 using NuGet.RuntimeModel;
 using System.Diagnostics;
-using System.IO.Compression;
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using System.Xml.Linq;
 
 namespace Microsoft.NET.Build.Containers;
 

@@ -5,7 +5,6 @@ namespace Microsoft.NET.Build.Containers;
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using System.Text.RegularExpressions;
 using static ReferenceParser;
 
