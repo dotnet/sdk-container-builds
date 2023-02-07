@@ -119,7 +119,7 @@ public class LayerEndToEnd
     }
     
     
-    private static IDictionary<string, TarEntryType> LoadAllTarEntries(string file)
+    private static Dictionary<string, TarEntryType> LoadAllTarEntries(string file)
     {
         using var gzip = new GZipStream(File.OpenRead(file), CompressionMode.Decompress);
         using var tar = new TarReader(gzip);
