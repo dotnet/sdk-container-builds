@@ -27,6 +27,8 @@ namespace Test.Microsoft.NET.Build.Containers.Tasks
 
             Assert.AreEqual("dotnet/testimage", instance.GetPropertyValue(ContainerImageName));
             CollectionAssert.AreEquivalent(new[] { "7.0", "latest" }, instance.GetItems(ContainerImageTags).Select(i => i.EvaluatedInclude).ToArray());
+
+            CollectionAssert.AreEquivalent(new[] { "NetSdkOCIImageBuild" }, instance.GetItems("ProjectCapability").Select(i => i.EvaluatedInclude).ToArray());
         }
 
         [TestMethod]
