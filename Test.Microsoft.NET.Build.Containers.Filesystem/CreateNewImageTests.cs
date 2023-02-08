@@ -29,7 +29,7 @@ public class CreateNewImageTests
         }
     }
 
-    public static string RuntimeGraphFilePath() 
+    public static string RuntimeGraphFilePath()
     {
         string dotnetRoot = ToolsetUtils.GetDotNetPath();
         DirectoryInfo sdksDir = new(Path.Combine(dotnetRoot, "sdk"));
@@ -105,7 +105,7 @@ public class CreateNewImageTests
         pcp.FullyQualifiedBaseImageName = "mcr.microsoft.com/dotnet/runtime:7.0";
         pcp.ContainerRegistry = "localhost:5010";
         pcp.ContainerImageName = "dotnet/testimage";
-        pcp.ContainerImageTags = new [] { "5.0", "latest"};
+        pcp.ContainerImageTags = new[] { "5.0", "latest" };
 
         Assert.IsTrue(pcp.Execute());
         Assert.AreEqual("mcr.microsoft.com", pcp.ParsedContainerRegistry);
@@ -113,7 +113,7 @@ public class CreateNewImageTests
         Assert.AreEqual("7.0", pcp.ParsedContainerTag);
 
         Assert.AreEqual("dotnet/testimage", pcp.NewContainerImageName);
-        CollectionAssert.AreEquivalent(new []{ "5.0", "latest"}, pcp.NewContainerTags);
+        CollectionAssert.AreEquivalent(new[] { "5.0", "latest" }, pcp.NewContainerTags);
 
         CreateNewImage cni = new CreateNewImage();
         cni.BaseRegistry = pcp.ParsedContainerRegistry;
@@ -193,6 +193,7 @@ public class CreateNewImageTests
         cni.ContainerEnvironmentVariables = pcp.NewContainerEnvironmentVariables;
         cni.ContainerRuntimeIdentifier = "linux-x64";
         cni.RuntimeIdentifierGraphPath = RuntimeGraphFilePath();
+        cni.LocalContainerDaemon = global::Microsoft.NET.Build.Containers.KnownDaemonTypes.Docker;
 
         Assert.IsTrue(cni.Execute());
 
