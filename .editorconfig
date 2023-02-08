@@ -169,9 +169,6 @@ dotnet_diagnostic.CA2007.severity = warning
 # Do not raise reserved exception types
 dotnet_diagnostic.CA2201.severity = suggestion
 
-# Non-constant fields should not be visible
-dotnet_diagnostic.CA2211.severity = suggestion
-
 # Using directive is unnecessary
 dotnet_diagnostic.IDE0005.severity = warning
 
