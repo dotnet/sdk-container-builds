@@ -113,7 +113,7 @@ public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task
         return !Log.HasLoggedErrors;
     }
 
-    private void SetPorts(Image image, ITaskItem[] exposedPorts)
+    private void SetPorts(ImageBuilder image, ITaskItem[] exposedPorts)
     {
         foreach (var port in exposedPorts)
         {
@@ -188,7 +188,7 @@ public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task
         }
     }
 
-    private static void SetEnvironmentVariables(Image img, ITaskItem[] envVars)
+    private static void SetEnvironmentVariables(ImageBuilder img, ITaskItem[] envVars)
     {
         foreach (ITaskItem envVar in envVars)
         {
@@ -196,10 +196,14 @@ public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task
         }
     }
 
-    private Image? GetBaseImage() {
-        if (SourceRegistry.Value is {} registry) {
+    private ImageBuilder GetBaseImage()
+    {
+        if (SourceRegistry.Value is {} registry)
+        {
             return registry.GetImageManifest(BaseImageName, BaseImageTag, ContainerRuntimeIdentifier, RuntimeIdentifierGraphPath).Result;
-        } else {
+        }
+        else
+        {
             throw new ArgumentException("Don't know how to pull images from local daemons at the moment");
         }
     }
