@@ -24,7 +24,7 @@ public record Port(int number, PortType type);
 public static class ContainerHelpers
 {
     public const string HostObjectUser = "SDK_CONTAINER_REGISTRY_UNAME";
-    
+
     public const string HostObjectPass = "SDK_CONTAINER_REGISTRY_PWORD";
 
     /// <summary>
@@ -80,8 +80,8 @@ public static class ContainerHelpers
     /// </summary>
     public static Uri TryExpandRegistryToUri(string alreadyValidatedDomain)
     {
-        var prefix = alreadyValidatedDomain.StartsWith("localhost", StringComparison.Ordinal) ? "http" : "https";
-        return new Uri($"{prefix}://{alreadyValidatedDomain}");
+        // var prefix = alreadyValidatedDomain.StartsWith("localhost", StringComparison.Ordinal) ? "http" : "https";
+        return new Uri($"https://{alreadyValidatedDomain}");
     }
 
     /// <summary>

@@ -50,13 +50,23 @@ public partial class AuthHandshakeMessageHandler : DelegatingHandler
             {
                 keyValues.Add(match.Groups["key"].Value, match.Groups["value"].Value);
             }
-
             if (keyValues.TryGetValue("realm", out string? realm) && keyValues.TryGetValue("service", out string? service))
             {
                 string? scope = null;
                 keyValues.TryGetValue("scope", out scope);
-                authInfo = new AuthInfo(new Uri(realm), service, scope);
-                return true;
+
+                // We need a Uri for our caches, because that's the only way we have to look up
+                // stored auth tokens at the start of a request/response cycle. For Bearer schemes,
+                // the realm has to be a URI so you can contact that URI for a token, but for Basic
+                // schemes, the realm could be anything. If it _is_ a host we'll use it, but if it's
+                // not, we'll just use the host from the request URI as a fallback.
+                authInfo = header.Scheme switch {
+                    "Bearer" => new AuthInfo(new Uri(realm), service, scope),
+                    "Basic" when Uri.TryCreate(realm, UriKind.Absolute, out Uri? realmUri) => new AuthInfo(realmUri, service, scope),
+                    "Basic" => new AuthInfo(new Uri(msg.RequestMessage!.RequestUri!.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)), service, scope),
+                    _ => null
+                };
+                return authInfo is not null;
             }
         }
 
@@ -110,7 +120,7 @@ public partial class AuthHandshakeMessageHandler : DelegatingHandler
                 throw new CredentialRetrievalException(registry, e);
             }
         }
-        
+
         if (scheme is "Basic")
         {
             var basicAuth = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{privateRepoCreds.Username}:{privateRepoCreds.Password}")));
