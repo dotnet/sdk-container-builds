@@ -1,13 +1,15 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using Xunit.Abstractions;
+
 namespace Microsoft.DotNet.CommandUtils
 {
     internal sealed class DotnetCommand : TestCommand
     {
         private string _executableFilePath = "dotnet";
 
-        internal DotnetCommand(TestContext log, string subcommand, params string[] args) : base(log)
+        internal DotnetCommand(ITestOutputHelper log, string subcommand, params string[] args) : base(log)
         {
             Arguments.Add(subcommand);
             Arguments.AddRange(args);

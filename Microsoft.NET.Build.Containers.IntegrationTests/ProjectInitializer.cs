@@ -4,9 +4,9 @@
 using System.Runtime.CompilerServices;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Framework;
-using Microsoft.Build.Locator;
+using Xunit;
 
-namespace Test.Microsoft.NET.Build.Containers;
+namespace Microsoft.NET.Build.Containers.IntegrationTests;
 
 public static class ProjectInitializer {
     private static string? CombinedTargetsLocation;
@@ -20,15 +20,14 @@ public static class ProjectInitializer {
         combinedContent.AddRange(targetsContent[1..]);
         var tempTargetLocation = Path.Combine(Path.GetTempPath(), "Containers", "Microsoft.NET.Build.Containers.targets");
         string? directoryName = Path.GetDirectoryName(tempTargetLocation);
-        Assert.IsNotNull(directoryName);
+        Assert.NotNull(directoryName);
         Directory.CreateDirectory(directoryName);
         File.WriteAllLines(tempTargetLocation, combinedContent);
         return tempTargetLocation;
     }
 
-    public static void LocateMSBuild(TestContext ctx)
+    public static void LocateMSBuild()
     {
-        var instances = MSBuildLocator.RegisterDefaults();
         var relativePath = Path.Combine("..", "packaging", "build", "Microsoft.NET.Build.Containers.targets");
         var targetsFile = CurrentFile.Relative(relativePath);
         var propsFile = Path.ChangeExtension(targetsFile, ".props");

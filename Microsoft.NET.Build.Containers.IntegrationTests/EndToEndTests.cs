@@ -4,38 +4,19 @@
 using Microsoft.DotNet.CommandUtils;
 using Microsoft.NET.Build.Containers;
 using System.Runtime.CompilerServices;
+using Xunit;
+using Xunit.Abstractions;
 
-namespace Test.Microsoft.NET.Build.Containers.Filesystem;
+namespace Microsoft.NET.Build.Containers.IntegrationTests;
 
-[TestClass]
-public class EndToEnd
+[Collection("Docker tests")]
+public class EndToEndTests
 {
-    private TestContext? testContextInstance;
+    private ITestOutputHelper _testOutput;
 
-    /// <summary>
-    ///Gets or sets the test context which provides
-    ///information about and functionality for the current test run.
-    ///</summary>
-    public TestContext TestContext
+    public EndToEndTests(ITestOutputHelper testOutput)
     {
-        get
-        {
-            return testContextInstance ?? throw new InvalidOperationException($"{nameof(TestContext)} is null.");
-        }
-        set
-        {
-            testContextInstance = value;
-        }
-    }
-
-    public static string RuntimeGraphFilePath()
-    {
-        string dotnetRoot = ToolsetUtils.GetDotNetPath();
-        DirectoryInfo sdksDir = new(Path.Combine(dotnetRoot, "sdk"));
-
-        var lastWrittenSdk = sdksDir.EnumerateDirectories().OrderByDescending(di => di.LastWriteTime).First();
-
-        return lastWrittenSdk.GetFiles("RuntimeIdentifierGraph.json").Single().FullName;
+        _testOutput = testOutput;
     }
 
     public static string NewImageName([CallerMemberName] string callerMemberName = "")
@@ -49,7 +30,7 @@ public class EndToEnd
         return callerMemberName;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task ApiEndToEndWithRegistryPushAndPull()
     {
         string publishDirectory = BuildLocalApp();
@@ -62,9 +43,9 @@ public class EndToEnd
             DockerRegistryManager.BaseImage,
             DockerRegistryManager.Net6ImageTag,
             "linux-x64",
-            RuntimeGraphFilePath()).ConfigureAwait(false);
+            ToolsetUtils.GetRuntimeGraphFilePath()).ConfigureAwait(false);
 
-        Assert.IsNotNull(x);
+        Assert.NotNull(x);
 
         Layer l = Layer.FromDirectory(publishDirectory, "/app");
 
@@ -79,17 +60,17 @@ public class EndToEnd
         await registry.Push(x, sourceReference, destinationReference, Console.WriteLine).ConfigureAwait(false);
 
         // pull it back locally
-        new BasicCommand(TestContext, "docker", "pull", $"{DockerRegistryManager.LocalRegistry}/{NewImageName()}:latest")
+        new BasicCommand(_testOutput, "docker", "pull", $"{DockerRegistryManager.LocalRegistry}/{NewImageName()}:latest")
             .Execute()
             .Should().Pass();
 
         // Run the image
-        new BasicCommand(TestContext, "docker", "run", "--rm", "--tty", $"{DockerRegistryManager.LocalRegistry}/{NewImageName()}:latest")
+        new BasicCommand(_testOutput, "docker", "run", "--rm", "--tty", $"{DockerRegistryManager.LocalRegistry}/{NewImageName()}:latest")
             .Execute()
             .Should().Pass();
     }
 
-    [TestMethod]
+    [Fact]
     public async Task ApiEndToEndWithLocalLoad()
     {
         string publishDirectory = BuildLocalApp();
@@ -102,8 +83,8 @@ public class EndToEnd
             DockerRegistryManager.BaseImage,
             DockerRegistryManager.Net6ImageTag,
             "linux-x64",
-            RuntimeGraphFilePath()).ConfigureAwait(false);
-        Assert.IsNotNull(x);
+            ToolsetUtils.GetRuntimeGraphFilePath()).ConfigureAwait(false);
+        Assert.NotNull(x);
 
         Layer l = Layer.FromDirectory(publishDirectory, "/app");
 
@@ -118,7 +99,7 @@ public class EndToEnd
         await new LocalDocker(Console.WriteLine).Load(x, sourceReference, destinationReference).ConfigureAwait(false);
 
         // Run the image
-        new BasicCommand(TestContext, "docker", "run", "--rm", "--tty", $"{NewImageName()}:latest")
+        new BasicCommand(_testOutput, "docker", "run", "--rm", "--tty", $"{NewImageName()}:latest")
             .Execute()
             .Should().Pass();
     }
@@ -134,12 +115,12 @@ public class EndToEnd
         }
         Directory.CreateDirectory(workingDirectory);
 
-        new DotnetCommand(TestContext, "new", "console", "-f", tfm, "-o", "MinimalTestApp")
+        new DotnetCommand(_testOutput, "new", "console", "-f", tfm, "-o", "MinimalTestApp")
             .WithWorkingDirectory(workingDirectory)
             .Execute()
             .Should().Pass();
 
-        new DotnetCommand(TestContext, "publish", "-bl", "MinimalTestApp", "-r", rid, "-f", tfm)
+        new DotnetCommand(_testOutput, "publish", "-bl", "MinimalTestApp", "-r", rid, "-f", tfm)
             .WithWorkingDirectory(workingDirectory)
             .Execute()
             .Should().Pass();
@@ -148,7 +129,7 @@ public class EndToEnd
         return publishDirectory;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task EndToEnd_NoAPI()
     {
         DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(TestSettings.TestArtifactsDirectory, "CreateNewImageTest"));
@@ -183,26 +164,26 @@ public class EndToEnd
         }
 
 
-        new DotnetCommand(TestContext, "new", "webapi", "-f", "net7.0")
+        new DotnetCommand(_testOutput, "new", "webapi", "-f", "net7.0")
             .WithWorkingDirectory(newProjectDir.FullName)
             // do not pollute the primary/global NuGet package store with the private package(s)
             .WithEnvironmentVariable("NUGET_PACKAGES", privateNuGetAssets.FullName)
             .Execute()
             .Should().Pass();
 
-        new DotnetCommand(TestContext, "new", "nugetconfig")
+        new DotnetCommand(_testOutput, "new", "nugetconfig")
             .WithWorkingDirectory(newProjectDir.FullName)
             .Execute()
             .Should().Pass();
 
-        new DotnetCommand(TestContext, "nuget", "add", "source", packagedir.FullName, "--name", "local-temp")
+        new DotnetCommand(_testOutput, "nuget", "add", "source", packagedir.FullName, "--name", "local-temp")
             .WithEnvironmentVariable("NUGET_PACKAGES", privateNuGetAssets.FullName)
             .WithWorkingDirectory(newProjectDir.FullName)
             .Execute()
             .Should().Pass();
 
         // Add package to the project
-        new DotnetCommand(TestContext, "add", "package", "Microsoft.NET.Build.Containers", "--prerelease", "-f", "net7.0")
+        new DotnetCommand(_testOutput, "add", "package", "Microsoft.NET.Build.Containers", "--prerelease", "-f", "net7.0")
             .WithEnvironmentVariable("NUGET_PACKAGES", privateNuGetAssets.FullName)
             .WithWorkingDirectory(newProjectDir.FullName)
             .Execute()
@@ -213,7 +194,7 @@ public class EndToEnd
 
         // Build & publish the project
         new DotnetCommand(
-            TestContext,
+            _testOutput,
             "publish",
             "/p:publishprofile=DefaultContainer",
             "/p:runtimeidentifier=linux-x64",
@@ -227,13 +208,13 @@ public class EndToEnd
             .Execute()
             .Should().Pass();
 
-        new BasicCommand(TestContext, "docker", "pull", $"{DockerRegistryManager.LocalRegistry}/{imageName}:{imageTag}")
+        new BasicCommand(_testOutput, "docker", "pull", $"{DockerRegistryManager.LocalRegistry}/{imageName}:{imageTag}")
             .Execute()
             .Should().Pass();
 
         var containerName = "test-container-1";
         CommandResult processResult = new BasicCommand(
-            TestContext,
+            _testOutput,
             "docker",
             "run",
             "--rm",
@@ -245,7 +226,7 @@ public class EndToEnd
             $"{DockerRegistryManager.LocalRegistry}/{imageName}:{imageTag}")
         .Execute();
         processResult.Should().Pass();
-        Assert.IsNotNull(processResult.StdOut);
+        Assert.NotNull(processResult.StdOut);
 
         string appContainerId = processResult.StdOut.Trim();
 
@@ -271,13 +252,13 @@ public class EndToEnd
             await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
         }
 
-        new BasicCommand(TestContext, "docker", "logs", appContainerId)
+        new BasicCommand(_testOutput, "docker", "logs", appContainerId)
             .Execute()
             .Should().Pass();
 
-        Assert.AreEqual(true, everSucceeded, "http://localhost:5017/weatherforecast never responded.");
+        Assert.True(everSucceeded, "http://localhost:5017/weatherforecast never responded.");
 
-        new BasicCommand(TestContext, "docker", "stop", appContainerId)
+        new BasicCommand(_testOutput, "docker", "stop", appContainerId)
             .Execute()
             .Should().Pass();
 
@@ -289,18 +270,18 @@ public class EndToEnd
     // we need to configure it to allow emulation of other platforms on amd64 hosts before these two will run.
     // They do run locally, however.
 
-    //[DataRowAttribute("linux-arm", false, "/app", "linux/arm/v7")] // packaging framework-dependent because emulating arm on x64 Docker host doesn't work
-    //[DataRowAttribute("linux-arm64", false, "/app", "linux/arm64/v8")] // packaging framework-dependent because emulating arm64 on x64 Docker host doesn't work
+    //[InlineData("linux-arm", false, "/app", "linux/arm/v7")] // packaging framework-dependent because emulating arm on x64 Docker host doesn't work
+    //[InlineData("linux-arm64", false, "/app", "linux/arm64/v8")] // packaging framework-dependent because emulating arm64 on x64 Docker host doesn't work
 
     // this one should be skipped in all cases because we don't ship linux-x86 runtime packs, so we can't execute the 'apphost' version of the app
-    //[DataRowAttribute("linux-x86", false, "/app", "linux/386")] // packaging framework-dependent because missing runtime packs for x86 linux.
+    //[InlineData("linux-x86", false, "/app", "linux/386")] // packaging framework-dependent because missing runtime packs for x86 linux.
 
     // This one should be skipped because containers can't be configured to run on Linux hosts :(
-    //[DataRow("win-x64", true, "C:\\app", "windows/amd64")]
+    //[InlineData("win-x64", true, "C:\\app", "windows/amd64")]
 
     // As a result, we only have one actual data-driven test
-    [DataRow("linux-x64", true, "/app", "linux/amd64")]
-    [DataTestMethod]
+    [InlineData("linux-x64", true, "/app", "linux/amd64")]
+    [Theory]
     public async Task CanPackageForAllSupportedContainerRIDs(string rid, bool isRIDSpecific, string workingDir, string dockerPlatform)
     {
         string publishDirectory = isRIDSpecific ? BuildLocalApp(tfm: "net7.0", rid: rid) : BuildLocalApp(tfm: "net7.0");
@@ -308,8 +289,8 @@ public class EndToEnd
         // Build the image
         Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.BaseImageSource));
 
-        Image? x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net7ImageTag, rid, RuntimeGraphFilePath()).ConfigureAwait(false);
-        Assert.IsNotNull(x);
+        Image? x = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net7ImageTag, rid, ToolsetUtils.GetRuntimeGraphFilePath()).ConfigureAwait(false);
+        Assert.NotNull(x);
 
         Layer l = Layer.FromDirectory(publishDirectory, "/app");
 
@@ -326,7 +307,7 @@ public class EndToEnd
 
         // Run the image
         new BasicCommand(
-            TestContext,
+            _testOutput,
             "docker",
             "run",
             "--rm",
