@@ -11,7 +11,7 @@ namespace Microsoft.NET.Build.Containers;
 internal sealed class ImageConfig
 {
     private readonly JsonObject _config;
-    private readonly HashSet<Label> _labels;
+    private readonly Dictionary<string, string> _labels;
     private readonly List<Layer> _newLayers = new();
     private readonly HashSet<Port> _exposedPorts;
     private readonly Dictionary<string, string> _environmentVariables;
@@ -88,7 +88,7 @@ internal sealed class ImageConfig
 
     internal void AddLabel(string name, string value)
     {
-        _labels.Add(new(name, value));
+        _labels[name] = value;
     }
 
     internal void SetWorkingDirectory(string workingDirectory)
@@ -116,7 +116,7 @@ internal sealed class ImageConfig
             {
                 if (property.Key is { } propertyName
                     && property.Value is JsonObject propertyValue
-                    && ContainerHelpers.TryParsePort(propertyName, out var parsedPort, out var _))
+                    && ContainerHelpers.TryParsePort(propertyName, out Port? parsedPort, out ContainerHelpers.ParsePortError? _))
                 {
                     ports.Add(parsedPort);
                 }
@@ -125,9 +125,9 @@ internal sealed class ImageConfig
         return ports;
     }
 
-    private HashSet<Label> GetLabels()
+    private Dictionary<string, string> GetLabels()
     {
-        HashSet<Label> labels = new();
+        Dictionary<string, string> labels = new();
         if (_config["config"]?["Labels"] is JsonObject labelsJson)
         {
             // read label mappings from object
@@ -135,7 +135,7 @@ internal sealed class ImageConfig
             {
                 if (property.Key is { } propertyName && property.Value is JsonValue propertyValue)
                 {
-                    labels.Add(new(propertyName, propertyValue.ToString()));
+                    labels[propertyName] = propertyValue.ToString();
                 }
             }    
         }
@@ -189,9 +189,9 @@ internal sealed class ImageConfig
     private JsonObject CreateLabelMap()
     {
         JsonObject container = new();
-        foreach (Label label in _labels)
+        foreach (KeyValuePair<string, string> label in _labels)
         {
-            container.Add(label.name, label.value);
+            container.Add(label.Key, label.Value);
         }
         return container;
     }

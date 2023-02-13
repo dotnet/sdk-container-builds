@@ -78,7 +78,6 @@ namespace Test.Microsoft.NET.Build.Containers
         }
 
         [TestMethod]
-        [Ignore] // doesn't work
         public void CanPreserveExistingLabels()
         {
             string simpleImageConfig =
@@ -218,7 +217,6 @@ namespace Test.Microsoft.NET.Build.Containers
         }
 
         [TestMethod]
-        [Ignore]
         public void CanPreserveExistingPorts()
         {
             string simpleImageConfig =
@@ -251,7 +249,8 @@ namespace Test.Microsoft.NET.Build.Containers
                       "Labels": null,
                       "ExposedPorts":
                       {
-                        "6100/tcp": {}
+                        "6100/tcp": {},
+                        "6200": {}
                       }
                     },
                     "created": "2023-02-04T08:14:52.000901321Z",
@@ -277,6 +276,7 @@ namespace Test.Microsoft.NET.Build.Containers
             baseConfig.ExposePort(6000, PortType.tcp);
             baseConfig.ExposePort(6010, PortType.udp);
             baseConfig.ExposePort(6100, PortType.udp);
+            baseConfig.ExposePort(6200, PortType.tcp);
 
             string readyImage = baseConfig.BuildConfig();
 
@@ -285,10 +285,12 @@ namespace Test.Microsoft.NET.Build.Containers
             var resultPorts = result?["config"]?["ExposedPorts"] as JsonObject;
             Assert.IsNotNull(resultPorts);
 
-            // Assert.AreEqual(3, resultPorts.Count);   --> 4 6100/tcp also exists
+            Assert.AreEqual(5, resultPorts.Count);
             Assert.IsNotNull(resultPorts["6000/tcp"] as JsonObject);
             Assert.IsNotNull(resultPorts["6010/udp"] as JsonObject);
             Assert.IsNotNull(resultPorts["6100/udp"] as JsonObject);
+            Assert.IsNotNull(resultPorts["6100/tcp"] as JsonObject);
+            Assert.IsNotNull(resultPorts["6200/tcp"] as JsonObject);
         }
     }
 }
