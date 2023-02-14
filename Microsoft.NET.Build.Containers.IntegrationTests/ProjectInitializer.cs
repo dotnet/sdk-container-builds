@@ -4,12 +4,21 @@
 using System.Runtime.CompilerServices;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Framework;
-using Microsoft.Build.Locator;
+using Xunit;
 
-namespace Test.Microsoft.NET.Build.Containers;
+namespace Microsoft.NET.Build.Containers.IntegrationTests;
 
-public static class ProjectInitializer {
-    private static string? CombinedTargetsLocation;
+public sealed class ProjectInitializer
+{
+    private readonly static string _combinedTargetsLocation;
+
+    static ProjectInitializer()
+    {
+        var relativePath = Path.Combine("..", "packaging", "build", "Microsoft.NET.Build.Containers.targets");
+        var targetsFile = CurrentFile.Relative(relativePath);
+        var propsFile = Path.ChangeExtension(targetsFile, ".props");
+        _combinedTargetsLocation = CombineFiles(propsFile, targetsFile);
+    }
 
     private static string CombineFiles(string propsFile, string targetsFile)
     {
@@ -18,26 +27,12 @@ public static class ProjectInitializer {
         var combinedContent = new List<string>();
         combinedContent.AddRange(propsContent[..^1]);
         combinedContent.AddRange(targetsContent[1..]);
-        var tempTargetLocation = Path.Combine(Path.GetTempPath(), "Containers", "Microsoft.NET.Build.Containers.targets");
+        var tempTargetLocation = Path.Combine(TestSettings.TestArtifactsDirectory, "Containers", "Microsoft.NET.Build.Containers.targets");
         string? directoryName = Path.GetDirectoryName(tempTargetLocation);
-        Assert.IsNotNull(directoryName);
+        Assert.NotNull(directoryName);
         Directory.CreateDirectory(directoryName);
         File.WriteAllLines(tempTargetLocation, combinedContent);
         return tempTargetLocation;
-    }
-
-    public static void LocateMSBuild(TestContext ctx)
-    {
-        var instances = MSBuildLocator.RegisterDefaults();
-        var relativePath = Path.Combine("..", "packaging", "build", "Microsoft.NET.Build.Containers.targets");
-        var targetsFile = CurrentFile.Relative(relativePath);
-        var propsFile = Path.ChangeExtension(targetsFile, ".props");
-        CombinedTargetsLocation = CombineFiles(propsFile, targetsFile);
-    }
-
-    public static void Cleanup()
-    {
-        if (CombinedTargetsLocation != null) File.Delete(CombinedTargetsLocation);
     }
 
     public static (Project, CapturingLogger) InitProject(Dictionary<string, string> bonusProps, [CallerMemberName]string projectName = "")
@@ -68,6 +63,6 @@ public static class ProjectInitializer {
         {
             props[kvp.Key] = kvp.Value;
         }
-        return (collection.LoadProject(CombinedTargetsLocation, props, null), logs);
+        return (collection.LoadProject(_combinedTargetsLocation, props, null), logs);
     }
 }

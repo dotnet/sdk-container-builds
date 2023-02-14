@@ -3,7 +3,7 @@
 
 using Microsoft.Build.Framework;
 
-namespace Test.Microsoft.NET.Build.Containers;
+namespace Microsoft.NET.Build.Containers.IntegrationTests;
 
 public class CapturingLogger : ILogger
 {

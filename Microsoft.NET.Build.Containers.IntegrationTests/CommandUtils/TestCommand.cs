@@ -2,14 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Diagnostics;
+using Xunit.Abstractions;
 
 namespace Microsoft.DotNet.CommandUtils
 {
     internal abstract class TestCommand
     {
-        private readonly TestContext? _log;
+        private readonly ITestOutputHelper? _log;
 
-        protected TestCommand(TestContext? log)
+        protected TestCommand(ITestOutputHelper? log)
         {
             _log = log;
         }

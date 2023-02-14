@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.DotNet.CommandUtils;
+using Xunit;
+using Xunit.Abstractions;
 
-namespace Test.Microsoft.NET.Build.Containers.Filesystem;
+namespace Microsoft.NET.Build.Containers.IntegrationTests;
 
 public class DockerRegistryManager
 {
@@ -15,37 +17,37 @@ public class DockerRegistryManager
     public const string FullyQualifiedBaseImageDefault = $"{BaseImageSource}{BaseImage}:{Net6ImageTag}";
     private static string? s_registryContainerId;
 
-    [AssemblyInitialize]
-    public static void StartAndPopulateDockerRegistry(TestContext context)
+    public static void StartAndPopulateDockerRegistry(ITestOutputHelper testOutput)
     {
-        context.WriteLine("Spawning local registry");
-        CommandResult processResult = new BasicCommand(context, "docker", "run", "--rm", "--publish", "5010:5000", "--detach", "registry:2").Execute();
+        testOutput.WriteLine("Spawning local registry");
+        CommandResult processResult = new BasicCommand(testOutput, "docker", "run", "--rm", "--publish", "5010:5000", "--detach", "registry:2").Execute();
         processResult.Should().Pass().And.HaveStdOut();
         using var reader = new StringReader(processResult.StdOut!);
         s_registryContainerId = reader.ReadLine();
 
         foreach (var tag in new[] { Net6ImageTag, Net7ImageTag })
         {
-            new BasicCommand(context, "docker", "pull", $"{BaseImageSource}{BaseImage}:{tag}")
+            new BasicCommand(testOutput, "docker", "pull", $"{BaseImageSource}{BaseImage}:{tag}")
                 .Execute()
                 .Should().Pass();
 
-            new BasicCommand(context, "docker", "tag", $"{BaseImageSource}{BaseImage}:{tag}", $"{LocalRegistry}/{BaseImage}:{tag}")
+            new BasicCommand(testOutput, "docker", "tag", $"{BaseImageSource}{BaseImage}:{tag}", $"{LocalRegistry}/{BaseImage}:{tag}")
                 .Execute()
                 .Should().Pass();
 
-            new BasicCommand(context, "docker", "push", $"{LocalRegistry}/{BaseImage}:{tag}")
+            new BasicCommand(testOutput, "docker", "push", $"{LocalRegistry}/{BaseImage}:{tag}")
                 .Execute()
                 .Should().Pass();
         }
     }
 
-    public static void ShutdownDockerRegistry()
+    public static void ShutdownDockerRegistry(ITestOutputHelper testOutput)
     {
-        Assert.IsNotNull(s_registryContainerId);
-
-        new BasicCommand(null, "docker", "stop", s_registryContainerId)
-            .Execute()
-            .Should().Pass();
+        if (s_registryContainerId != null)
+        {
+            new BasicCommand(testOutput, "docker", "stop", s_registryContainerId)
+                .Execute()
+                .Should().Pass();
+        }
     }
 }

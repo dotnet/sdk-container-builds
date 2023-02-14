@@ -4,36 +4,37 @@
 using static Microsoft.NET.Build.Containers.KnownStrings.Properties;
 using FluentAssertions;
 using Microsoft.Build.Execution;
+using Xunit;
+using Microsoft.NET.Build.Containers.IntegrationTests;
 
-namespace Test.Microsoft.NET.Build.Containers.Targets;
+namespace Microsoft.NET.Build.Containers.Targets.IntegrationTests;
 
-[TestClass]
+[Collection("Docker tests")]
 public class TargetsTests
 {
-
-    [DataRow(true, "/app/foo.exe")]
-    [DataRow(false, "dotnet", "/app/foo.dll")]
-    [TestMethod]
+    [InlineData(true, "/app/foo.exe")]
+    [InlineData(false, "dotnet", "/app/foo.dll")]
+    [Theory]
     public void CanSetEntrypointArgsToUseAppHost(bool useAppHost, params string[] entrypointArgs)
     {
         var (project, _) = ProjectInitializer.InitProject(new()
         {
             [UseAppHost] = useAppHost.ToString()
         }, projectName: $"{nameof(CanSetEntrypointArgsToUseAppHost)}_{useAppHost}_{String.Join("_", entrypointArgs)}");
-        Assert.IsTrue(project.Build(ComputeContainerConfig));
+        Assert.True(project.Build(ComputeContainerConfig));
         var computedEntrypointArgs = project.GetItems(ContainerEntrypoint).Select(i => i.EvaluatedInclude).ToArray();
         foreach (var (First, Second) in entrypointArgs.Zip(computedEntrypointArgs))
         {
-            Assert.AreEqual(First, Second);
+            Assert.Equal(First, Second);
         }
     }
 
-    [DataRow("WebApplication44", "webapplication44", true)]
-    [DataRow("friendly-suspicious-alligator", "friendly-suspicious-alligator", true)]
-    [DataRow("*friendly-suspicious-alligator", "", false)]
-    [DataRow("web/app2+7", "web/app2-7", true)]
-    [DataRow("Microsoft.Apps.Demo.ContosoWeb", "microsoft-apps-demo-contosoweb", true)]
-    [TestMethod]
+    [InlineData("WebApplication44", "webapplication44", true)]
+    [InlineData("friendly-suspicious-alligator", "friendly-suspicious-alligator", true)]
+    [InlineData("*friendly-suspicious-alligator", "", false)]
+    [InlineData("web/app2+7", "web/app2-7", true)]
+    [InlineData("Microsoft.Apps.Demo.ContosoWeb", "microsoft-apps-demo-contosoweb", true)]
+    [Theory]
     public void CanNormalizeInputContainerNames(string projectName, string expectedContainerImageName, bool shouldPass)
     {
         var (project, _) = ProjectInitializer.InitProject(new()
@@ -41,17 +42,17 @@ public class TargetsTests
             [AssemblyName] = projectName
         }, projectName: $"{nameof(CanNormalizeInputContainerNames)}_{projectName}_{expectedContainerImageName}_{shouldPass}");
         var instance = project.CreateProjectInstance(global::Microsoft.Build.Execution.ProjectInstanceSettings.None);
-        Assert.AreEqual(shouldPass, instance.Build(new[] { ComputeContainerConfig }, null, null, out var outputs), "Build should have succeeded");
-        Assert.AreEqual(expectedContainerImageName, instance.GetPropertyValue(ContainerImageName));
+        instance.Build(new[] { ComputeContainerConfig }, null, null, out var outputs).Should().Be(shouldPass, "Build should have succeeded");
+        Assert.Equal(expectedContainerImageName, instance.GetPropertyValue(ContainerImageName));
     }
 
-    [DataRow("7.0.100", true)]
-    [DataRow("8.0.100", true)]
-    [DataRow("7.0.100-preview.7", true)]
-    [DataRow("7.0.100-rc.1", true)]
-    [DataRow("6.0.100", false)]
-    [DataRow("7.0.100-preview.1", false)]
-    [TestMethod]
+    [InlineData("7.0.100", true)]
+    [InlineData("8.0.100", true)]
+    [InlineData("7.0.100-preview.7", true)]
+    [InlineData("7.0.100-rc.1", true)]
+    [InlineData("6.0.100", false)]
+    [InlineData("7.0.100-preview.1", false)]
+    [Theory]
     public void CanWarnOnInvalidSDKVersions(string sdkVersion, bool isAllowed)
     {
         var (project, _) = ProjectInitializer.InitProject(new()
@@ -62,12 +63,12 @@ public class TargetsTests
         var instance = project.CreateProjectInstance(global::Microsoft.Build.Execution.ProjectInstanceSettings.None);
         var derivedIsAllowed = Boolean.Parse(project.GetProperty("_IsSDKContainerAllowedVersion").EvaluatedValue);
         // var buildResult = instance.Build(new[]{"_ContainerVerifySDKVersion"}, null, null, out var outputs);
-        Assert.AreEqual(isAllowed, derivedIsAllowed, $"SDK version {(isAllowed ? "should" : "should not")} have been allowed ");
+        derivedIsAllowed.Should().Be(isAllowed, $"SDK version {(isAllowed ? "should" : "should not")} have been allowed ");
     }
 
-    [DataRow(true)]
-    [DataRow(false)]
-    [TestMethod]
+    [InlineData(true)]
+    [InlineData(false)]
+    [Theory]
     public void GetsConventionalLabelsByDefault(bool shouldEvaluateLabels)
     {
         var (project, _) = ProjectInitializer.InitProject(new()
@@ -88,9 +89,9 @@ public class TargetsTests
 
     private static bool LabelMatch(string label, string value, ProjectItemInstance item) => item.EvaluatedInclude == label && item.GetMetadata("Value") is { } v && v.EvaluatedValue == value;
 
-    [DataRow(true)]
-    [DataRow(false)]
-    [TestMethod]
+    [InlineData(true)]
+    [InlineData(false)]
+    [Theory]
     public void ShouldNotIncludeSourceControlLabelsUnlessUserOptsIn(bool includeSourceControl)
     {
         var commitHash = "abcdef";

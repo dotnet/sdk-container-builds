@@ -5,9 +5,9 @@ VisualStudioVersion = 17.4.32710.52
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.NET.Build.Containers", "Microsoft.NET.Build.Containers\Microsoft.NET.Build.Containers.csproj", "{A85F5917-A1F5-43D2-BDDC-CAE179B15DDE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Microsoft.NET.Build.Containers", "Test.Microsoft.NET.Build.Containers\Test.Microsoft.NET.Build.Containers.csproj", "{E6EE341A-E10A-423C-B3D8-FEEA0942CFA8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.NET.Build.Containers.UnitTests", "Microsoft.NET.Build.Containers.UnitTests\Microsoft.NET.Build.Containers.UnitTests.csproj", "{E6EE341A-E10A-423C-B3D8-FEEA0942CFA8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Microsoft.NET.Build.Containers.Filesystem", "Test.Microsoft.NET.Build.Containers.Filesystem\Test.Microsoft.NET.Build.Containers.Filesystem.csproj", "{CC249FAD-C24D-4B37-AF8F-FA05D0FD5620}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.NET.Build.Containers.IntegrationTests", "Microsoft.NET.Build.Containers.IntegrationTests\Microsoft.NET.Build.Containers.IntegrationTests.csproj", "{CC249FAD-C24D-4B37-AF8F-FA05D0FD5620}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "containerize", "containerize\containerize.csproj", "{151F7937-D2AF-4242-9B6D-81FD5228D132}"
 EndProject
@@ -20,6 +20,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		Directory.Build.props = Directory.Build.props
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{8E4B85FB-9A37-402C-862F-11BC786A9095}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -52,6 +54,8 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{E6EE341A-E10A-423C-B3D8-FEEA0942CFA8} = {8E4B85FB-9A37-402C-862F-11BC786A9095}
+		{CC249FAD-C24D-4B37-AF8F-FA05D0FD5620} = {8E4B85FB-9A37-402C-862F-11BC786A9095}
 		{570F93C7-E96A-4051-ADCD-1A237015E31A} = {E9DE8514-E046-43F4-8831-A42E15492E63}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution

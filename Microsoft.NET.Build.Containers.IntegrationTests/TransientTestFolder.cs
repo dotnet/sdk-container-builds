@@ -3,7 +3,7 @@
 
 using static System.IO.Path;
 
-namespace Test.Microsoft.NET.Build.Containers.Filesystem;
+namespace Microsoft.NET.Build.Containers.IntegrationTests;
 
 /// <summary>
 /// Helper class to clean up after tests that touch the filesystem.

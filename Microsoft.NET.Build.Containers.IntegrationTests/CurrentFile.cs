@@ -3,7 +3,7 @@
 
 using System.Runtime.CompilerServices;
 
-namespace Test.Microsoft.NET.Build.Containers;
+namespace Microsoft.NET.Build.Containers.IntegrationTests;
 
 public static class CurrentFile
 {

@@ -3,19 +3,18 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="coverlet.collector" Version="3.1.2" />
     <PackageVersion Include="FluentAssertions" Version="6.9.0" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="2.0.1" />
-    <PackageVersion Include="Microsoft.Build.Locator" Version="1.5.5" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.3.1" />
     <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.3.1" />
     <PackageVersion Include="Microsoft.Build" Version="17.3.1" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
     <PackageVersion Include="Microsoft.VisualStudioEng.MicroBuild.Core" Version="1.0.0" />
-    <PackageVersion Include="MSTest.TestAdapter" Version="3.0.2" />
-    <PackageVersion Include="MSTest.TestFramework" Version="3.0.2" />
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.5.109" />
     <PackageVersion Include="NuGet.Packaging" Version="6.4.0" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="Valleysoft.DockerCredsProvider" Version="2.1.0" />
+    <PackageVersion Include="xunit" Version="2.4.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.5" />
   </ItemGroup>
 </Project>
