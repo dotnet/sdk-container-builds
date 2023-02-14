@@ -293,7 +293,7 @@ public class EndToEndTests
         // Build the image
         Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.BaseImageSource));
 
-        Image? imageBuilder = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net7ImageTag, rid, ToolsetUtils.GetRuntimeGraphFilePath()).ConfigureAwait(false);
+        ImageBuilder? imageBuilder = await registry.GetImageManifest(DockerRegistryManager.BaseImage, DockerRegistryManager.Net7ImageTag, rid, ToolsetUtils.GetRuntimeGraphFilePath()).ConfigureAwait(false);
         Assert.NotNull(imageBuilder);
 
         Layer l = Layer.FromDirectory(publishDirectory, "/app");

@@ -1,20 +1,19 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.NET.Build.Containers;
+using Xunit;
 
-namespace Test.Microsoft.NET.Build.Containers
+namespace Test.Microsoft.NET.Build.Containers;
+
+public class ImageBuilderTests
 {
-    [TestClass]
-    public class ImageBuilderTests
+    [Fact]
+    public void CanAddLabelsToImage()
     {
-        [TestMethod]
-        public void CanAddLabelsToImage()
-        {
-            string simpleImageConfig =
-                """
+        string simpleImageConfig =
+            """
                 {
                     "architecture": "amd64",
                     "config": {
@@ -57,31 +56,31 @@ namespace Test.Microsoft.NET.Build.Containers
                 }
                 """;
 
-            JsonNode? node = JsonNode.Parse(simpleImageConfig);
-            Assert.IsNotNull(node);
+        JsonNode? node = JsonNode.Parse(simpleImageConfig);
+        Assert.NotNull(node);
 
-            ImageConfig baseConfig = new ImageConfig(node);
+        ImageConfig baseConfig = new ImageConfig(node);
 
-            baseConfig.AddLabel("testLabel1", "v1");
-            baseConfig.AddLabel("testLabel2", "v2");
+        baseConfig.AddLabel("testLabel1", "v1");
+        baseConfig.AddLabel("testLabel2", "v2");
 
-            string readyImage = baseConfig.BuildConfig();
+        string readyImage = baseConfig.BuildConfig();
 
-            JsonNode? result = JsonNode.Parse(readyImage);
+        JsonNode? result = JsonNode.Parse(readyImage);
 
-            var resultLabels = result?["config"]?["Labels"] as JsonObject;
-            Assert.IsNotNull(resultLabels);
+        var resultLabels = result?["config"]?["Labels"] as JsonObject;
+        Assert.NotNull(resultLabels);
 
-            Assert.AreEqual(2, resultLabels.Count);
-            Assert.AreEqual("v1", resultLabels["testLabel1"]?.ToString());
-            Assert.AreEqual("v2", resultLabels["testLabel2"]?.ToString());
-        }
+        Assert.Equal(2, resultLabels.Count);
+        Assert.Equal("v1", resultLabels["testLabel1"]?.ToString());
+        Assert.Equal("v2", resultLabels["testLabel2"]?.ToString());
+    }
 
-        [TestMethod]
-        public void CanPreserveExistingLabels()
-        {
-            string simpleImageConfig =
-                """
+    [Fact]
+    public void CanPreserveExistingLabels()
+    {
+        string simpleImageConfig =
+            """
                 {
                     "architecture": "amd64",
                     "config": {
@@ -128,32 +127,32 @@ namespace Test.Microsoft.NET.Build.Containers
                 }
                 """;
 
-            JsonNode? node = JsonNode.Parse(simpleImageConfig);
-            Assert.IsNotNull(node);
+        JsonNode? node = JsonNode.Parse(simpleImageConfig);
+        Assert.NotNull(node);
 
-            ImageConfig baseConfig = new ImageConfig(node);
+        ImageConfig baseConfig = new ImageConfig(node);
 
-            baseConfig.AddLabel("testLabel1", "v1");
-            baseConfig.AddLabel("existing2", "v2");
+        baseConfig.AddLabel("testLabel1", "v1");
+        baseConfig.AddLabel("existing2", "v2");
 
-            string readyImage = baseConfig.BuildConfig();
+        string readyImage = baseConfig.BuildConfig();
 
-            JsonNode? result = JsonNode.Parse(readyImage);
+        JsonNode? result = JsonNode.Parse(readyImage);
 
-            var resultLabels = result?["config"]?["Labels"] as JsonObject;
-            Assert.IsNotNull(resultLabels);
+        var resultLabels = result?["config"]?["Labels"] as JsonObject;
+        Assert.NotNull(resultLabels);
 
-            Assert.AreEqual(3, resultLabels.Count);
-            Assert.AreEqual("v1", resultLabels["testLabel1"]?.ToString());
-            Assert.AreEqual("v2", resultLabels["existing2"]?.ToString());
-            Assert.AreEqual("e1", resultLabels["existing"]?.ToString());
-        }
+        Assert.Equal(3, resultLabels.Count);
+        Assert.Equal("v1", resultLabels["testLabel1"]?.ToString());
+        Assert.Equal("v2", resultLabels["existing2"]?.ToString());
+        Assert.Equal("e1", resultLabels["existing"]?.ToString());
+    }
 
-        [TestMethod]
-        public void CanAddPortsToImage()
-        {
-            string simpleImageConfig =
-                """
+    [Fact]
+    public void CanAddPortsToImage()
+    {
+        string simpleImageConfig =
+            """
                 {
                     "architecture": "amd64",
                     "config": {
@@ -196,31 +195,31 @@ namespace Test.Microsoft.NET.Build.Containers
                 }
                 """;
 
-            JsonNode? node = JsonNode.Parse(simpleImageConfig);
-            Assert.IsNotNull(node);
+        JsonNode? node = JsonNode.Parse(simpleImageConfig);
+        Assert.NotNull(node);
 
-            ImageConfig baseConfig = new ImageConfig(node);
+        ImageConfig baseConfig = new ImageConfig(node);
 
-            baseConfig.ExposePort(6000, PortType.tcp);
-            baseConfig.ExposePort(6010, PortType.udp);
+        baseConfig.ExposePort(6000, PortType.tcp);
+        baseConfig.ExposePort(6010, PortType.udp);
 
-            string readyImage = baseConfig.BuildConfig();
+        string readyImage = baseConfig.BuildConfig();
 
-            JsonNode? result = JsonNode.Parse(readyImage);
+        JsonNode? result = JsonNode.Parse(readyImage);
 
-            var resultPorts = result?["config"]?["ExposedPorts"] as JsonObject;
-            Assert.IsNotNull(resultPorts);
+        var resultPorts = result?["config"]?["ExposedPorts"] as JsonObject;
+        Assert.NotNull(resultPorts);
 
-            Assert.AreEqual(2, resultPorts.Count);
-            Assert.IsNotNull(resultPorts["6000/tcp"] as JsonObject);
-            Assert.IsNotNull( resultPorts["6010/udp"] as JsonObject);
-        }
+        Assert.Equal(2, resultPorts.Count);
+        Assert.NotNull(resultPorts["6000/tcp"] as JsonObject);
+        Assert.NotNull( resultPorts["6010/udp"] as JsonObject);
+    }
 
-        [TestMethod]
-        public void CanPreserveExistingPorts()
-        {
-            string simpleImageConfig =
-                """
+    [Fact]
+    public void CanPreserveExistingPorts()
+    {
+        string simpleImageConfig =
+            """
                 {
                     "architecture": "amd64",
                     "config": {
@@ -268,29 +267,28 @@ namespace Test.Microsoft.NET.Build.Containers
                 }
                 """;
 
-            JsonNode? node = JsonNode.Parse(simpleImageConfig);
-            Assert.IsNotNull(node);
+        JsonNode? node = JsonNode.Parse(simpleImageConfig);
+        Assert.NotNull(node);
 
-            ImageConfig baseConfig = new ImageConfig(node);
+        ImageConfig baseConfig = new ImageConfig(node);
 
-            baseConfig.ExposePort(6000, PortType.tcp);
-            baseConfig.ExposePort(6010, PortType.udp);
-            baseConfig.ExposePort(6100, PortType.udp);
-            baseConfig.ExposePort(6200, PortType.tcp);
+        baseConfig.ExposePort(6000, PortType.tcp);
+        baseConfig.ExposePort(6010, PortType.udp);
+        baseConfig.ExposePort(6100, PortType.udp);
+        baseConfig.ExposePort(6200, PortType.tcp);
 
-            string readyImage = baseConfig.BuildConfig();
+        string readyImage = baseConfig.BuildConfig();
 
-            JsonNode? result = JsonNode.Parse(readyImage);
+        JsonNode? result = JsonNode.Parse(readyImage);
 
-            var resultPorts = result?["config"]?["ExposedPorts"] as JsonObject;
-            Assert.IsNotNull(resultPorts);
+        var resultPorts = result?["config"]?["ExposedPorts"] as JsonObject;
+        Assert.NotNull(resultPorts);
 
-            Assert.AreEqual(5, resultPorts.Count);
-            Assert.IsNotNull(resultPorts["6000/tcp"] as JsonObject);
-            Assert.IsNotNull(resultPorts["6010/udp"] as JsonObject);
-            Assert.IsNotNull(resultPorts["6100/udp"] as JsonObject);
-            Assert.IsNotNull(resultPorts["6100/tcp"] as JsonObject);
-            Assert.IsNotNull(resultPorts["6200/tcp"] as JsonObject);
-        }
+        Assert.Equal(5, resultPorts.Count);
+        Assert.NotNull(resultPorts["6000/tcp"] as JsonObject);
+        Assert.NotNull(resultPorts["6010/udp"] as JsonObject);
+        Assert.NotNull(resultPorts["6100/udp"] as JsonObject);
+        Assert.NotNull(resultPorts["6100/tcp"] as JsonObject);
+        Assert.NotNull(resultPorts["6200/tcp"] as JsonObject);
     }
 }
