@@ -1,22 +1,12 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-namespace Microsoft.NET.Build.Containers;
-
-using System;
-using System.IO;
 using System.Text.Json;
-using System.Threading.Tasks;
+
+namespace Microsoft.NET.Build.Containers;
 
 public static class ContainerBuilder
 {
-    private static LocalDocker GetLocalDaemon(string localDaemonType, Action<string> logger) {
-        var daemon = localDaemonType switch {
-            KnownDaemonTypes.Docker => new LocalDocker(logger),
-            _ => throw new ArgumentException($"Unknown local container daemon type '{localDaemonType}'. Valid local container daemon types are {String.Join(",", KnownDaemonTypes.SupportedLocalDaemonTypes)}", nameof(localDaemonType))
-        };
-        return daemon;
-    }
     public static async Task Containerize(DirectoryInfo folder, string workingDir, string registryName, string baseName, string baseTag, string[] entrypoint, string[] entrypointArgs, string imageName, string[] imageTags, string? outputRegistry, string[] labels, Port[] exposedPorts, string[] envVars, string containerRuntimeIdentifier, string ridGraphPath, string localContainerDaemon)
     {
         var isDaemonPull = String.IsNullOrEmpty(registryName);
@@ -30,9 +20,9 @@ public static class ContainerBuilder
         var isDockerPush = String.IsNullOrEmpty(outputRegistry);
         var destinationImageReferences = imageTags.Select(t => new ImageReference(isDockerPush ? null : new Registry(ContainerHelpers.TryExpandRegistryToUri(outputRegistry!)), imageName, t));
 
-        var img = await baseRegistry.GetImageManifest(baseName, baseTag, containerRuntimeIdentifier, ridGraphPath).ConfigureAwait(false);
+        ImageBuilder imageBuilder = await baseRegistry.GetImageManifest(baseName, baseTag, containerRuntimeIdentifier, ridGraphPath).ConfigureAwait(false);
 
-        img.WorkingDirectory = workingDir;
+        imageBuilder.SetWorkingDirectory(workingDir);
 
         JsonSerializerOptions options = new()
         {
@@ -41,30 +31,32 @@ public static class ContainerBuilder
 
         Layer l = Layer.FromDirectory(folder.FullName, workingDir);
 
-        img.AddLayer(l);
+        imageBuilder.AddLayer(l);
 
-        img.SetEntrypoint(entrypoint, entrypointArgs);
+        imageBuilder.SetEntryPoint(entrypoint, entrypointArgs);
 
-        foreach (var label in labels)
+        foreach (string label in labels)
         {
             string[] labelPieces = label.Split('=');
 
             // labels are validated by System.CommandLine API
-            img.Label(labelPieces[0], labelPieces[1]);
+            imageBuilder.AddLabel(labelPieces[0], labelPieces[1]);
         }
 
         foreach (string envVar in envVars)
         {
             string[] envPieces = envVar.Split('=', 2);
 
-            img.AddEnvironmentVariable(envPieces[0], envPieces[1]);
+            imageBuilder.AddEnvironmentVariable(envPieces[0], envPieces[1]);
         }
 
-        foreach (var (number, type) in exposedPorts)
+        foreach ((int number, PortType type) in exposedPorts)
         {
             // ports are validated by System.CommandLine API
-            img.ExposePort(number, type);
+            imageBuilder.ExposePort(number, type);
         }
+
+        BuiltImage builtImage = imageBuilder.Build();
 
         foreach (var destinationImageReference in destinationImageReferences)
         {
@@ -72,7 +64,7 @@ public static class ContainerBuilder
             {
                 try
                 {
-                    outReg.Push(img, sourceImageReference, destinationImageReference, (message) => Console.WriteLine($"Containerize: {message}")).Wait();
+                    outReg.Push(builtImage, sourceImageReference, destinationImageReference, (message) => Console.WriteLine($"Containerize: {message}")).Wait();
                     Console.WriteLine($"Containerize: Pushed container '{destinationImageReference.RepositoryAndTag}' to registry '{outputRegistry}'");
                 }
                 catch (Exception e)
@@ -93,7 +85,7 @@ public static class ContainerBuilder
                 }
                 try
                 {
-                    localDaemon.Load(img, sourceImageReference, destinationImageReference).Wait();
+                    localDaemon.Load(builtImage, sourceImageReference, destinationImageReference).Wait();
                     Console.WriteLine("Containerize: Pushed container '{0}' to Docker daemon", destinationImageReference.RepositoryAndTag);
                 }
                 catch (Exception e)
@@ -103,5 +95,15 @@ public static class ContainerBuilder
                 }
             }
         }
+    }
+
+    private static LocalDocker GetLocalDaemon(string localDaemonType, Action<string> logger)
+    {
+        var daemon = localDaemonType switch
+        {
+            KnownDaemonTypes.Docker => new LocalDocker(logger),
+            _ => throw new ArgumentException($"Unknown local container daemon type '{localDaemonType}'. Valid local container daemon types are {String.Join(",", KnownDaemonTypes.SupportedLocalDaemonTypes)}", nameof(localDaemonType))
+        };
+        return daemon;
     }
 }
