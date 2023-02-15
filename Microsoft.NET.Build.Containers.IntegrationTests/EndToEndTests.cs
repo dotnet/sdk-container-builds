@@ -266,11 +266,11 @@ public class EndToEndTests
         privateNuGetAssets.Delete(true);
     }
 
-    [QemuInlineData("linux/arm/v7", "linux-arm", "/app")]
-    [QemuInlineData("linux/arm64/v8", "linux-arm64", "/app")]
-    [QemuInlineData("linux/386", "linux-x86", "/app", Skip="There's no apphost for linux-x86 so we can't execute self-contained, and there's no .NET runtime base image for linux-x86 so we can't execute framework-dependent.")]
-    [QemuInlineData("windows/amd64", "win-x64", "C:\\app")]
-    [QemuInlineData("linux/amd64", "linux-x64", "/app")]
+    [DockerSupportsArchInlineData("linux/arm/v7", "linux-arm", "/app")]
+    [DockerSupportsArchInlineData("linux/arm64/v8", "linux-arm64", "/app")]
+    [DockerSupportsArchInlineData("linux/386", "linux-x86", "/app", Skip="There's no apphost for linux-x86 so we can't execute self-contained, and there's no .NET runtime base image for linux-x86 so we can't execute framework-dependent.")]
+    [DockerSupportsArchInlineData("windows/amd64", "win-x64", "C:\\app")]
+    [DockerSupportsArchInlineData("linux/amd64", "linux-x64", "/app")]
     [Theory]
     public async Task CanPackageForAllSupportedContainerRIDs(string dockerPlatform, string rid, string workingDir)
     {
