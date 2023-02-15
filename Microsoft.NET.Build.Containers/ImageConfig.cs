@@ -118,7 +118,7 @@ internal sealed class ImageConfig
                     && property.Value is JsonObject propertyValue
                     && ContainerHelpers.TryParsePort(propertyName, out Port? parsedPort, out ContainerHelpers.ParsePortError? _))
                 {
-                    ports.Add(parsedPort);
+                    ports.Add(parsedPort.Value);
                 }
             }
         }
@@ -170,7 +170,7 @@ internal sealed class ImageConfig
         JsonObject container = new();
         foreach (Port port in _exposedPorts)
         {
-            container.Add($"{port.number}/{port.type}", new JsonObject());
+            container.Add($"{port.Number}/{port.Type}", new JsonObject());
         }
         return container;
     }
