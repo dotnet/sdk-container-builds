@@ -70,7 +70,7 @@ internal sealed class LocalDocker : ILocalDaemon
         }
     }
 
-    public static async Task<JsonDocument> GetConfig()
+    internal static async Task<JsonDocument> GetConfig()
     {
         var psi = new ProcessStartInfo("docker", "info --format=\"{{json .}}\"")
         {
