@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.DotNet.CommandUtils;
-using Microsoft.NET.Build.Containers;
 using System.Runtime.CompilerServices;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.NET.Build.Containers.UnitTests;
 
 namespace Microsoft.NET.Build.Containers.IntegrationTests;
 
@@ -30,7 +30,7 @@ public class EndToEndTests
         return callerMemberName;
     }
 
-    [Fact]
+    [DockerDaemonAvailableFact]
     public async Task ApiEndToEndWithRegistryPushAndPull()
     {
         string publishDirectory = BuildLocalApp();
@@ -72,7 +72,7 @@ public class EndToEndTests
             .Should().Pass();
     }
 
-    [Fact]
+    [DockerDaemonAvailableFact]
     public async Task ApiEndToEndWithLocalLoad()
     {
         string publishDirectory = BuildLocalApp();
@@ -133,7 +133,7 @@ public class EndToEndTests
         return publishDirectory;
     }
 
-    [Fact]
+    [DockerDaemonAvailableFact]
     public async Task EndToEnd_NoAPI()
     {
         DirectoryInfo newProjectDir = new DirectoryInfo(Path.Combine(TestSettings.TestArtifactsDirectory, "CreateNewImageTest"));
@@ -275,7 +275,7 @@ public class EndToEndTests
     [DockerSupportsArchInlineData("linux/386", "linux-x86", "/app", Skip="There's no apphost for linux-x86 so we can't execute self-contained, and there's no .NET runtime base image for linux-x86 so we can't execute framework-dependent.")]
     [DockerSupportsArchInlineData("windows/amd64", "win-x64", "C:\\app")]
     [DockerSupportsArchInlineData("linux/amd64", "linux-x64", "/app")]
-    [Theory]
+    [DockerDaemonAvailableTheory]
     public async Task CanPackageForAllSupportedContainerRIDs(string dockerPlatform, string rid, string workingDir)
     {
         string publishDirectory = BuildLocalApp(tfm: "net7.0", rid: rid);

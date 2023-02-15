@@ -7,18 +7,14 @@ using Microsoft.DotNet.CommandUtils;
 using Xunit.Sdk;
 
 namespace Microsoft.NET.Build.Containers.IntegrationTests;
+
 public class DockerSupportsArchInlineData : DataAttribute
 {
-    // tiny optimization - since there are many instances of this attribute we should only get
-    // the daemon status once
-    private static Task<bool> IsDaemonAvailable = new LocalDocker(Console.WriteLine).IsAvailable();
-
-    // also an optimization - this doesn't change over time so we can compute it once
+    // an optimization - this doesn't change over time so we can compute it once
     private static string[] LinuxPlatforms = GetSupportedLinuxPlatforms();
 
     // another optimization - daemons don't switch types easily or quickly, so this is as good as static
-    private static Task<bool> IsWindowsDaemon =
-        IsDaemonAvailable.ContinueWith(t => t.Result && GetIsWindowsDaemon());
+    private static Task<bool> IsWindowsDaemon = GetIsWindowsDaemon();
 
     private readonly string _arch;
     private readonly object[] _data;
@@ -41,42 +37,36 @@ public class DockerSupportsArchInlineData : DataAttribute
         return Array.Empty<object[]>();
     }
 
-    private bool DaemonSupportsArch(string quemu_Arch)
+    private bool DaemonSupportsArch(string arch)
     {
-        if (IsDaemonAvailable.GetAwaiter().GetResult())
+        if (LinuxPlatforms.Contains(arch))
         {
-            if (LinuxPlatforms.Contains(quemu_Arch))
-            {
-                return true;
-            }
-            else
-            {
-                if (IsWindowsDaemon.GetAwaiter().GetResult() && _arch.StartsWith("windows"))
-                {
-                    return true;
-                }
-                base.Skip = $"Skipping test because Docker daemon does not support {quemu_Arch}.";
-                return false;
-            }
+            return true;
         }
         else
         {
-            base.Skip = "Skipping test because Docker is not available on this host.";
+            if (IsWindowsDaemon.GetAwaiter().GetResult() && arch.StartsWith("windows", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+            base.Skip = $"Skipping test because Docker daemon does not support {arch}.";
             return false;
         }
     }
 
     private static string[] GetSupportedLinuxPlatforms()
     {
-        var platformsLine = new BasicCommand(null, "docker", "buildx", "inspect", "default").Execute().StdOut!.Split(Environment.NewLine).First(x => x.StartsWith("Platforms:"));
+        var inspectResult = new BasicCommand(null, "docker", "buildx", "inspect", "default").Execute();
+        inspectResult.Should().Pass();
+        var platformsLine = inspectResult.StdOut!.Split(Environment.NewLine).First(x => x.StartsWith("Platforms:", StringComparison.OrdinalIgnoreCase));
         return platformsLine.Substring("Platforms: ".Length).Split(",", StringSplitOptions.TrimEntries);
     }
 
-    private static bool GetIsWindowsDaemon()
+    private static async Task<bool> GetIsWindowsDaemon()
     {
         // the config json has an OSType property that is either "linux" or "windows" -
         // we can't use this for linux arch detection because that isn't enough information.
-        var config = LocalDocker.GetConfig().GetAwaiter().GetResult();
+        var config = await LocalDocker.GetConfig().ConfigureAwait(false);
         if (config.RootElement.TryGetProperty("OSType", out JsonElement osTypeProperty))
         {
             return osTypeProperty.GetString() == "windows";
