@@ -2,22 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.NET.Build.Containers.Resources;
+using Xunit;
 
-namespace Test.Microsoft.NET.Build.Containers.Resources
+namespace Test.Microsoft.NET.Build.Containers.UnitTests.Resources
 {
-    [TestClass]
     public class ResourceTests
     {
-        [TestMethod]
+        [Fact]
         public void GetString_ReturnsValueFromResources()
         {
-            Assert.AreEqual(Resource.GetString(nameof(Strings._Test)), "Value for unit test {0}");
+            Assert.Equal("Value for unit test {0}", Resource.GetString(nameof(Strings._Test)));
         }
 
-        [TestMethod]
+        [Fact]
         public void FormatString_ReturnsValueFromResources()
         {
-            Assert.AreEqual(Resource.FormatString(nameof(Strings._Test), 1), "Value for unit test 1");
+            Assert.Equal("Value for unit test 1", Resource.FormatString(nameof(Strings._Test), 1));
         }
     }
 }

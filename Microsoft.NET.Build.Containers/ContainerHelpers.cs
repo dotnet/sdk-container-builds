@@ -9,7 +9,6 @@ using System.Diagnostics.CodeAnalysis;
 #endif
 using System.Text.RegularExpressions;
 using Microsoft.NET.Build.Containers.Resources;
-using static ReferenceParser;
 
 namespace Microsoft.NET.Build.Containers;
 public static class ContainerHelpers
