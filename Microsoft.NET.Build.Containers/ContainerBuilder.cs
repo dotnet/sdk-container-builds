@@ -7,13 +7,16 @@ using System;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.NET.Build.Containers.Resources;
 
 public static class ContainerBuilder
 {
     private static LocalDocker GetLocalDaemon(string localDaemonType, Action<string> logger) {
         var daemon = localDaemonType switch {
             KnownDaemonTypes.Docker => new LocalDocker(logger),
-            _ => throw new ArgumentException($"Unknown local container daemon type '{localDaemonType}'. Valid local container daemon types are {String.Join(",", KnownDaemonTypes.SupportedLocalDaemonTypes)}", nameof(localDaemonType))
+            _ => throw new ArgumentException(
+                Resource.FormatString(nameof(Strings.UnknownDaemonType), localDaemonType, String.Join(",", KnownDaemonTypes.SupportedLocalDaemonTypes)),
+                nameof(localDaemonType))
         };
         return daemon;
     }
@@ -22,7 +25,7 @@ public static class ContainerBuilder
         var isDaemonPull = String.IsNullOrEmpty(registryName);
         if (isDaemonPull)
         {
-            throw new NotSupportedException("Don't know how to pull images from local daemons at the moment");
+            throw new NotSupportedException(Resource.GetString(nameof(Strings.DontKnowHowToPullImages)));
         }
 
         Registry baseRegistry = new Registry(ContainerHelpers.TryExpandRegistryToUri(registryName));

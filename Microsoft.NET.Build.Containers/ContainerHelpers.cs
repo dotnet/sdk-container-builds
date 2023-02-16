@@ -6,6 +6,7 @@ namespace Microsoft.NET.Build.Containers;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
+using Microsoft.NET.Build.Containers.Resources;
 using static ReferenceParser;
 
 internal sealed record Label(string name, string value);
@@ -44,6 +45,8 @@ public static class ContainerHelpers
     /// </summary>
     /// <remarks>Technically the period should be allowed as well, but due to inconsistent support between cloud providers we're removing it.</remarks>
     private static Regex imageNameCharacters = new Regex(@"[^a-z0-9_\-/]");
+
+    public static string? Resource { get; private set; }
 
     /// <summary>
     /// Ensures the given registry is valid.
@@ -195,7 +198,7 @@ public static class ContainerHelpers
         {
             if (!Char.IsLetterOrDigit(containerImageName, 0))
             {
-                throw new ArgumentException("The first character of the image name must be a lowercase letter or a digit.");
+                throw new ArgumentException(Resources.Resource.GetString(nameof(Strings.InvalidImageName)));
             }
             var loweredImageName = containerImageName.ToLowerInvariant();
             normalizedImageName = imageNameCharacters.Replace(loweredImageName, "-");

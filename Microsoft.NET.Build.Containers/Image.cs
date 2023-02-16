@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Microsoft.NET.Build.Containers.Resources;
 
 namespace Microsoft.NET.Build.Containers;
 
@@ -40,7 +41,7 @@ public class Image
 
             if (layersNode is null)
             {
-                throw new NotImplementedException("Tried to get layer information but there is no layer node?");
+                throw new NotImplementedException(Resource.GetString(nameof(Strings.MissingLayerNode)));
             }
 
             foreach (var layer in layersNode)
@@ -185,7 +186,7 @@ public class Image
 
         if (configObject is null)
         {
-            throw new NotImplementedException("Expected base image to have a config node");
+            throw new NotImplementedException(Resource.GetString(nameof(Strings.MissingBaseImageConfigNode)));
         }
 
         configObject["Entrypoint"] = ToJsonArray(executableArgs);

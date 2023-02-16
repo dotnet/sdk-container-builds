@@ -3,6 +3,7 @@
 
 using System.Text.Json;
 using Microsoft.Build.Framework;
+using Microsoft.NET.Build.Containers.Resources;
 
 namespace Microsoft.NET.Build.Containers.Tasks;
 
@@ -71,7 +72,11 @@ public partial class CreateNewImage : Microsoft.Build.Utilities.Task
     private LocalDocker GetLocalDaemon(Action<string> logger) {
         var daemon = LocalContainerDaemon switch {
             KnownDaemonTypes.Docker => new LocalDocker(logger),
-            _ => throw new NotSupportedException($"Unknown local container daemon type '{LocalContainerDaemon}'. Valid local container daemon types are {String.Join(",", KnownDaemonTypes.SupportedLocalDaemonTypes)}")
+            _ => throw new NotSupportedException(
+                Resource.FormatString(
+                    nameof(Strings.UnknownDaemonType),
+                    LocalContainerDaemon,
+                    string.Join(",", KnownDaemonTypes.SupportedLocalDaemonTypes)))
         };
         return daemon;
     }
@@ -109,7 +114,7 @@ public partial class CreateNewImage : Microsoft.Build.Utilities.Task
         if (SourceRegistry.Value is {} registry) {
             return registry.GetImageManifest(BaseImageName, BaseImageTag, ContainerRuntimeIdentifier, RuntimeIdentifierGraphPath).Result;
         } else {
-            throw new ArgumentException("Don't know how to pull images from local daemons at the moment");
+            throw new ArgumentException(Resource.GetString(nameof(Strings.DontKnowHowToPullImages)));
         }
     }
 

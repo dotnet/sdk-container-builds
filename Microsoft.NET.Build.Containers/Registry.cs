@@ -1,6 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using Microsoft.NET.Build.Containers.Resources;
 using NuGet.RuntimeModel;
 using System.Diagnostics;
 using System.Net;
@@ -101,7 +102,12 @@ public record struct Registry
         return initialManifestResponse.Content.Headers.ContentType?.MediaType switch {
             DockerManifestV2 => await ReadSingleImage(repositoryName, await initialManifestResponse.Content.ReadFromJsonAsync<ManifestV2>().ConfigureAwait(false)).ConfigureAwait(false),
             DockerManifestListV2 => await PickBestImageFromManifestList(repositoryName, reference, await initialManifestResponse.Content.ReadFromJsonAsync<ManifestListV2>().ConfigureAwait(false), runtimeIdentifier, runtimeIdentifierGraphPath).ConfigureAwait(false),
-            var unknownMediaType => throw new NotImplementedException($"The manifest for {repositoryName}:{reference} from registry {BaseUri} was an unknown type: {unknownMediaType}. Please raise an issue at https://github.com/dotnet/sdk-container-builds/issues with this message.")
+            var unknownMediaType => throw new NotImplementedException(Resource.FormatString(
+                nameof(Strings.UnknownMediaType),
+                repositoryName,
+                reference,
+                BaseUri,
+                unknownMediaType))
         };
     }
 
@@ -281,7 +287,7 @@ public record struct Registry
             // Fail the upload if the response code is not Accepted (202) or if uploading to Amazon ECR which returns back Created (201).
             if (!(patchResponse.StatusCode == HttpStatusCode.Accepted || (IsAmazonECRRegistry && patchResponse.StatusCode == HttpStatusCode.Created)))
             {
-                string errorMessage = $"Failed to upload blob to {patchUri}; received {patchResponse.StatusCode} with detail {await patchResponse.Content.ReadAsStringAsync().ConfigureAwait(false)}";
+                string errorMessage = Resource.FormatString(nameof(Strings.BlobUploadFailed), patchUri, patchResponse.StatusCode, await patchResponse.Content.ReadAsStringAsync().ConfigureAwait(false));
                 throw new ApplicationException(errorMessage);
             }
 
@@ -315,7 +321,7 @@ public record struct Registry
         HttpResponseMessage patchResponse = await client.PatchAsync(uploadUri.Uri, content).ConfigureAwait(false);
         if (patchResponse.StatusCode != HttpStatusCode.Accepted)
         {
-            string errorMessage = $"Failed to upload to {uploadUri}; received {patchResponse.StatusCode} with detail {await patchResponse.Content.ReadAsStringAsync().ConfigureAwait(false)}";
+            string errorMessage = Resource.FormatString(nameof(Strings.BlobUploadFailed), uploadUri, patchResponse.StatusCode, await patchResponse.Content.ReadAsStringAsync().ConfigureAwait(false)); 
             throw new ApplicationException(errorMessage);
         }
         return GetNextLocation(patchResponse);
@@ -328,7 +334,7 @@ public record struct Registry
 
         if (pushResponse.StatusCode != HttpStatusCode.Accepted)
         {
-            string errorMessage = $"Failed to upload blob to {startUploadUri}; received {pushResponse.StatusCode} with detail {await pushResponse.Content.ReadAsStringAsync().ConfigureAwait(false)}";
+            string errorMessage = Resource.FormatString(nameof(Strings.BlobUploadFailed), startUploadUri, pushResponse.StatusCode, await pushResponse.Content.ReadAsStringAsync().ConfigureAwait(false));
             throw new ApplicationException(errorMessage);
         }
 
@@ -350,7 +356,7 @@ public record struct Registry
 
         if (finalizeResponse.StatusCode != HttpStatusCode.Created)
         {
-            string errorMessage = $"Failed to finalize upload to {putUri}; received {finalizeResponse.StatusCode} with detail {await finalizeResponse.Content.ReadAsStringAsync().ConfigureAwait(false)}";
+            string errorMessage = Resource.FormatString(nameof(Strings.BlobUploadFailed), putUri, finalizeResponse.StatusCode, await finalizeResponse.Content.ReadAsStringAsync().ConfigureAwait(false));
             throw new ApplicationException(errorMessage);
         }
     }
@@ -449,7 +455,7 @@ public record struct Registry
                     logProgressMessage($"Finished uploading layer {digest} to {destinationRegistry.RegistryName}");
                 }
                 else {
-                    throw new NotImplementedException("Need a good error for 'couldn't download a thing because no link to registry'");
+                    throw new NotImplementedException(Resource.GetString(nameof(Strings.MissingLinkToRegistry)));
                 }
             }
         };
@@ -483,7 +489,7 @@ public record struct Registry
 
         if (!putResponse.IsSuccessStatusCode)
         {
-            throw new ContainerHttpException("Registry push failed.", putResponse.RequestMessage?.RequestUri?.ToString(), jsonString);
+            throw new ContainerHttpException(Resource.GetString(nameof(Strings.RegistryPushFailed)), putResponse.RequestMessage?.RequestUri?.ToString(), jsonString);
         }
         logProgressMessage($"Uploaded manifest to {RegistryName}");
 
@@ -492,7 +498,7 @@ public record struct Registry
 
         if (!putResponse2.IsSuccessStatusCode)
         {
-            throw new ContainerHttpException("Registry push failed.", putResponse2.RequestMessage?.RequestUri?.ToString(), jsonString);
+            throw new ContainerHttpException(Resource.GetString(nameof(Strings.RegistryPushFailed)), putResponse2.RequestMessage?.RequestUri?.ToString(), jsonString);
         }
 
         logProgressMessage($"Uploaded tag {destination.Tag} to {RegistryName}");
