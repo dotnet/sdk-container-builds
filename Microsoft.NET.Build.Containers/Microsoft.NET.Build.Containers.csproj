@@ -43,11 +43,7 @@
     <Compile Include="VSHostObject.cs" />
     <Compile Include="Port.cs" />
     <Compile Include="Resources\Resource.cs" />
-    <Compile Update="Resources\Strings.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Strings.resx</DependentUpon>
-    </Compile>
+    <Compile Include="Resources\Strings.Designer.cs" />
   </ItemGroup>
 
   <!-- core remove files specific to net472 workarounds -->
