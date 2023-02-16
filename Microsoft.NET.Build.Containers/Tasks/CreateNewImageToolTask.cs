@@ -66,26 +66,64 @@ public partial class CreateNewImage : ToolTask, ICancelableTask
         return startInfo;
     }
 
-    protected override string GenerateCommandLineCommands()
+    protected override string GenerateCommandLineCommands() => GenerateCommandLineCommandsInt();
+
+    /// <remarks>
+    /// For unit test purposes
+    /// </remarks>
+    internal string GenerateCommandLineCommandsInt()
     {
+        if (string.IsNullOrWhiteSpace(PublishDirectory))
+        {
+            throw new InvalidOperationException($"Required task property '{nameof(PublishDirectory)}' was not set or empty.");
+        }
+        if (string.IsNullOrWhiteSpace(BaseRegistry))
+        {
+            throw new InvalidOperationException($"Required task property '{nameof(BaseRegistry)}' was not set or empty.");
+        }
+        if (string.IsNullOrWhiteSpace(BaseImageName))
+        {
+            throw new InvalidOperationException($"Required task property '{nameof(BaseImageName)}' was not set or empty.");
+        }
+        if (string.IsNullOrWhiteSpace(ImageName))
+        {
+            throw new InvalidOperationException($"Required task property '{nameof(ImageName)}' was not set or empty.");
+        }
+        if (string.IsNullOrWhiteSpace(WorkingDirectory))
+        {
+            throw new InvalidOperationException($"Required task property '{nameof(WorkingDirectory)}' was not set or empty.");
+        }
+        if (Entrypoint.Length == 0)
+        {
+            throw new InvalidOperationException($"Required task property '{nameof(Entrypoint)}' was not set or empty.");
+        }
+        if (Entrypoint.Any(e => string.IsNullOrWhiteSpace(e.ItemSpec)))
+        {
+            throw new InvalidOperationException($"Required task property '{nameof(Entrypoint)}' contains empty items.");
+        }
+
+        var sanitizedEntryPoints = Entrypoint.Where(e => !string.IsNullOrWhiteSpace(e.ItemSpec));
+        var sanitizedEntryPointArgs = EntrypointArgs.Where(e => !string.IsNullOrWhiteSpace(e.ItemSpec));
+
         return Quote(ContainerizeDirectory + "containerize.dll") + " " +
-               Quote(PublishDirectory.TrimEnd(new char[] {Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar})) +
+               Quote(PublishDirectory.TrimEnd(new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar })) +
                " --baseregistry " + BaseRegistry +
                " --baseimagename " + BaseImageName +
-               " --baseimagetag " + BaseImageTag +
-               (OutputRegistry is not null ? " --outputregistry " + OutputRegistry : "") +
+               (!string.IsNullOrWhiteSpace(BaseImageTag) ? " --baseimagetag " + BaseImageTag : "") +
+               (!string.IsNullOrWhiteSpace(OutputRegistry) ? " --outputregistry " + OutputRegistry : "") +
                "--localcontainerdaemon " + LocalContainerDaemon +
                " --imagename " + ImageName +
                " --workingdirectory " + WorkingDirectory +
-               (Entrypoint.Length > 0 ? " --entrypoint " + String.Join(" ", Entrypoint.Select((i) => i.ItemSpec)) : "") +
+               (Entrypoint.Length > 0 ? " --entrypoint " + String.Join(" ", sanitizedEntryPoints.Select((i) => i.ItemSpec)) : "") +
                (Labels.Length > 0 ? " --labels " + String.Join(" ", Labels.Select((i) => i.ItemSpec + "=" + Quote(i.GetMetadata("Value")))) : "") +
                (ImageTags.Length > 0 ? " --imagetags " + String.Join(" ", ImageTags.Select((i) => Quote(i))) : "") +
-               (EntrypointArgs.Length > 0 ? " --entrypointargs " + String.Join(" ", EntrypointArgs.Select((i) => i.ItemSpec)) : "") +
+               (EntrypointArgs.Length > 0 ? " --entrypointargs " + String.Join(" ", sanitizedEntryPointArgs.Select((i) => i.ItemSpec)) : "") +
                (ExposedPorts.Length > 0 ? " --ports " + String.Join(" ", ExposedPorts.Select((i) => i.ItemSpec + "/" + i.GetMetadata("Type"))) : "") +
                (ContainerEnvironmentVariables.Length > 0 ? " --environmentvariables " + String.Join(" ", ContainerEnvironmentVariables.Select((i) => i.ItemSpec + "=" + Quote(i.GetMetadata("Value")))) : "") +
-               $" --rid {Quote(ContainerRuntimeIdentifier)}" +
-               $" --ridgraphpath {Quote(RuntimeIdentifierGraphPath)}";
+               (!string.IsNullOrWhiteSpace(ContainerRuntimeIdentifier) ? " --rid " + ContainerRuntimeIdentifier : "") +
+               (!string.IsNullOrWhiteSpace(RuntimeIdentifierGraphPath) ? " --ridgraphpath " + RuntimeIdentifierGraphPath : "");
     }
+
 
     private static string Quote(string path)
     {
