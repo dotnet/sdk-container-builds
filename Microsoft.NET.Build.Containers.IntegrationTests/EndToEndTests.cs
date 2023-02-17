@@ -1,8 +1,10 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using FluentAssertions;
 using Microsoft.DotNet.CommandUtils;
 using Microsoft.NET.Build.Containers;
+using Microsoft.NET.Build.Containers.Outputs;
 using System.Runtime.CompilerServices;
 using Xunit;
 using Xunit.Abstractions;
@@ -106,6 +108,43 @@ public class EndToEndTests
         new BasicCommand(_testOutput, "docker", "run", "--rm", "--tty", $"{NewImageName()}:latest")
             .Execute()
             .Should().Pass();
+    }
+
+    [Fact]
+    public async Task ApiEndToEndWithExportFile()
+    {
+        string publishDirectory = BuildLocalApp();
+
+        // Build the image
+        Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.LocalRegistry));
+
+        ImageBuilder imageBuilder = await registry.GetImageManifest(
+            DockerRegistryManager.BaseImage,
+            DockerRegistryManager.Net6ImageTag,
+            "linux-x64",
+            ToolsetUtils.GetRuntimeGraphFilePath()).ConfigureAwait(false);
+        Assert.NotNull(imageBuilder);
+
+        Layer l = Layer.FromDirectory(publishDirectory, "/app");
+
+        imageBuilder.AddLayer(l);
+
+        imageBuilder.SetEntryPoint(new[] { "/app/MinimalTestApp" });
+
+        BuiltImage builtImage = imageBuilder.Build();
+
+        // Load the image into the local Docker daemon
+        var sourceReference = new ImageReference(registry, DockerRegistryManager.BaseImage, DockerRegistryManager.Net6ImageTag);
+        var destinationReference = new ImageReference(registry, NewImageName(), "latest");
+
+        // Get file path
+        var filePath = Path.Combine(Path.GetTempPath(), "test.tar.gz");
+        if (File.Exists(filePath))
+            File.Delete(filePath);
+
+        await new FileOutput(Console.WriteLine).Export(filePath, builtImage, sourceReference, destinationReference).ConfigureAwait(false);
+
+        File.Exists(filePath).Should().BeTrue();
     }
 
     private string BuildLocalApp([CallerMemberName] string testName = "TestName", string tfm = "net6.0", string rid = "linux-x64")
