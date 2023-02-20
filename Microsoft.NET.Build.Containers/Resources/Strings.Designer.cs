@@ -79,7 +79,7 @@ namespace Microsoft.NET.Build.Containers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to upload blob to {0}; received {1} with detail {2}.
+        ///   Looks up a localized string similar to Failed to upload blob to {0}; received {1} with detail {2}..
         /// </summary>
         internal static string BlobUploadFailed {
             get {
@@ -88,7 +88,7 @@ namespace Microsoft.NET.Build.Containers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not deserialize token from JSON.
+        ///   Looks up a localized string similar to Could not deserialize token from JSON..
         /// </summary>
         internal static string CouldntDeserializeJsonToken {
             get {
@@ -97,7 +97,7 @@ namespace Microsoft.NET.Build.Containers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to get docker info({0})\n{1}.
+        ///   Looks up a localized string similar to Failed to get docker info({0})\n{1}\n{2}..
         /// </summary>
         internal static string DockerInfoFailed {
             get {
@@ -106,7 +106,7 @@ namespace Microsoft.NET.Build.Containers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed creating docker process.
+        ///   Looks up a localized string similar to Failed creating docker process..
         /// </summary>
         internal static string DockerProcessCreationFailed {
             get {
@@ -115,7 +115,7 @@ namespace Microsoft.NET.Build.Containers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Don&apos;t know how to pull images from local daemons at the moment.
+        ///   Looks up a localized string similar to Don&apos;t know how to pull images from local daemons at the moment..
         /// </summary>
         internal static string DontKnowHowToPullImages {
             get {
@@ -124,7 +124,7 @@ namespace Microsoft.NET.Build.Containers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed retrieving credentials for &quot;{0}&quot;: {1}.
+        ///   Looks up a localized string similar to Failed retrieving credentials for &quot;{0}&quot;: {1}..
         /// </summary>
         internal static string FailedRetrievingCredentials {
             get {
@@ -133,7 +133,7 @@ namespace Microsoft.NET.Build.Containers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to load image to local Docker daemon. stdout: {0}.
+        ///   Looks up a localized string similar to Failed to load image to local Docker daemon. stdout: {0}..
         /// </summary>
         internal static string ImageLoadFailed {
             get {
@@ -160,7 +160,7 @@ namespace Microsoft.NET.Build.Containers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected base image to have a config node.
+        ///   Looks up a localized string similar to Expected base image to have a config node..
         /// </summary>
         internal static string MissingBaseImageConfigNode {
             get {
@@ -178,7 +178,7 @@ namespace Microsoft.NET.Build.Containers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Need a good error for &apos;couldn&apos;t download a thing because no link to registry&apos;.
+        ///   Looks up a localized string similar to Need a good error for &apos;couldn&apos;t download a thing because no link to registry&apos;..
         /// </summary>
         internal static string MissingLinkToRegistry {
             get {
@@ -187,7 +187,7 @@ namespace Microsoft.NET.Build.Containers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No RequestUri specified.
+        ///   Looks up a localized string similar to No RequestUri specified..
         /// </summary>
         internal static string NoRequestUriSpecified {
             get {
@@ -205,7 +205,7 @@ namespace Microsoft.NET.Build.Containers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Too many retries, stopping.
+        ///   Looks up a localized string similar to Too many retries, stopping..
         /// </summary>
         internal static string TooManyRetries {
             get {
@@ -214,7 +214,7 @@ namespace Microsoft.NET.Build.Containers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unknown local container daemon type &apos;{0}&apos;. Valid local container daemon types are {1}.
+        ///   Looks up a localized string similar to Unknown local container daemon type &apos;{0}&apos;. Valid local container daemon types are {1}..
         /// </summary>
         internal static string UnknownDaemonType {
             get {
@@ -232,7 +232,7 @@ namespace Microsoft.NET.Build.Containers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unrecognized mediaType &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Unrecognized mediaType &apos;{0}&apos;..
         /// </summary>
         internal static string UnrecognizedMediaType {
             get {
