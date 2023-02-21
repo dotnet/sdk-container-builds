@@ -138,7 +138,7 @@ public class EndToEndTests
 
         // Load the image into the local Docker daemon
         var sourceReference = new ImageReference(registry, DockerRegistryManager.BaseImage, DockerRegistryManager.Net6ImageTag);
-        var destinationReference = new ImageReference(registry, NewImageName(), "latest");
+        var destinationReference = new ImageReference(null, NewImageName(), "latest");
 
         // Get file path
         var filePath = Path.Combine(Path.GetTempPath(), "test.tar.gz");
@@ -148,6 +148,26 @@ public class EndToEndTests
         await new FileOutput(Console.WriteLine).Export(filePath, builtImage, sourceReference, destinationReference).ConfigureAwait(false);
 
         File.Exists(filePath).Should().BeTrue();
+
+        // Load the image file
+        new BasicCommand(_testOutput, "docker", "load", "--input", filePath)
+            .Execute()
+            .Should().Pass();
+
+        // Run the image
+        new BasicCommand(_testOutput, "docker", "run", "--rm", "--tty", destinationReference.RepositoryAndTag)
+            .Execute()
+            .Should().Pass();
+
+        // Clean up images
+        new BasicCommand(_testOutput, "docker", "rmi", sourceReference.ToString())
+            .Execute()
+            .Should().Pass();
+
+        new BasicCommand(_testOutput, "docker", "rmi", destinationReference.RepositoryAndTag)
+            .Execute()
+            .Should().Pass();
+
     }
 
     private string BuildLocalApp([CallerMemberName] string testName = "TestName", string tfm = "net6.0", string rid = "linux-x64")
