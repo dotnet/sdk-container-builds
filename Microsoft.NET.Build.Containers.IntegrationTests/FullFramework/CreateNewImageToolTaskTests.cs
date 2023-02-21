@@ -5,6 +5,7 @@ using System.Reflection;
 using Microsoft.Build.Utilities;
 using Microsoft.DotNet.CommandUtils;
 using Microsoft.NET.Build.Containers.Tasks;
+using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -52,12 +53,12 @@ public class CreateNewImageToolTaskTests
         task.WorkingDirectory = "MyWorkingDirectory";
 
         e = Assert.Throws<InvalidOperationException>(() => task.GenerateCommandLineCommandsInt());
-        Assert.Equal("Required task property 'Entrypoint' was not set or empty.", e.Message);
+        Assert.Equal("Required task item 'Entrypoint' was not set or empty.", e.Message);
 
         task.Entrypoint = new[] { new TaskItem("") }; 
 
         e = Assert.Throws<InvalidOperationException>(() => task.GenerateCommandLineCommandsInt());
-        Assert.Equal("Required task property 'Entrypoint' contains empty items.", e.Message);
+        Assert.Equal("Required task item 'Entrypoint' contains empty items.", e.Message);
 
         task.Entrypoint = new[] { new TaskItem("MyEntryPoint") };
 
@@ -190,6 +191,34 @@ public class CreateNewImageToolTaskTests
         {
             Assert.DoesNotContain("--ridgraphpath", args);
         }
+    }
+
+    [Fact]
+    public void GenerateCommandLineCommands_Labels()
+    {
+        CreateNewImage task = new();
+        DirectoryInfo publishDir = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), DateTime.Now.ToString("yyyyMMddHHmmssfff")));
+        task.PublishDirectory = publishDir.FullName;
+        task.BaseRegistry = "MyBaseRegistry";
+        task.BaseImageName = "MyBaseImageName";
+        task.ImageName = "MyImageName";
+        task.WorkingDirectory = "MyWorkingDirectory";
+        task.Entrypoint = new[] { new TaskItem("MyEntryPoint") };
+
+        task.Labels = new[]
+        {
+            new TaskItem("NoValue"),
+            new TaskItem(" "),
+            new TaskItem("Valid1", new Dictionary<string, string>() {{ "Value", "Val1" }}),
+            new TaskItem("Valid12", new Dictionary<string, string>() {{ "Value", "Val2" }}),
+            new TaskItem("Valid12", new Dictionary<string, string>() {{ "Value", "" }})
+        };
+
+        string args = task.GenerateCommandLineCommandsInt();
+
+        Assert.Contains("""
+                                      --labels "NoValue=\"\"" "Valid1=\"Val1\"" "Valid12=\"Val2\"" "Valid12=\"\""
+                                      """, args);
     }
 
     private static string GetPathToContainerize()
