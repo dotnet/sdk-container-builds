@@ -29,10 +29,7 @@ public class DockerSupportsArchInlineData : DataAttribute
     {
         if (DaemonSupportsArch(_arch))
         {
-            var totalArray = new object[_data.Length + 1];
-            totalArray[0] = _arch;
-            Array.Copy(_data, 0, totalArray, 1, _data.Length);
-            return new[] { totalArray };
+            return new object[][] { _data.Prepend(_arch).ToArray() };
         };
         return Array.Empty<object[]>();
     }
@@ -66,7 +63,7 @@ public class DockerSupportsArchInlineData : DataAttribute
     {
         // the config json has an OSType property that is either "linux" or "windows" -
         // we can't use this for linux arch detection because that isn't enough information.
-        var config = await LocalDocker.GetConfig().ConfigureAwait(false);
+        var config = await LocalDocker.GetConfigAsync(sync: true, cancellationToken: CancellationToken.None).ConfigureAwait(false);
         if (config.RootElement.TryGetProperty("OSType", out JsonElement osTypeProperty))
         {
             return osTypeProperty.GetString() == "windows";

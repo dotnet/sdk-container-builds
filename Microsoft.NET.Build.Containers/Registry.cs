@@ -1,6 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using Microsoft.NET.Build.Containers.Resources;
 using NuGet.RuntimeModel;
 using System.Diagnostics;
 using System.Net;
@@ -83,31 +84,58 @@ internal sealed class Registry
     /// </summary>
     private bool SupportsParallelUploads => !IsAmazonECRRegistry;
 
-    public async Task<ImageBuilder> GetImageManifest(string repositoryName, string reference, string runtimeIdentifier, string runtimeIdentifierGraphPath)
+    public async Task<ImageBuilder> GetImageManifestAsync(string repositoryName, string reference, string runtimeIdentifier, string runtimeIdentifierGraphPath, CancellationToken cancellationToken)
     {
-        var initialManifestResponse = await GetManifest(repositoryName, reference).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        var initialManifestResponse = await GetManifestAsync(repositoryName, reference, cancellationToken).ConfigureAwait(false);
 
-        return initialManifestResponse.Content.Headers.ContentType?.MediaType switch {
-            DockerManifestV2 => await ReadSingleImage(repositoryName, await initialManifestResponse.Content.ReadFromJsonAsync<ManifestV2>().ConfigureAwait(false)).ConfigureAwait(false),
-            DockerManifestListV2 => await PickBestImageFromManifestList(repositoryName, reference, await initialManifestResponse.Content.ReadFromJsonAsync<ManifestListV2>().ConfigureAwait(false), runtimeIdentifier, runtimeIdentifierGraphPath).ConfigureAwait(false),
-            var unknownMediaType => throw new NotImplementedException($"The manifest for {repositoryName}:{reference} from registry {BaseUri} was an unknown type: {unknownMediaType}. Please raise an issue at https://github.com/dotnet/sdk-container-builds/issues with this message.")
+        return initialManifestResponse.Content.Headers.ContentType?.MediaType switch
+        {
+            DockerManifestV2 => await ReadSingleImageAsync(
+                repositoryName,
+                await initialManifestResponse.Content.ReadFromJsonAsync<ManifestV2>(cancellationToken: cancellationToken).ConfigureAwait(false),
+                cancellationToken).ConfigureAwait(false),
+            DockerManifestListV2 => await PickBestImageFromManifestListAsync(
+                repositoryName,
+                reference,
+                await initialManifestResponse.Content.ReadFromJsonAsync<ManifestListV2>(cancellationToken: cancellationToken).ConfigureAwait(false),
+                runtimeIdentifier,
+                runtimeIdentifierGraphPath,
+                cancellationToken).ConfigureAwait(false),
+            var unknownMediaType => throw new NotImplementedException(Resource.FormatString(
+                nameof(Strings.UnknownMediaType),
+                repositoryName,
+                reference,
+                BaseUri,
+                unknownMediaType))
         };
     }
 
-    private async Task<ImageBuilder> ReadSingleImage(string repositoryName, ManifestV2 manifest)
+    private async Task<ImageBuilder> ReadSingleImageAsync(string repositoryName, ManifestV2 manifest, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var config = manifest.Config;
         string configSha = config.digest;
 
-        var blobResponse = await GetBlob(repositoryName, configSha).ConfigureAwait(false);
+        var blobResponse = await GetBlobAsync(repositoryName, configSha, cancellationToken).ConfigureAwait(false);
 
-        JsonNode? configDoc = JsonNode.Parse(await blobResponse.Content.ReadAsStringAsync().ConfigureAwait(false));
+        cancellationToken.ThrowIfCancellationRequested();
+        JsonNode? configDoc = JsonNode.Parse(await blobResponse.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
         Debug.Assert(configDoc is not null);
 
+        cancellationToken.ThrowIfCancellationRequested();
         return new ImageBuilder(manifest, new ImageConfig(configDoc));
     }
 
-    async Task<ImageBuilder> PickBestImageFromManifestList(string repositoryName, string reference, ManifestListV2 manifestList, string runtimeIdentifier, string runtimeIdentifierGraphPath) {
+    private async Task<ImageBuilder> PickBestImageFromManifestListAsync(
+        string repositoryName,
+        string reference,
+        ManifestListV2 manifestList,
+        string runtimeIdentifier,
+        string runtimeIdentifierGraphPath,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         var runtimeGraph = GetRuntimeGraphForDotNet(runtimeIdentifierGraphPath);
         var (ridDict, graphForManifestList) = ConstructRuntimeGraphForManifestList(manifestList, runtimeGraph);
         var bestManifestRid = CheckIfRidExistsInGraph(graphForManifestList, ridDict.Keys, runtimeIdentifier);
@@ -115,22 +143,30 @@ internal sealed class Registry
             throw new BaseImageNotFoundException(runtimeIdentifier, repositoryName, reference, graphForManifestList.Runtimes.Keys);
         }
         var matchingManifest = ridDict[bestManifestRid];
-        var manifestResponse = await GetManifest(repositoryName, matchingManifest.digest).ConfigureAwait(false);
-        return await ReadSingleImage(repositoryName, await manifestResponse.Content.ReadFromJsonAsync<ManifestV2>().ConfigureAwait(false)).ConfigureAwait(false);
+        var manifestResponse = await GetManifestAsync(repositoryName, matchingManifest.digest, cancellationToken).ConfigureAwait(false);
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await ReadSingleImageAsync(
+            repositoryName,
+            await manifestResponse.Content.ReadFromJsonAsync<ManifestV2>(cancellationToken: cancellationToken).ConfigureAwait(false),
+            cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<HttpResponseMessage> GetManifest(string repositoryName, string reference)
+    private async Task<HttpResponseMessage> GetManifestAsync(string repositoryName, string reference, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var client = GetClient();
-        var response = await client.GetAsync(new Uri(BaseUri, $"/v2/{repositoryName}/manifests/{reference}")).ConfigureAwait(false);
+        var response = await client.GetAsync(new Uri(BaseUri, $"/v2/{repositoryName}/manifests/{reference}"), cancellationToken).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
         return response;
     }
 
-    async Task<HttpResponseMessage> GetBlob(string repositoryName, string digest)
+    private async Task<HttpResponseMessage> GetBlobAsync(string repositoryName, string digest, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var client = GetClient();
-        var response = await client.GetAsync(new Uri(BaseUri, $"/v2/{repositoryName}/blobs/{digest}")).ConfigureAwait(false);
+        var response = await client.GetAsync(new Uri(BaseUri, $"/v2/{repositoryName}/blobs/{digest}"), cancellationToken).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
         return response;
     }
@@ -200,8 +236,9 @@ internal sealed class Registry
     /// <param name="repository">Name of the associated image repository.</param>
     /// <param name="descriptor"><see cref="Descriptor"/> that describes the blob.</param>
     /// <returns>Local path to the (decompressed) blob content.</returns>
-    public async Task<string> DownloadBlob(string repository, Descriptor descriptor)
+    public async Task<string> DownloadBlobAsync(string repository, Descriptor descriptor, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         string localPath = ContentStore.PathForDescriptor(descriptor);
 
         if (File.Exists(localPath))
@@ -214,34 +251,43 @@ internal sealed class Registry
 
         HttpClient client = GetClient();
 
-        var response = await client.GetAsync(new Uri(BaseUri, $"/v2/{repository}/blobs/{descriptor.Digest}"), HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+        var response = await client.GetAsync(
+            new Uri(BaseUri, $"/v2/{repository}/blobs/{descriptor.Digest}"),
+            HttpCompletionOption.ResponseHeadersRead,
+            cancellationToken).ConfigureAwait(false);
 
+        cancellationToken.ThrowIfCancellationRequested();
         response.EnsureSuccessStatusCode();
 
         string tempTarballPath = ContentStore.GetTempFile();
         using (FileStream fs = File.Create(tempTarballPath))
         {
-            using Stream responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            using Stream responseStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
 
-            await responseStream.CopyToAsync(fs).ConfigureAwait(false);
+            await responseStream.CopyToAsync(fs, cancellationToken).ConfigureAwait(false);
         }
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         File.Move(tempTarballPath, localPath, overwrite: true);
 
         return localPath;
     }
 
-    public async Task Push(Layer layer, string repository, Action<string> logProgressMessage)
+    public async Task PushAsync(Layer layer, string repository, Action<string> logProgressMessage, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         string digest = layer.Descriptor.Digest;
 
         using (FileStream contents = File.OpenRead(layer.BackingFile))
         {
-            await UploadBlob(repository, digest, contents).ConfigureAwait(false);
+            await UploadBlobAsync(repository, digest, contents, cancellationToken).ConfigureAwait(false);
         }
     }
 
-    private async Task<UriBuilder> UploadBlobChunked(string repository, string digest, Stream contents, HttpClient client, UriBuilder uploadUri) {
+    private async Task<UriBuilder> UploadBlobChunkedAsync(string repository, string digest, Stream contents, HttpClient client, UriBuilder uploadUri, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         Uri patchUri = uploadUri.Uri;
         var localUploadUri = new UriBuilder(uploadUri.Uri);
         localUploadUri.Query += $"&digest={Uri.EscapeDataString(digest)}";
@@ -256,7 +302,8 @@ internal sealed class Registry
 
         while (contents.Position < contents.Length)
         {
-            int bytesRead = await contents.ReadAsync(chunkBackingStore).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            int bytesRead = await contents.ReadAsync(chunkBackingStore, cancellationToken).ConfigureAwait(false);
 
             ByteArrayContent content = new (chunkBackingStore, offset: 0, count: bytesRead);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
@@ -266,12 +313,12 @@ internal sealed class Registry
             //    content.Headers.Add("Content-Range", $"0-{contents.Length - 1}");
             Debug.Assert(content.Headers.TryAddWithoutValidation("Content-Range", $"{chunkStart}-{chunkStart + bytesRead - 1}"));
 
-            HttpResponseMessage patchResponse = await client.PatchAsync(patchUri, content).ConfigureAwait(false);
+            HttpResponseMessage patchResponse = await client.PatchAsync(patchUri, content, cancellationToken).ConfigureAwait(false);
 
             // Fail the upload if the response code is not Accepted (202) or if uploading to Amazon ECR which returns back Created (201).
             if (!(patchResponse.StatusCode == HttpStatusCode.Accepted || (IsAmazonECRRegistry && patchResponse.StatusCode == HttpStatusCode.Created)))
             {
-                string errorMessage = $"Failed to upload blob to {patchUri}; received {patchResponse.StatusCode} with detail {await patchResponse.Content.ReadAsStringAsync().ConfigureAwait(false)}";
+                string errorMessage = Resource.FormatString(nameof(Strings.BlobUploadFailed), patchUri, patchResponse.StatusCode, await patchResponse.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
                 throw new ApplicationException(errorMessage);
             }
 
@@ -298,58 +345,78 @@ internal sealed class Registry
         }
     }
 
-    private async Task<UriBuilder> UploadBlobWhole(string repository, string digest, Stream contents, HttpClient client, UriBuilder uploadUri) {
+    private async Task<UriBuilder> UploadBlobWholeAsync(string repository, string digest, Stream contents, HttpClient client, UriBuilder uploadUri, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         StreamContent content = new StreamContent(contents);
         content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
         content.Headers.ContentLength = contents.Length;
-        HttpResponseMessage patchResponse = await client.PatchAsync(uploadUri.Uri, content).ConfigureAwait(false);
+        HttpResponseMessage patchResponse = await client.PatchAsync(uploadUri.Uri, content, cancellationToken).ConfigureAwait(false);
+
+        cancellationToken.ThrowIfCancellationRequested();
         if (patchResponse.StatusCode != HttpStatusCode.Accepted)
         {
-            string errorMessage = $"Failed to upload to {uploadUri}; received {patchResponse.StatusCode} with detail {await patchResponse.Content.ReadAsStringAsync().ConfigureAwait(false)}";
+            string errorMessage = Resource.FormatString(nameof(Strings.BlobUploadFailed), uploadUri, patchResponse.StatusCode, await patchResponse.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false)); 
             throw new ApplicationException(errorMessage);
         }
         return GetNextLocation(patchResponse);
     }
 
-    private async Task<UriBuilder> StartUploadSession(string repository, string digest, HttpClient client) {
+    private async Task<UriBuilder> StartUploadSessionAsync(string repository, string digest, HttpClient client, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         Uri startUploadUri = new Uri(BaseUri, $"/v2/{repository}/blobs/uploads/");
 
-        HttpResponseMessage pushResponse = await client.PostAsync(startUploadUri, content: null).ConfigureAwait(false);
+        HttpResponseMessage pushResponse = await client.PostAsync(startUploadUri, content: null, cancellationToken).ConfigureAwait(false);
 
         if (pushResponse.StatusCode != HttpStatusCode.Accepted)
         {
-            string errorMessage = $"Failed to upload blob to {startUploadUri}; received {pushResponse.StatusCode} with detail {await pushResponse.Content.ReadAsStringAsync().ConfigureAwait(false)}";
+            string errorMessage = Resource.FormatString(nameof(Strings.BlobUploadFailed), startUploadUri, pushResponse.StatusCode, await pushResponse.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
             throw new ApplicationException(errorMessage);
         }
-
+        cancellationToken.ThrowIfCancellationRequested();
         return GetNextLocation(pushResponse);
     }
 
-    private async Task<UriBuilder> UploadBlobContents(string repository, string digest, Stream contents, HttpClient client, UriBuilder uploadUri) {
-        if (SupportsChunkedUpload) return await UploadBlobChunked(repository, digest, contents, client, uploadUri).ConfigureAwait(false);
-        else return await UploadBlobWhole(repository, digest, contents, client, uploadUri).ConfigureAwait(false);
+    private Task<UriBuilder> UploadBlobContentsAsync(string repository, string digest, Stream contents, HttpClient client, UriBuilder uploadUri, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (SupportsChunkedUpload)
+        {
+            return UploadBlobChunkedAsync(repository, digest, contents, client, uploadUri, cancellationToken);
+        }
+        else
+        {
+            return UploadBlobWholeAsync(repository, digest, contents, client, uploadUri, cancellationToken);
+        }
     }
 
-    private static async Task FinishUploadSession(string digest, HttpClient client, UriBuilder uploadUri) {
+    private static async Task FinishUploadSessionAsync(string digest, HttpClient client, UriBuilder uploadUri, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
         // PUT with digest to finalize
         uploadUri.Query += $"&digest={Uri.EscapeDataString(digest)}";
 
         var putUri = uploadUri.Uri;
 
-        HttpResponseMessage finalizeResponse = await client.PutAsync(putUri, content: null).ConfigureAwait(false);
+        HttpResponseMessage finalizeResponse = await client.PutAsync(putUri, content: null, cancellationToken).ConfigureAwait(false);
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         if (finalizeResponse.StatusCode != HttpStatusCode.Created)
         {
-            string errorMessage = $"Failed to finalize upload to {putUri}; received {finalizeResponse.StatusCode} with detail {await finalizeResponse.Content.ReadAsStringAsync().ConfigureAwait(false)}";
+            string errorMessage = Resource.FormatString(nameof(Strings.BlobUploadFailed), putUri, finalizeResponse.StatusCode, await finalizeResponse.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
             throw new ApplicationException(errorMessage);
         }
     }
 
-    private async Task UploadBlob(string repository, string digest, Stream contents)
+    private async Task UploadBlobAsync(string repository, string digest, Stream contents, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         HttpClient client = GetClient();
 
-        if (await BlobAlreadyUploaded(repository, digest, client).ConfigureAwait(false))
+        if (await BlobAlreadyUploadedAsync(repository, digest, client, cancellationToken).ConfigureAwait(false))
         {
             // Already there!
             return;
@@ -357,24 +424,23 @@ internal sealed class Registry
 
         // Three steps to this process:
         // * start an upload session
-        var uploadUri = await StartUploadSession(repository, digest, client).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        var uploadUri = await StartUploadSessionAsync(repository, digest, client, cancellationToken).ConfigureAwait(false);
         // * upload the blob
-        var finalChunkUri = await UploadBlobContents(repository, digest, contents, client, uploadUri).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        var finalChunkUri = await UploadBlobContentsAsync(repository, digest, contents, client, uploadUri, cancellationToken).ConfigureAwait(false);
         // * finish the upload session
-        await FinishUploadSession(digest, client, finalChunkUri).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        await FinishUploadSessionAsync(digest, client, finalChunkUri, cancellationToken).ConfigureAwait(false);
 
     }
 
-    private async Task<bool> BlobAlreadyUploaded(string repository, string digest, HttpClient client)
+    private async Task<bool> BlobAlreadyUploadedAsync(string repository, string digest, HttpClient client, CancellationToken cancellationToken)
     {
-        HttpResponseMessage response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Head, new Uri(BaseUri, $"/v2/{repository}/blobs/{digest}"))).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        HttpResponseMessage response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Head, new Uri(BaseUri, $"/v2/{repository}/blobs/{digest}")), cancellationToken).ConfigureAwait(false);
 
-        if (response.StatusCode == HttpStatusCode.OK)
-        {
-            return true;
-        }
-
-        return false;
+        return response.StatusCode == HttpStatusCode.OK;
     }
 
     private readonly HttpClient _client;
@@ -406,18 +472,19 @@ internal sealed class Registry
         return client;
     }
 
-    public async Task Push(BuiltImage builtImage, ImageReference source, ImageReference destination, Action<string> logProgressMessage)
+    public async Task PushAsync(BuiltImage builtImage, ImageReference source, ImageReference destination, Action<string> logProgressMessage, CancellationToken cancellationToken)
     {
-
+        cancellationToken.ThrowIfCancellationRequested();
         HttpClient client = GetClient();
         Registry destinationRegistry = destination.Registry!;
 
         Func<Descriptor, Task> uploadLayerFunc = async (descriptor) =>
         {
+            cancellationToken.ThrowIfCancellationRequested();
             string digest = descriptor.Digest;
 
             logProgressMessage($"Uploading layer {digest} to {destinationRegistry.RegistryName}");
-            if (await destinationRegistry.BlobAlreadyUploaded(destination.Repository, digest, client).ConfigureAwait(false))
+            if (await destinationRegistry.BlobAlreadyUploadedAsync(destination.Repository, digest, client, cancellationToken).ConfigureAwait(false))
             {
                 logProgressMessage($"Layer {digest} already existed");
                 return;
@@ -433,13 +500,13 @@ internal sealed class Registry
                 if (source.Registry is { } sourceRegistry)
                 {
                     // Ensure the blob is available locally
-                    await sourceRegistry.DownloadBlob(source.Repository, descriptor).ConfigureAwait(false);
+                    await sourceRegistry.DownloadBlobAsync(source.Repository, descriptor, cancellationToken).ConfigureAwait(false);
                     // Then push it to the destination registry
-                    await destinationRegistry.Push(Layer.FromDescriptor(descriptor), destination.Repository, logProgressMessage).ConfigureAwait(false);
+                    await destinationRegistry.PushAsync(Layer.FromDescriptor(descriptor), destination.Repository, logProgressMessage, cancellationToken).ConfigureAwait(false);
                     logProgressMessage($"Finished uploading layer {digest} to {destinationRegistry.RegistryName}");
                 }
                 else {
-                    throw new NotImplementedException("Need a good error for 'couldn't download a thing because no link to registry'");
+                    throw new NotImplementedException(Resource.GetString(nameof(Strings.MissingLinkToRegistry)));
                 }
             }
         };
@@ -456,33 +523,36 @@ internal sealed class Registry
             }
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         using (MemoryStream stringStream = new MemoryStream(Encoding.UTF8.GetBytes(builtImage.Config)))
         {
             var configDigest = builtImage.ImageDigest;
             logProgressMessage($"Uploading config to registry at blob {configDigest}");
-            await UploadBlob(destination.Repository, configDigest, stringStream).ConfigureAwait(false);
+            await UploadBlobAsync(destination.Repository, configDigest, stringStream, cancellationToken).ConfigureAwait(false);
             logProgressMessage($"Uploaded config to registry");
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         var manifestDigest = builtImage.Manifest.GetDigest();
         logProgressMessage($"Uploading manifest to registry {RegistryName} as blob {manifestDigest}");
         string jsonString = JsonSerializer.SerializeToNode(builtImage.Manifest)?.ToJsonString() ?? "";
         HttpContent manifestUploadContent = new StringContent(jsonString);
         manifestUploadContent.Headers.ContentType = new MediaTypeHeaderValue(DockerManifestV2);
-        var putResponse = await client.PutAsync(new Uri(BaseUri, $"/v2/{destination.Repository}/manifests/{manifestDigest}"), manifestUploadContent).ConfigureAwait(false);
+        var putResponse = await client.PutAsync(new Uri(BaseUri, $"/v2/{destination.Repository}/manifests/{manifestDigest}"), manifestUploadContent, cancellationToken).ConfigureAwait(false);
 
         if (!putResponse.IsSuccessStatusCode)
         {
-            throw new ContainerHttpException("Registry push failed.", putResponse.RequestMessage?.RequestUri?.ToString(), jsonString);
+            throw new ContainerHttpException(Resource.GetString(nameof(Strings.RegistryPushFailed)), putResponse.RequestMessage?.RequestUri?.ToString(), jsonString);
         }
         logProgressMessage($"Uploaded manifest to {RegistryName}");
 
+        cancellationToken.ThrowIfCancellationRequested();
         logProgressMessage($"Uploading tag {destination.Tag} to {RegistryName}");
-        var putResponse2 = await client.PutAsync(new Uri(BaseUri, $"/v2/{destination.Repository}/manifests/{destination.Tag}"), manifestUploadContent).ConfigureAwait(false);
+        var putResponse2 = await client.PutAsync(new Uri(BaseUri, $"/v2/{destination.Repository}/manifests/{destination.Tag}"), manifestUploadContent, cancellationToken).ConfigureAwait(false);
 
         if (!putResponse2.IsSuccessStatusCode)
         {
-            throw new ContainerHttpException("Registry push failed.", putResponse2.RequestMessage?.RequestUri?.ToString(), jsonString);
+            throw new ContainerHttpException(Resource.GetString(nameof(Strings.RegistryPushFailed)), putResponse2.RequestMessage?.RequestUri?.ToString(), jsonString);
         }
 
         logProgressMessage($"Uploaded tag {destination.Tag} to {RegistryName}");
