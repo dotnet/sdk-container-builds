@@ -13,6 +13,23 @@
                           )">true</_IsSDKContainerAllowedVersion>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!-- Reference data about this project -->
+    <_AspNetCoreFrameworkReference>@(FrameworkReference->WithMetadataValue('Identity', 'Microsoft.AspNetCore.App')</_AspNetCoreFrameworkReference>
+    <_IsAspNet Condition=" '$(UsingMicrosoftNETSdkWeb)' == 'true' or '$(_AspNetCoreFrameworkReference)' != '' ">true</_IsAspNet>
+    <_IsSelfContained Condition="'$(SelfContained)' == 'true' or '$(PublishSelfContained)' == 'true'">true</_IsSelfContained>
+
+    <!-- Compute private defaults -->
+    <_ContainerBaseRegistry>mcr.microsoft.com</_ContainerBaseRegistry>
+    <_ContainerBaseImageName Condition="'$(_IsSelfContained)' == 'true'">dotnet/runtime-deps</_ContainerBaseImageName>
+    <_ContainerBaseImageName Condition="'$(_ContainerBaseImageName)' == '' and '$(_IsAspNet)' == 'true'">dotnet/aspnet</_ContainerBaseImageName>
+    <_ContainerBaseImageName Condition="'$(_ContainerBaseImageName)' == ''">dotnet/runtime</_ContainerBaseImageName>
+    <_ContainerBaseImageTag>$(_TargetFrameworkVersionWithoutV)</_ContainerBaseImageTag>
+
+    <!-- Compute base image -->
+    <ContainerBaseImage Condition="'$(ContainerBaseImage)' == ''">$(_ContainerBaseRegistry)/$(_ContainerBaseImageName):$(_ContainerBaseImageTag)</ContainerBaseImage>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectCapability Include="NetSdkOCIImageBuild" />
   </ItemGroup>
@@ -28,21 +45,6 @@
   </Target>
 
   <Target Name="ComputeContainerConfig">
-    <!-- Reference data about this project -->
-    <PropertyGroup>
-      <_IsAspNet Condition="@(ProjectCapability->Count()) > 0 and @(ProjectCapability->AnyHaveMetadataValue('Identity', 'AspNetCore'))">true</_IsAspNet>
-      <_IsSelfContained Condition="'$(SelfContained)' == 'true' or '$(PublishSelfContained)' == 'true'">true</_IsSelfContained>
-    </PropertyGroup>
-
-    <!-- Compute private defaults -->
-    <PropertyGroup Condition="$(ContainerBaseImage) == ''">
-      <_ContainerBaseRegistry>mcr.microsoft.com</_ContainerBaseRegistry>
-      <_ContainerBaseImageName Condition="'$(_IsSelfContained)' == 'true'">dotnet/runtime-deps</_ContainerBaseImageName>
-      <_ContainerBaseImageName Condition="'$(_ContainerBaseImageName)' == '' and '$(_IsAspNet)' == 'true'">dotnet/aspnet</_ContainerBaseImageName>
-      <_ContainerBaseImageName Condition="'$(_ContainerBaseImageName)' == ''">dotnet/runtime</_ContainerBaseImageName>
-      <_ContainerBaseImageTag>$(_TargetFrameworkVersionWithoutV)</_ContainerBaseImageTag>
-    </PropertyGroup>
-
     <PropertyGroup Label="VS defaults">
       <!-- RegistryUrl is used by existing VS targets for Docker builds - this lets us fill that void -->
       <ContainerRegistry Condition="'$(RegistryUrl)' != ''">$(RegistryUrl)</ContainerRegistry>
@@ -54,8 +56,6 @@
 
     <!-- Container Defaults -->
     <PropertyGroup>
-      <ContainerBaseImage Condition="'$(ContainerBaseImage)' == ''">$(_ContainerBaseRegistry)/$(_ContainerBaseImageName):$(_ContainerBaseImageTag)</ContainerBaseImage>
-
       <!-- An empty ContainerRegistry implies pushing to the local daemon, putting this here for documentation purposes -->
       <!-- <ContainerRegistry></ContainerRegistry> -->
 
