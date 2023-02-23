@@ -42,7 +42,7 @@ public class DockerSupportsArchInlineData : DataAttribute
         }
         else
         {
-            if (IsWindowsDaemon.GetAwaiter().GetResult() && arch.StartsWith("windows", StringComparison.OrdinalIgnoreCase))
+            if (IsWindowsDaemon() && arch.StartsWith("windows", StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
