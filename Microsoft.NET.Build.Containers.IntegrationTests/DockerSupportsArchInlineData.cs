@@ -14,7 +14,7 @@ public class DockerSupportsArchInlineData : DataAttribute
     private static string[] LinuxPlatforms = GetSupportedLinuxPlatforms();
 
     // another optimization - daemons don't switch types easily or quickly, so this is as good as static
-    private static Task<bool> IsWindowsDaemon = GetIsWindowsDaemon();
+    private static bool IsWindowsDaemon = GetIsWindowsDaemon();
 
     private readonly string _arch;
     private readonly object[] _data;
@@ -42,7 +42,7 @@ public class DockerSupportsArchInlineData : DataAttribute
         }
         else
         {
-            if (IsWindowsDaemon() && arch.StartsWith("windows", StringComparison.OrdinalIgnoreCase))
+            if (IsWindowsDaemon && arch.StartsWith("windows", StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
@@ -59,11 +59,11 @@ public class DockerSupportsArchInlineData : DataAttribute
         return platformsLine.Substring("Platforms: ".Length).Split(",", StringSplitOptions.TrimEntries);
     }
 
-    private static async Task<bool> GetIsWindowsDaemon()
+    private static bool GetIsWindowsDaemon()
     {
         // the config json has an OSType property that is either "linux" or "windows" -
         // we can't use this for linux arch detection because that isn't enough information.
-        var config = await LocalDocker.GetConfigAsync(sync: true, cancellationToken: CancellationToken.None).ConfigureAwait(false);
+        var config = LocalDocker.GetConfigAsync(sync: true, cancellationToken: CancellationToken.None).GetAwaiter().GetResult();
         if (config.RootElement.TryGetProperty("OSType", out JsonElement osTypeProperty))
         {
             return osTypeProperty.GetString() == "windows";
