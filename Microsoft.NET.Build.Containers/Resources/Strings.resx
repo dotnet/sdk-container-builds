@@ -151,7 +151,7 @@
     <value>Tried to get layer information but there is no layer node?</value>
   </data>
   <data name="MissingLinkToRegistry" xml:space="preserve">
-    <value>Need a good error for 'couldn't download a thing because no link to registry'.</value>
+    <value>Unable to download layer with descriptor '{0}' from registry '{1}' because it does not exist.</value>
   </data>
   <data name="NoRequestUriSpecified" xml:space="preserve">
     <value>No RequestUri specified.</value>

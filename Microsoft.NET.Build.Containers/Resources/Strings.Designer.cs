@@ -169,7 +169,7 @@ namespace Microsoft.NET.Build.Containers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Need a good error for &apos;couldn&apos;t download a thing because no link to registry&apos;..
+        ///   Looks up a localized string similar to Unable to download layer with descriptor &apos;{0}&apos; from registry &apos;{1}&apos; because it does not exist..
         /// </summary>
         internal static string MissingLinkToRegistry {
             get {
