@@ -97,7 +97,7 @@ namespace Microsoft.NET.Build.Containers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to get docker info({0})\n{1}\n{2}..
+        ///   Looks up a localized string similar to Failed to get docker info({0})\n{1}\n{2}.
         /// </summary>
         internal static string DockerInfoFailed {
             get {
@@ -124,7 +124,7 @@ namespace Microsoft.NET.Build.Containers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed retrieving credentials for &quot;{0}&quot;: {1}..
+        ///   Looks up a localized string similar to Failed retrieving credentials for &quot;{0}&quot;: {1}.
         /// </summary>
         internal static string FailedRetrievingCredentials {
             get {
@@ -133,7 +133,7 @@ namespace Microsoft.NET.Build.Containers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to load image to local Docker daemon. stdout: {0}..
+        ///   Looks up a localized string similar to Failed to load image to local Docker daemon. stdout: {0}.
         /// </summary>
         internal static string ImageLoadFailed {
             get {
@@ -156,15 +156,6 @@ namespace Microsoft.NET.Build.Containers.Resources {
         internal static string InvalidTokenResponse {
             get {
                 return ResourceManager.GetString("InvalidTokenResponse", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Expected base image to have a config node..
-        /// </summary>
-        internal static string MissingBaseImageConfigNode {
-            get {
-                return ResourceManager.GetString("MissingBaseImageConfigNode", resourceCulture);
             }
         }
         

@@ -127,7 +127,7 @@
     <value>Could not deserialize token from JSON.</value>
   </data>
   <data name="DockerInfoFailed" xml:space="preserve">
-    <value>Failed to get docker info({0})\n{1}\n{2}.</value>
+    <value>Failed to get docker info({0})\n{1}\n{2}</value>
   </data>
   <data name="DockerProcessCreationFailed" xml:space="preserve">
     <value>Failed creating docker process.</value>
@@ -136,19 +136,16 @@
     <value>Don't know how to pull images from local daemons at the moment.</value>
   </data>
   <data name="FailedRetrievingCredentials" xml:space="preserve">
-    <value>Failed retrieving credentials for "{0}": {1}.</value>
+    <value>Failed retrieving credentials for "{0}": {1}</value>
   </data>
   <data name="ImageLoadFailed" xml:space="preserve">
-    <value>Failed to load image to local Docker daemon. stdout: {0}.</value>
+    <value>Failed to load image to local Docker daemon. stdout: {0}</value>
   </data>
   <data name="InvalidImageName" xml:space="preserve">
     <value>The first character of the image name must be a lowercase letter or a digit.</value>
   </data>
   <data name="InvalidTokenResponse" xml:space="preserve">
     <value>Token response had neither token nor access_token.</value>
-  </data>
-  <data name="MissingBaseImageConfigNode" xml:space="preserve">
-    <value>Expected base image to have a config node.</value>
   </data>
   <data name="MissingLayerNode" xml:space="preserve">
     <value>Tried to get layer information but there is no layer node?</value>
