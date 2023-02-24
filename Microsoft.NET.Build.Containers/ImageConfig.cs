@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace Microsoft.NET.Build.Containers;
@@ -12,11 +13,18 @@ internal sealed class ImageConfig
 {
     private readonly JsonObject _config;
     private readonly Dictionary<string, string> _labels;
-    private readonly List<Layer> _newLayers = new();
     private readonly HashSet<Port> _exposedPorts;
     private readonly Dictionary<string, string> _environmentVariables;
     private string? _newWorkingDirectory;
     private (string[] ExecutableArgs, string[]? Args)? _newEntryPoint;
+
+    /// <summary>
+    /// Models the file system of the image. Typically has a key 'type' with value 'layers' and a key 'diff_ids' with a list of layer digests.
+    /// </summary>
+    private readonly List<string> _rootFsLayers;
+    private readonly string _architecture;
+    private readonly string _os;
+    private List<HistoryEntry> _history;
 
     internal ImageConfig(JsonNode config)
     {
@@ -29,52 +37,93 @@ internal sealed class ImageConfig
         _labels = GetLabels();
         _exposedPorts = GetExposedPorts();
         _environmentVariables = GetEnvironmentVariables();
+        _rootFsLayers = GetRootFileSystemLayers();
+        _architecture = GetArchitecture();
+        _os = GetOs();
+        _history = GetHistory();
     }
+
+    private List<HistoryEntry> GetHistory() => _config["history"]?.AsArray().Select(node => node.Deserialize<HistoryEntry>()!).ToList() ?? new List<HistoryEntry>();
+    private string GetOs() => _config["os"]?.ToString() ?? throw new ArgumentException("Base image configuration should contain an 'os' property.");
+    private string GetArchitecture() => _config["architecture"]?.ToString() ?? throw new ArgumentException("Base image configuration should contain an 'architecture' property.");
 
     /// <summary>
     /// Builds in additional configuration and returns updated image configuration in JSON format as string.
     /// </summary>
     internal string BuildConfig()
     {
-        if (_config["config"] is not JsonObject config)
-        {
-            throw new InvalidOperationException("Base image configuration should contain a 'config' node.");
-        }
+        var newConfig = new JsonObject();
 
-        //update creation date
-        _config["created"] = DateTime.UtcNow;
-  
-        config["ExposedPorts"] = CreatePortMap();
-        config["Env"] = CreateEnvironmentVariablesMapping();
-        config["Labels"] = CreateLabelMap();
+        if (_exposedPorts.Any())
+        {
+            newConfig["ExposedPorts"] = CreatePortMap();
+        }
+        if (_labels.Any())
+        {
+            newConfig["Labels"] = CreateLabelMap();
+        }
+        if (_environmentVariables.Any())
+        {
+            newConfig["Env"] = CreateEnvironmentVariablesMapping();
+        }
 
         if (_newWorkingDirectory is not null)
         {
-            config["WorkingDir"] = _newWorkingDirectory;
+            newConfig["WorkingDir"] = _newWorkingDirectory;
         }
 
         if (_newEntryPoint.HasValue)
         {
-            config["Entrypoint"] = ToJsonArray(_newEntryPoint.Value.ExecutableArgs);
+            newConfig["Entrypoint"] = ToJsonArray(_newEntryPoint.Value.ExecutableArgs);
 
             if (_newEntryPoint.Value.Args is null)
             {
-                config.Remove("Cmd");
+                newConfig.Remove("Cmd");
             }
             else
             {
-                config["Cmd"] = ToJsonArray(_newEntryPoint.Value.Args);
+                newConfig["Cmd"] = ToJsonArray(_newEntryPoint.Value.Args);
             }
         }
 
-        foreach (Layer l in _newLayers)
-        {
-            _config["rootfs"]!["diff_ids"]!.AsArray().Add(l.Descriptor.UncompressedDigest);
-        }
+        // add a history entry for ourselves so folks can map generated layers to the Dockerfile commands
+        _history.Add(new HistoryEntry(DateTime.UtcNow, ".NET SDK ", null));
 
-        return _config.ToJsonString();
-        static JsonArray ToJsonArray(string[] items) => new(items.Where(s => !string.IsNullOrEmpty(s)).Select(s => JsonValue.Create(s)).ToArray());
+        var configContainer = new JsonObject()
+        {
+            ["config"] = newConfig,
+            //update creation date
+            ["created"] = RFC3339Format(DateTime.UtcNow),
+            ["rootfs"] = new JsonObject()
+            {
+                ["type"] = "layers",
+                ["diff_ids"] = ToJsonArray(_rootFsLayers)
+            },
+            ["architecture"] = _architecture,
+            ["os"] = _os,
+            ["history"] = new JsonArray(_history.Select(CreateHistory).ToArray()),
+        };
+
+        return configContainer.ToJsonString();
+
+        static JsonArray ToJsonArray(IEnumerable<string> items) => new(items.Where(s => !string.IsNullOrEmpty(s)).Select(s => JsonValue.Create(s)).ToArray());
     }
+
+    private JsonObject CreateHistory(HistoryEntry h)
+    {
+        var history = new JsonObject()
+        {
+            ["created"] = RFC3339Format(h.created),
+            ["created_by"] = h.created_by,
+        };
+        if (h.empty_layer is not null)
+        {
+            history["empty_layer"] = h.empty_layer;
+        }
+        return history;
+    }
+
+    static string RFC3339Format(DateTimeOffset dateTime) => dateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ", System.Globalization.CultureInfo.InvariantCulture);
 
     internal void ExposePort(int number, PortType type)
     {
@@ -103,7 +152,7 @@ internal sealed class ImageConfig
 
     internal void AddLayer(Layer l)
     {
-        _newLayers.Add(l);
+        _rootFsLayers.Add(l.Descriptor.UncompressedDigest!);
     }
 
     private HashSet<Port> GetExposedPorts()
@@ -137,7 +186,7 @@ internal sealed class ImageConfig
                 {
                     labels[propertyName] = propertyValue.ToString();
                 }
-            }    
+            }
         }
         return labels;
     }
@@ -195,4 +244,25 @@ internal sealed class ImageConfig
         }
         return container;
     }
+
+    private List<string> GetRootFileSystemLayers()
+    {
+        if (_config["rootfs"] is { } rootfs)
+        {
+            if (rootfs["type"]?.GetValue<string>() == "layers" && rootfs["diff_ids"] is JsonArray layers)
+            {
+                return layers.Select(l => l!.GetValue<string>()).ToList();
+            }
+            else
+            {
+                return new();
+            }
+        }
+        else
+        {
+            throw new InvalidOperationException("Base image configuration should contain a 'rootfs' node.");
+        }
+    }
+
+    private record HistoryEntry(DateTimeOffset created, string created_by, bool? empty_layer);
 }
