@@ -161,13 +161,13 @@ dotnet_diagnostic.CA1001.severity = suggestion
 dotnet_diagnostic.CA1305.severity = suggestion
 
 # Identifiers should not contain underscores
-dotnet_diagnostic.CA1707.severity = suggestion
+dotnet_diagnostic.CA1707.severity = silent
 
 # Do not directly await a Task
 dotnet_diagnostic.CA2007.severity = warning
 
 # Do not raise reserved exception types
-dotnet_diagnostic.CA2201.severity = suggestion
+dotnet_diagnostic.CA2201.severity = silent
 
 # Using directive is unnecessary
 dotnet_diagnostic.IDE0005.severity = warning

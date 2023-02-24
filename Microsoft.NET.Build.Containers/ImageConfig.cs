@@ -24,7 +24,7 @@ internal sealed class ImageConfig
     private readonly List<string> _rootFsLayers;
     private readonly string _architecture;
     private readonly string _os;
-    private List<HistoryEntry> _history;
+    private readonly List<HistoryEntry> _history;
 
     internal ImageConfig(JsonNode config)
     {
@@ -87,7 +87,7 @@ internal sealed class ImageConfig
         }
 
         // add a history entry for ourselves so folks can map generated layers to the Dockerfile commands
-        _history.Add(new HistoryEntry(DateTime.UtcNow, ".NET SDK ", null));
+        _history.Add(new HistoryEntry(DateTime.UtcNow, $".NET SDK Container Tooling, version {Constants.Version}", null));
 
         var configContainer = new JsonObject()
         {
