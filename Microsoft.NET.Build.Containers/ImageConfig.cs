@@ -87,7 +87,7 @@ internal sealed class ImageConfig
         }
 
         // add a history entry for ourselves so folks can map generated layers to the Dockerfile commands
-        _history.Add(new HistoryEntry(DateTime.UtcNow, $".NET SDK Container Tooling, version {Constants.Version}", null, null, null));
+        _history.Add(new HistoryEntry(created: DateTime.UtcNow, author: ".NET SDK", created_by: $".NET SDK Container Tooling, version {Constants.Version}"));
 
         var configContainer = new JsonObject()
         {
@@ -278,5 +278,5 @@ internal sealed class ImageConfig
         }
     }
 
-    private record HistoryEntry(DateTimeOffset? created, string? created_by, bool? empty_layer, string? comment, string? author);
+    private record HistoryEntry(DateTimeOffset? created = null, string? created_by = null, bool? empty_layer = null, string? comment = null, string? author = null);
 }
