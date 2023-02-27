@@ -3,8 +3,6 @@
   <PropertyGroup>
     <TargetFrameworks>net7.0;net472</TargetFrameworks>
     <ImplicitUsings Condition="'$(TargetFramework)' != 'net472'">enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <LangVersion>preview</LangVersion>
 
     <TargetsForTfmSpecificBuildOutput>
       $(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage
@@ -26,7 +24,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Nuget.Packaging" /> 
+    <PackageReference Include="Nuget.Packaging" />
     <PackageReference Include="Valleysoft.DockerCredsProvider" />
   </ItemGroup>
 
