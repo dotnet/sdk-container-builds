@@ -13,7 +13,7 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
     <PackageVersion Include="Microsoft.VisualStudioEng.MicroBuild.Core" Version="1.0.0" />
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.5.109" />
-    <PackageVersion Include="NuGet.Packaging" Version="6.4.0" />
+    <PackageVersion Include="NuGet.Packaging" Version="6.5.0" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="Valleysoft.DockerCredsProvider" Version="2.1.0" />
     <PackageVersion Include="xunit" Version="2.4.2" />
