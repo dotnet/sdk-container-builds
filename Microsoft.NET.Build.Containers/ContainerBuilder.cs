@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Text.Json;
-using System.Threading.Tasks;
+using Microsoft.NET.Build.Containers.Outputs;
 using Microsoft.NET.Build.Containers.Resources;
 
 namespace Microsoft.NET.Build.Containers;
 
 public static class ContainerBuilder
 {
-    public static async Task Containerize(DirectoryInfo folder, string workingDir, string registryName, string baseName, string baseTag, string[] entrypoint, string[] entrypointArgs, string imageName, string[] imageTags, string? outputRegistry, string[] labels, Port[] exposedPorts, string[] envVars, string containerRuntimeIdentifier, string ridGraphPath, string localContainerDaemon)
+    public static async Task Containerize(DirectoryInfo folder, string workingDir, string registryName, string baseName, string baseTag, string[] entrypoint, string[] entrypointArgs, string imageName, string[] imageTags, string? outputRegistry, string[] labels, Port[] exposedPorts, string[] envVars, string containerRuntimeIdentifier, string ridGraphPath, string localContainerDaemon, string tarFilePath)
     {
         var isDaemonPull = String.IsNullOrEmpty(registryName);
         if (isDaemonPull)
@@ -21,6 +21,8 @@ public static class ContainerBuilder
         ImageReference sourceImageReference = new(baseRegistry, baseName, baseTag);
         var isDockerPush = String.IsNullOrEmpty(outputRegistry);
         var destinationImageReferences = imageTags.Select(t => new ImageReference(isDockerPush ? null : new Registry(ContainerHelpers.TryExpandRegistryToUri(outputRegistry!)), imageName, t));
+
+        var isFileExport = !String.IsNullOrEmpty(tarFilePath);
 
         ImageBuilder imageBuilder = await baseRegistry.GetImageManifest(baseName, baseTag, containerRuntimeIdentifier, ridGraphPath).ConfigureAwait(false);
 
@@ -77,6 +79,13 @@ public static class ContainerBuilder
             }
             else
             {
+                if (isFileExport)
+                {
+                    var fileExporter = new FileOutput(Console.WriteLine);
+                    fileExporter.Export(tarFilePath, builtImage, sourceImageReference, destinationImageReference).Wait();
+                    Console.WriteLine("Containerize: File '{0}' created ", tarFilePath);
+                    return;
+                }
 
                 var localDaemon = GetLocalDaemon(localContainerDaemon, Console.WriteLine);
                 if (!(await localDaemon.IsAvailable().ConfigureAwait(false)))

@@ -3,6 +3,7 @@
 
 using System.Text.Json;
 using Microsoft.Build.Framework;
+using Microsoft.NET.Build.Containers.Outputs;
 using Microsoft.NET.Build.Containers.Resources;
 
 namespace Microsoft.NET.Build.Containers.Tasks;
@@ -22,6 +23,8 @@ public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task
     private bool IsDaemonPush => string.IsNullOrEmpty(OutputRegistry);
 
     private bool IsDaemonPull => string.IsNullOrEmpty(BaseRegistry);
+
+    private bool IsOutputFile => !string.IsNullOrEmpty(OutputFilePath);
 
     public override bool Execute()
     {
@@ -71,6 +74,14 @@ public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task
 
         foreach (var destinationImageReference in destinationImageReferences)
         {
+            if (IsOutputFile)
+            {
+                var fileExporter = new FileOutput(Console.WriteLine);
+                fileExporter.Export(OutputFilePath, builtImage, sourceImageReference, destinationImageReference).Wait();
+                Console.WriteLine("Containerize: File '{0}' created ", OutputFilePath);
+
+                return true;
+            }
             if (IsDaemonPush)
             {
                 var localDaemon = GetLocalDaemon(msg => Log.LogMessage(msg));
