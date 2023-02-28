@@ -116,7 +116,7 @@ public class EndToEndTests
     [Fact]
     public async Task ApiEndToEndWithExportFile()
     {
-        string publishDirectory = BuildLocalApp();
+        string publishDirectory = BuildLocalApp(tfm: "net7.0");
 
         // Build the image
         Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.LocalRegistry));
@@ -158,16 +158,6 @@ public class EndToEndTests
         new BasicCommand(_testOutput, "docker", "run", "--rm", "--tty", destinationReference.RepositoryAndTag)
             .Execute()
             .Should().Pass();
-
-        // Clean up images
-        new BasicCommand(_testOutput, "docker", "rmi", sourceReference.ToString())
-            .Execute()
-            .Should().Pass();
-
-        new BasicCommand(_testOutput, "docker", "rmi", destinationReference.RepositoryAndTag)
-            .Execute()
-            .Should().Pass();
-
     }
 
     private string BuildLocalApp([CallerMemberName] string testName = "TestName", string tfm = "net6.0", string rid = "linux-x64")

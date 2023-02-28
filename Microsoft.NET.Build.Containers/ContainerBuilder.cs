@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Text.Json;
-using System.Threading.Tasks;
+using Microsoft.NET.Build.Containers.Outputs;
 using Microsoft.NET.Build.Containers.Resources;
 
 namespace Microsoft.NET.Build.Containers;
@@ -26,6 +26,7 @@ public static class ContainerBuilder
         string containerRuntimeIdentifier,
         string ridGraphPath,
         string localContainerDaemon,
+        string tarFilePath,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -43,6 +44,8 @@ public static class ContainerBuilder
         ImageBuilder imageBuilder = await baseRegistry.GetImageManifestAsync(baseName, baseTag, containerRuntimeIdentifier, ridGraphPath, cancellationToken).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
+
+        var isFileExport = !String.IsNullOrEmpty(tarFilePath);
 
         imageBuilder.SetWorkingDirectory(workingDir);
 
@@ -104,6 +107,13 @@ public static class ContainerBuilder
             }
             else
             {
+                if (isFileExport)
+                {
+                    var fileExporter = new FileOutput(Console.WriteLine);
+                    fileExporter.Export(tarFilePath, builtImage, sourceImageReference, destinationImageReference).Wait();
+                    Console.WriteLine("Containerize: File '{0}' created ", tarFilePath);
+                    return;
+                }
 
                 var localDaemon = GetLocalDaemon(localContainerDaemon, Console.WriteLine);
                 if (!(await localDaemon.IsAvailableAsync(cancellationToken).ConfigureAwait(false)))

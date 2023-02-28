@@ -164,6 +164,13 @@ var ridOpt = new Option<string>(name: "--rid", description: "Runtime Identifier 
 
 var ridGraphPathOpt = new Option<string>(name: "--ridgraphpath", description: "Path to the RID graph file.");
 
+var outputFilePathOpt = new Option<string>(
+    name: "--outputfilepath",
+    description: "The file path where the tar.gz file will be saved.")
+{
+    IsRequired = true
+};
+
 RootCommand root = new RootCommand("Containerize an application without Docker.")
 {
     publishDirectoryArg,
@@ -181,7 +188,8 @@ RootCommand root = new RootCommand("Containerize an application without Docker."
     envVarsOpt,
     ridOpt,
     ridGraphPathOpt,
-    localContainerDaemonOpt
+    localContainerDaemonOpt,
+    outputFilePathOpt
 };
 
 root.SetHandler(async (context) =>
@@ -202,6 +210,8 @@ root.SetHandler(async (context) =>
     string _rid = context.ParseResult.GetValueForOption(ridOpt) ?? "";
     string _ridGraphPath = context.ParseResult.GetValueForOption(ridGraphPathOpt) ?? "";
     string _localContainerDaemon = context.ParseResult.GetValueForOption(localContainerDaemonOpt) ?? "";
+    string _tarFilePath = context.ParseResult.GetValueForOption(outputFilePathOpt) ?? "";
+
     await ContainerBuilder.ContainerizeAsync(
         _publishDir,
         _workingDir,
@@ -219,6 +229,7 @@ root.SetHandler(async (context) =>
         _rid,
         _ridGraphPath,
         _localContainerDaemon,
+        _tarFilePath,
         context.GetCancellationToken()).ConfigureAwait(false);
 });
 

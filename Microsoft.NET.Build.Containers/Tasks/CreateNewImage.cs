@@ -3,6 +3,7 @@
 
 using System.Text.Json;
 using Microsoft.Build.Framework;
+using Microsoft.NET.Build.Containers.Outputs;
 using Microsoft.NET.Build.Containers.Resources;
 
 namespace Microsoft.NET.Build.Containers.Tasks;
@@ -26,6 +27,8 @@ public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task, ICa
     private bool IsDaemonPull => string.IsNullOrEmpty(BaseRegistry);
 
     public void Cancel() => _cancellationTokenSource.Cancel();
+
+    private bool IsOutputFile => !string.IsNullOrEmpty(OutputFilePath);
 
     public override bool Execute()
     {
@@ -95,6 +98,14 @@ public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task, ICa
 
         foreach (ImageReference destinationImageReference in destinationImageReferences)
         {
+            if (IsOutputFile)
+            {
+                var fileExporter = new FileOutput(Console.WriteLine);
+                fileExporter.Export(OutputFilePath, builtImage, sourceImageReference, destinationImageReference).Wait();
+                Console.WriteLine("Containerize: File '{0}' created ", OutputFilePath);
+
+                return true;
+            }
             if (IsDaemonPush)
             {
                 LocalDocker localDaemon = GetLocalDaemon(msg => Log.LogMessage(msg));

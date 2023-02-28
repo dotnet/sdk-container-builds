@@ -114,6 +114,8 @@ partial class CreateNewImage
     [Required]
     public string RuntimeIdentifierGraphPath { get; set; }
 
+    public string OutputFilePath { get; set; }
+
     [Output]
     public string GeneratedContainerManifest { get; set; }
 
@@ -141,6 +143,7 @@ partial class CreateNewImage
         ContainerRuntimeIdentifier = "";
         RuntimeIdentifierGraphPath = "";
         LocalContainerDaemon = "";
+        OutputFilePath = "";
 
         GeneratedContainerConfiguration = "";
         GeneratedContainerManifest = "";
