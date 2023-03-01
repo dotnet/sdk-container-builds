@@ -92,7 +92,10 @@ internal sealed class ImageConfig
         {
             if (_config["config"]?[propertyName] is JsonValue propertyValue)
             {
-                newConfig[propertyName] = propertyValue;
+                // we can't just copy the property value because JsonValues have Parents
+                // and they cannot be re-parented. So we need to Clone them, but there's
+                // not an API for cloning, so the recommendation is to stringify and parse.
+                newConfig[propertyName] = JsonValue.Parse(propertyValue.ToJsonString());
             }
         }
 
