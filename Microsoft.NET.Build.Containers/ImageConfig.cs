@@ -86,6 +86,15 @@ internal sealed class ImageConfig
             }
         }
 
+        // not yet directly supported fields
+        foreach (string propertyName in new [] { "User", "Volumes", "StopSignal" })
+        {
+            if (_config["config"]?[propertyName] is JsonValue propertyValue)
+            {
+                newConfig[propertyName] = propertyValue;
+            }
+        }
+
         // add a history entry for ourselves so folks can map generated layers to the Dockerfile commands
         _history.Add(new HistoryEntry(created: DateTime.UtcNow, author: ".NET SDK", created_by: $".NET SDK Container Tooling, version {Constants.Version}"));
 
