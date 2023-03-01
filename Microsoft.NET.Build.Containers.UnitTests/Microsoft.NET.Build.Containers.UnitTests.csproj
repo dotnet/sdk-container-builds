@@ -5,7 +5,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
-
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
@@ -21,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.NET.Build.Containers\Microsoft.NET.Build.Containers.csproj" />
+    <Compile Remove="ImageConfigTests.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
