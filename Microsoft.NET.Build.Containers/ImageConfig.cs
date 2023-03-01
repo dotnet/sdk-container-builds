@@ -26,6 +26,10 @@ internal sealed class ImageConfig
     private readonly string _os;
     private readonly List<HistoryEntry> _history;
 
+    internal ImageConfig(string imageConfigJson) : this(JsonNode.Parse(imageConfigJson)!)
+    {
+    }
+
     internal ImageConfig(JsonNode config)
     {
         _config = config as JsonObject ?? throw new ArgumentException($"{nameof(config)} should be a JSON object.", nameof(config));
@@ -90,12 +94,12 @@ internal sealed class ImageConfig
         // preserve them if they're already set in the base image.
         foreach (string propertyName in new [] { "User", "Volumes", "StopSignal" })
         {
-            if (_config["config"]?[propertyName] is JsonValue propertyValue)
+            if (_config["config"]?[propertyName] is JsonNode propertyValue)
             {
                 // we can't just copy the property value because JsonValues have Parents
                 // and they cannot be re-parented. So we need to Clone them, but there's
                 // not an API for cloning, so the recommendation is to stringify and parse.
-                newConfig[propertyName] = JsonValue.Parse(propertyValue.ToJsonString());
+                newConfig[propertyName] = JsonNode.Parse(propertyValue.ToJsonString());
             }
         }
 
