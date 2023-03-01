@@ -86,7 +86,8 @@ internal sealed class ImageConfig
             }
         }
 
-        // not yet directly supported fields
+        // These fields aren't (yet) supported by the task layer, but we should
+        // preserve them if they're already set in the base image.
         foreach (string propertyName in new [] { "User", "Volumes", "StopSignal" })
         {
             if (_config["config"]?[propertyName] is JsonValue propertyValue)
