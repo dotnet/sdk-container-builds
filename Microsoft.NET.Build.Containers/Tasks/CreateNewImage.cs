@@ -76,9 +76,10 @@ public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task
         {
             if (IsOutputFile)
             {
-                var fileExporter = new FileOutput(Console.WriteLine);
+                SafeLog("Export file to {0}", OutputFilePath);
+                var fileExporter = new FileOutput(msg => Log.LogMessage(msg));
                 fileExporter.Export(OutputFilePath, builtImage, sourceImageReference, destinationImageReference).Wait();
-                Console.WriteLine("Containerize: File '{0}' created ", OutputFilePath);
+                SafeLog("File {0} exported", OutputFilePath);
 
                 return true;
             }
