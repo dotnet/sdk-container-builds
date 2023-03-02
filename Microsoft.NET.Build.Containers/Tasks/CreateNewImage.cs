@@ -76,12 +76,18 @@ public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task
         {
             if (IsOutputFile)
             {
-                SafeLog("Export file to {0}", OutputFilePath);
-                var fileExporter = new FileOutput(msg => Log.LogMessage(msg));
-                fileExporter.Export(OutputFilePath, builtImage, sourceImageReference, destinationImageReference).Wait();
-                SafeLog("File {0} exported", OutputFilePath);
+                try
+                {
+                    var fileExporter = new FileOutput(msg => Log.LogMessage(msg));
+                    fileExporter.Export(OutputFilePath, builtImage, sourceImageReference, destinationImageReference).Wait();
+                    SafeLog("File {0} exported", OutputFilePath);
 
-                return true;
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    Log.LogErrorFromException(e, true);
+                }
             }
             if (IsDaemonPush)
             {
