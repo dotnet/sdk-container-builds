@@ -4,6 +4,7 @@
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.NET.Build.Containers.Resources;
+using Microsoft.NET.Build.Containers.Tasks;
 
 namespace Microsoft.NET.Build.Containers;
 
@@ -26,6 +27,7 @@ public static class ContainerBuilder
         string containerRuntimeIdentifier,
         string ridGraphPath,
         string localContainerDaemon,
+        string? tarOutputDirectory,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -37,8 +39,9 @@ public static class ContainerBuilder
 
         Registry baseRegistry = new Registry(ContainerHelpers.TryExpandRegistryToUri(registryName));
         ImageReference sourceImageReference = new(baseRegistry, baseName, baseTag);
-        var isDockerPush = String.IsNullOrEmpty(outputRegistry);
-        var destinationImageReferences = imageTags.Select(t => new ImageReference(isDockerPush ? null : new Registry(ContainerHelpers.TryExpandRegistryToUri(outputRegistry!)), imageName, t));
+        var outputMode = CreateNewImage.DeriveOutputMode(outputRegistry, tarOutputDirectory);
+        var destinationRegistry = CreateNewImage.BuildDestinationRegistry(outputMode, outputRegistry);
+        var destinationImageReferences = imageTags.Select(t => new ImageReference(destinationRegistry.Value, imageName, t));
 
         ImageBuilder imageBuilder = await baseRegistry.GetImageManifestAsync(baseName, baseTag, containerRuntimeIdentifier, ridGraphPath, cancellationToken).ConfigureAwait(false);
 
@@ -84,44 +87,60 @@ public static class ContainerBuilder
 
         foreach (var destinationImageReference in destinationImageReferences)
         {
-            if (destinationImageReference.Registry is { } outReg)
+            switch (outputMode)
             {
-                try
-                {
-                    await outReg.PushAsync(
-                        builtImage,
-                        sourceImageReference,
-                        destinationImageReference,
-                        (message) => Console.WriteLine($"Containerize: {message}"),
-                        cancellationToken).ConfigureAwait(false);
-                    Console.WriteLine($"Containerize: Pushed container '{destinationImageReference.RepositoryAndTag}' to registry '{outputRegistry}'");
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"Containerize: error CONTAINER001: Failed to push to output registry: {e.Message}");
-                    Environment.ExitCode = 1;
-                }
-            }
-            else
-            {
+                case CreateNewImage.ImageOutputMode.PushLocalDaemon:
+                    var localDaemon = GetLocalDaemon(localContainerDaemon, Console.WriteLine);
+                    if (!(await localDaemon.IsAvailableAsync(cancellationToken).ConfigureAwait(false)))
+                    {
+                        Console.WriteLine("Containerize: error CONTAINER007: The Docker daemon is not available, but pushing to a local daemon was requested. Please start Docker and try again.");
+                        Environment.ExitCode = 7;
+                        return;
+                    }
+                    try
+                    {
+                        await localDaemon.LoadAsync(builtImage, sourceImageReference, destinationImageReference, cancellationToken).ConfigureAwait(false);
+                        Console.WriteLine("Containerize: Pushed container '{0}' to Docker daemon", destinationImageReference.RepositoryAndTag);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Containerize: error CONTAINER001: Failed to push to local docker registry: {e.Message}");
+                        Environment.ExitCode = 1;
+                    }
+                    break;
+                case CreateNewImage.ImageOutputMode.PushRemoteRegistry:
+                    try
+                    {
+                        await destinationImageReference.Registry!.PushAsync(
+                            builtImage,
+                            sourceImageReference,
+                            destinationImageReference,
+                            (message) => Console.WriteLine($"Containerize: {message}"),
+                            cancellationToken).ConfigureAwait(false);
+                        Console.WriteLine($"Containerize: Pushed container '{destinationImageReference.RepositoryAndTag}' to registry '{outputRegistry}'");
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Containerize: error CONTAINER001: Failed to push to output registry: {e.Message}");
+                        Environment.ExitCode = 1;
+                    }
+                    break;
+                case CreateNewImage.ImageOutputMode.WriteTars:
+                    try
+                    {
+                        var tarFileName = $"{imageName}-{destinationImageReference.RepositoryAndTag}.tar.gz";
+                        var tarFilePath = Path.GetFullPath(Path.Combine(tarOutputDirectory!, tarFileName));
 
-                var localDaemon = GetLocalDaemon(localContainerDaemon, Console.WriteLine);
-                if (!(await localDaemon.IsAvailableAsync(cancellationToken).ConfigureAwait(false)))
-                {
-                    Console.WriteLine("Containerize: error CONTAINER007: The Docker daemon is not available, but pushing to a local daemon was requested. Please start Docker and try again.");
-                    Environment.ExitCode = 7;
-                    return;
-                }
-                try
-                {
-                    await localDaemon.LoadAsync(builtImage, sourceImageReference, destinationImageReference, cancellationToken).ConfigureAwait(false);
-                    Console.WriteLine("Containerize: Pushed container '{0}' to Docker daemon", destinationImageReference.RepositoryAndTag);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"Containerize: error CONTAINER001: Failed to push to local docker registry: {e.Message}");
-                    Environment.ExitCode = 1;
-                }
+                        using var fileStream = File.Create(tarFilePath);
+                        await LocalDocker.WriteImageToStreamAsync(builtImage, sourceImageReference, destinationImageReference, fileStream, cancellationToken).ConfigureAwait((false));
+                        Console.WriteLine("Written image '{0}' to path '{1}'", destinationImageReference.RepositoryAndTag, tarFilePath);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Containerize: error CONTAINER001: Failed to write to output tar: {e.Message}");
+                        Environment.ExitCode = 1;
+                    }
+                    break;
             }
         }
     }

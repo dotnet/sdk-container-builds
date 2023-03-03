@@ -6,7 +6,7 @@ using Microsoft.NET.Build.Containers;
 using System.CommandLine.Parsing;
 using System.Text;
 
-#pragma warning disable CA1852 
+#pragma warning disable CA1852
 
 var publishDirectoryArg = new Argument<DirectoryInfo>(
     name: "PublishDirectory",
@@ -35,6 +35,13 @@ var baseImageTagOpt = new Option<string>(
 var outputRegistryOpt = new Option<string>(
     name: "--outputregistry",
     description: "The registry to push to.")
+{
+    IsRequired = false
+};
+
+var tarOutputDirectoryOpt = new Option<string>(
+    name: "--taroutputdirectory",
+    description: "The directory into which to write the generated tar.gz files.")
 {
     IsRequired = false
 };
@@ -171,6 +178,7 @@ RootCommand root = new RootCommand("Containerize an application without Docker."
     baseImageNameOpt,
     baseImageTagOpt,
     outputRegistryOpt,
+    tarOutputDirectoryOpt,
     imageNameOpt,
     imageTagsOpt,
     workingDirectoryOpt,
@@ -191,6 +199,7 @@ root.SetHandler(async (context) =>
     string _baseName = context.ParseResult.GetValueForOption(baseImageNameOpt) ?? "";
     string _baseTag = context.ParseResult.GetValueForOption(baseImageTagOpt) ?? "";
     string? _outputReg = context.ParseResult.GetValueForOption(outputRegistryOpt);
+    string? _tarOutputDirectory = context.ParseResult.GetValueForOption(tarOutputDirectoryOpt);
     string _name = context.ParseResult.GetValueForOption(imageNameOpt) ?? "";
     string[] _tags = context.ParseResult.GetValueForOption(imageTagsOpt) ?? Array.Empty<string>();
     string _workingDir = context.ParseResult.GetValueForOption(workingDirectoryOpt) ?? "";
@@ -219,6 +228,7 @@ root.SetHandler(async (context) =>
         _rid,
         _ridGraphPath,
         _localContainerDaemon,
+        _tarOutputDirectory,
         context.GetCancellationToken()).ConfigureAwait(false);
 });
 

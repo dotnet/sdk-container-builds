@@ -127,6 +127,8 @@ Microsoft.NET.Build.Containers.Tasks.CreateNewImage.GeneratedContainerConfigurat
 Microsoft.NET.Build.Containers.Tasks.CreateNewImage.GeneratedContainerConfiguration.set -> void
 Microsoft.NET.Build.Containers.Tasks.CreateNewImage.GeneratedContainerManifest.get -> string!
 Microsoft.NET.Build.Containers.Tasks.CreateNewImage.GeneratedContainerManifest.set -> void
+Microsoft.NET.Build.Containers.Tasks.CreateNewImage.GeneratedTars.get -> Microsoft.Build.Framework.ITaskItem![]!
+Microsoft.NET.Build.Containers.Tasks.CreateNewImage.GeneratedTars.set -> void
 Microsoft.NET.Build.Containers.Tasks.CreateNewImage.ImageName.get -> string!
 Microsoft.NET.Build.Containers.Tasks.CreateNewImage.ImageName.set -> void
 Microsoft.NET.Build.Containers.Tasks.CreateNewImage.ImageTags.get -> string![]!
@@ -141,6 +143,8 @@ Microsoft.NET.Build.Containers.Tasks.CreateNewImage.PublishDirectory.get -> stri
 Microsoft.NET.Build.Containers.Tasks.CreateNewImage.PublishDirectory.set -> void
 Microsoft.NET.Build.Containers.Tasks.CreateNewImage.RuntimeIdentifierGraphPath.get -> string!
 Microsoft.NET.Build.Containers.Tasks.CreateNewImage.RuntimeIdentifierGraphPath.set -> void
+Microsoft.NET.Build.Containers.Tasks.CreateNewImage.TarOutputDirectory.get -> string!
+Microsoft.NET.Build.Containers.Tasks.CreateNewImage.TarOutputDirectory.set -> void
 Microsoft.NET.Build.Containers.Tasks.CreateNewImage.ToolExe.get -> string!
 Microsoft.NET.Build.Containers.Tasks.CreateNewImage.ToolExe.set -> void
 Microsoft.NET.Build.Containers.Tasks.CreateNewImage.ToolPath.get -> string!
@@ -170,7 +174,7 @@ Microsoft.NET.Build.Containers.Tasks.ParseContainerProperties.ParsedContainerReg
 Microsoft.NET.Build.Containers.Tasks.ParseContainerProperties.ParsedContainerTag.get -> string!
 override Microsoft.NET.Build.Containers.Tasks.CreateNewImage.Execute() -> bool
 override Microsoft.NET.Build.Containers.Tasks.ParseContainerProperties.Execute() -> bool
-static Microsoft.NET.Build.Containers.ContainerBuilder.ContainerizeAsync(System.IO.DirectoryInfo! folder, string! workingDir, string! registryName, string! baseName, string! baseTag, string![]! entrypoint, string![]! entrypointArgs, string! imageName, string![]! imageTags, string? outputRegistry, string![]! labels, Microsoft.NET.Build.Containers.Port[]! exposedPorts, string![]! envVars, string! containerRuntimeIdentifier, string! ridGraphPath, string! localContainerDaemon, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+static Microsoft.NET.Build.Containers.ContainerBuilder.ContainerizeAsync(System.IO.DirectoryInfo! folder, string! workingDir, string! registryName, string! baseName, string! baseTag, string![]! entrypoint, string![]! entrypointArgs, string! imageName, string![]! imageTags, string? outputRegistry, string![]! labels, Microsoft.NET.Build.Containers.Port[]! exposedPorts, string![]! envVars, string! containerRuntimeIdentifier, string! ridGraphPath, string! localContainerDaemon, string? tarOutputDirectory, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 static Microsoft.NET.Build.Containers.ContainerHelpers.TryParsePort(string! input, out Microsoft.NET.Build.Containers.Port? port, out Microsoft.NET.Build.Containers.ContainerHelpers.ParsePortError? error) -> bool
 static Microsoft.NET.Build.Containers.ContainerHelpers.TryParsePort(string? portNumber, string? portType, out Microsoft.NET.Build.Containers.Port? port, out Microsoft.NET.Build.Containers.ContainerHelpers.ParsePortError? error) -> bool
 static readonly Microsoft.NET.Build.Containers.KnownDaemonTypes.SupportedLocalDaemonTypes -> string![]!

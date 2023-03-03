@@ -1,9 +1,16 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
+using System.Collections.Generic;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
 using Microsoft.NET.Build.Containers.Resources;
+using Microsoft.Win32;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.NET.Build.Containers.Tasks;
 
@@ -21,7 +28,69 @@ public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task, ICa
     /// </summary>
     public string ToolPath { get; set; }
 
-    private bool IsDaemonPush => string.IsNullOrEmpty(OutputRegistry);
+    /// <summary>
+    /// Lists all kinds of output modes for the images after creation.
+    /// </summary>
+    internal enum ImageOutputMode
+    {
+        /// <summary>
+        /// The images will be pushed into the configured local daemon
+        /// </summary>
+        PushLocalDaemon,
+        /// <summary>
+        /// The images will be pushed into a remote registry
+        /// </summary>
+        PushRemoteRegistry,
+        /// <summary>
+        /// The images will be written into tar.gz files.
+        /// </summary>
+        WriteTars
+    }
+
+    /// <summary>
+    /// Derives the output mode using the given settings.
+    /// </summary>
+    /// <param name="outputRegistry">The configured output registry.</param>
+    /// <param name="tarOutputDirectory">The configured output directory for tar.gz files.</param>
+    /// <returns>The output mode to use for producing container images.</returns>
+    internal static ImageOutputMode DeriveOutputMode(string? outputRegistry, string? tarOutputDirectory)
+    {
+        if (!string.IsNullOrEmpty(outputRegistry))
+        {
+            return ImageOutputMode.PushRemoteRegistry;
+        }
+        else if (!string.IsNullOrEmpty(tarOutputDirectory))
+        {
+            return ImageOutputMode.WriteTars;
+        }
+        else
+        {
+            return ImageOutputMode.PushLocalDaemon;
+        }
+    }
+
+    /// <summary>
+    /// Creates a Registry configuration based on the provided output mode and registry configuration.
+    /// </summary>
+    /// <param name="outputMode">The output mode,</param>
+    /// <param name="outputRegistry">The output registry.</param>
+    /// <returns>A lazy initialized <see cref="Registry"/>.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">An invalid output mode was provided.</exception>
+    internal static Lazy<Registry?> BuildDestinationRegistry(ImageOutputMode outputMode, string? outputRegistry)
+    {
+        switch (outputMode)
+        {
+            case ImageOutputMode.PushLocalDaemon:
+            case ImageOutputMode.WriteTars:
+                return new Lazy<Registry?>(() => null);
+            case ImageOutputMode.PushRemoteRegistry:
+                return new Lazy<Registry?>(() => new Registry(ContainerHelpers.TryExpandRegistryToUri(outputRegistry!)));
+            default:
+                throw new ArgumentOutOfRangeException(nameof(outputMode));
+        }
+    }
+
+    private ImageOutputMode CurrentOutputMode => DeriveOutputMode(OutputRegistry, TarOutputDirectory);
 
     private bool IsDaemonPull => string.IsNullOrEmpty(BaseRegistry);
 
@@ -93,59 +162,146 @@ public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task, ICa
         GeneratedContainerManifest = JsonSerializer.Serialize(builtImage.Manifest);
         GeneratedContainerConfiguration = builtImage.Config;
 
-        foreach (ImageReference destinationImageReference in destinationImageReferences)
+        ImageOutputMode outputMode = CurrentOutputMode;
+
+        switch (outputMode)
         {
-            if (IsDaemonPush)
-            {
-                LocalDocker localDaemon = GetLocalDaemon(msg => Log.LogMessage(msg));
-                if (!(await localDaemon.IsAvailableAsync(cancellationToken).ConfigureAwait(false)))
+            case ImageOutputMode.PushLocalDaemon:
+                if (!await PushImagesToLocalDaemonAsync(builtImage, sourceImageReference, destinationImageReferences, cancellationToken).ConfigureAwait(false))
                 {
-                    Log.LogError("The local daemon is not available, but pushing to a local daemon was requested. Please start the daemon and try again.");
                     return false;
                 }
-                try
+                break;
+            case ImageOutputMode.PushRemoteRegistry:
+                if (!await PushImagesToRemoteRegistryAsync(builtImage, sourceImageReference, destinationImageReferences, cancellationToken).ConfigureAwait(false))
                 {
-                    await localDaemon.LoadAsync(builtImage, sourceImageReference, destinationImageReference, cancellationToken).ConfigureAwait(false);
-                    SafeLog("Pushed container '{0}' to local daemon", destinationImageReference.RepositoryAndTag);
+                    return false;
                 }
-                catch (AggregateException ex) when (ex.InnerException is DockerLoadException dle)
+                break;
+            case ImageOutputMode.WriteTars:
+                if (!await WriteTarsAync(builtImage, sourceImageReference, destinationImageReferences, cancellationToken).ConfigureAwait(false))
                 {
-                    Log.LogErrorFromException(dle, showStackTrace: false);
+                    return false;
                 }
-            }
-            else
-            {
-                try
-                {
-                    if (destinationImageReference.Registry is not null)
-                    {
-                        await (destinationImageReference.Registry.PushAsync(
-                            builtImage,
-                            sourceImageReference,
-                            destinationImageReference,
-                            message => SafeLog(message),
-                            cancellationToken)).ConfigureAwait(false);
-                        SafeLog("Pushed container '{0}' to registry '{2}'", destinationImageReference.RepositoryAndTag, OutputRegistry);
-                    }
-                }
-                catch (ContainerHttpException e)
-                {
-                    if (BuildEngine != null)
-                    {
-                        Log.LogErrorFromException(e, true);
-                    }
-                }
-                catch (Exception e)
-                {
-                    if (BuildEngine != null)
-                    {
-                        Log.LogError("Failed to push to the output registry: {0}", e);
-                    }
-                }
-            }
+                break;
         }
 
         return !Log.HasLoggedErrors;
+    }
+
+    private async Task<bool> WriteTarsAync(BuiltImage builtImage, ImageReference sourceImageReference,
+        IEnumerable<ImageReference> destinationImageReferences, CancellationToken cancellationToken)
+    {
+        List<ITaskItem> generatedTars = new();
+
+        try
+        {
+            Directory.CreateDirectory(TarOutputDirectory);
+        }
+        catch (Exception e)
+        {
+            if (BuildEngine != null)
+            {
+                Log.LogErrorFromException(e, true);
+            }
+
+            return false;
+        }
+
+        foreach (ImageReference destinationImageReference in destinationImageReferences)
+        {
+            try
+            {
+                string tarFileName = $"{ImageName}-{destinationImageReference.RepositoryAndTag}.tar.gz";
+                string tarFilePath = Path.GetFullPath(Path.Combine(TarOutputDirectory, tarFileName));
+
+                using FileStream fileStream = File.Create(tarFilePath);
+                await LocalDocker.WriteImageToStreamAsync(builtImage, sourceImageReference, destinationImageReference,
+                        fileStream, cancellationToken).ConfigureAwait(false);
+                SafeLog("Written image '{0}' to path '{1}'", destinationImageReference.RepositoryAndTag, tarFilePath);
+                generatedTars.Add(new TaskItem(tarFilePath));
+            }
+            catch (Exception e)
+            {
+                if (BuildEngine != null)
+                {
+                    Log.LogErrorFromException(e, true);
+                }
+
+                return false;
+            }
+        }
+
+        GeneratedTars = generatedTars.ToArray();
+        return true;
+    }
+
+    private async Task<bool> PushImagesToRemoteRegistryAsync(BuiltImage builtImage, ImageReference sourceImageReference,
+        IEnumerable<ImageReference> destinationImageReferences, CancellationToken cancellationToken)
+    {
+        foreach (ImageReference destinationImageReference in destinationImageReferences)
+        {
+            try
+            {
+                if (destinationImageReference.Registry is not null)
+                {
+                    await (destinationImageReference.Registry.PushAsync(
+                        builtImage,
+                        sourceImageReference,
+                        destinationImageReference,
+                        message => SafeLog(message),
+                        cancellationToken)).ConfigureAwait(false);
+                    SafeLog("Pushed container '{0}' to registry '{2}'", destinationImageReference.RepositoryAndTag,
+                        OutputRegistry);
+                }
+            }
+            catch (ContainerHttpException e)
+            {
+                if (BuildEngine != null)
+                {
+                    Log.LogErrorFromException(e, true);
+                }
+
+                return false;
+            }
+            catch (Exception e)
+            {
+                if (BuildEngine != null)
+                {
+                    Log.LogError("Failed to push to the output registry: {0}", e);
+                }
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private async Task<bool> PushImagesToLocalDaemonAsync(BuiltImage builtImage, ImageReference sourceImageReference,
+        IEnumerable<ImageReference> destinationImageReferences, CancellationToken cancellationToken)
+    {
+        foreach (ImageReference destinationImageReference in destinationImageReferences)
+        {
+            LocalDocker localDaemon = GetLocalDaemon(msg => Log.LogMessage(msg));
+            if (!(await localDaemon.IsAvailableAsync(cancellationToken).ConfigureAwait(false)))
+            {
+                Log.LogError("The local daemon is not available, but pushing to a local daemon was requested. Please start the daemon and try again.");
+                return false;
+            }
+            try
+            {
+                await localDaemon.LoadAsync(builtImage, sourceImageReference, destinationImageReference, cancellationToken).ConfigureAwait(false);
+                SafeLog("Pushed container '{0}' to local daemon", destinationImageReference.RepositoryAndTag);
+            }
+            catch (AggregateException ex) when (ex.InnerException is DockerLoadException dle)
+            {
+                Log.LogErrorFromException(dle, showStackTrace: false);
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private void SetPorts(ImageBuilder image, ITaskItem[] exposedPorts)
@@ -194,8 +350,10 @@ public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task, ICa
         }
     }
 
-    private LocalDocker GetLocalDaemon(Action<string> logger) {
-        var daemon = LocalContainerDaemon switch {
+    private LocalDocker GetLocalDaemon(Action<string> logger)
+    {
+        var daemon = LocalContainerDaemon switch
+        {
             KnownDaemonTypes.Docker => new LocalDocker(logger),
             _ => throw new NotSupportedException(
                 Resource.FormatString(
@@ -208,24 +366,20 @@ public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task, ICa
 
     private Lazy<Registry?> SourceRegistry
     {
-        get {
-            if(IsDaemonPull) {
+        get
+        {
+            if(IsDaemonPull)
+            {
                 return new Lazy<Registry?>(() => null);
-            } else {
+            }
+            else
+            {
                 return new Lazy<Registry?>(() => new Registry(ContainerHelpers.TryExpandRegistryToUri(BaseRegistry)));
             }
         }
     }
 
-    private Lazy<Registry?> DestinationRegistry {
-        get {
-            if(IsDaemonPush) {
-                return new Lazy<Registry?>(() => null);
-            } else {
-                return new Lazy<Registry?>(() => new Registry(ContainerHelpers.TryExpandRegistryToUri(OutputRegistry)));
-            }
-        }
-    }
+    private Lazy<Registry?> DestinationRegistry => BuildDestinationRegistry(CurrentOutputMode, OutputRegistry);
 
     private static void SetEnvironmentVariables(ImageBuilder img, ITaskItem[] envVars)
     {

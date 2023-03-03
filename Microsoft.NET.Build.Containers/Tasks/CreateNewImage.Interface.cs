@@ -44,6 +44,17 @@ partial class CreateNewImage
     public string OutputRegistry { get; set; }
 
     /// <summary>
+    /// The directory into which to write the generated tar.gz files.
+    /// </summary>
+    public string TarOutputDirectory { get; set; }
+
+    /// <summary>
+    /// All tar.gz files which were produced as outputs in case TarOutputDirectory is used.
+    /// </summary>
+    [Output]
+    public ITaskItem[] GeneratedTars { get; set; }
+
+    /// <summary>
     /// The kind of local daemon to use, if any.
     /// </summary>
     [Required]
@@ -129,6 +140,7 @@ partial class CreateNewImage
         BaseImageName = "";
         BaseImageTag = "";
         OutputRegistry = "";
+        TarOutputDirectory = "";
         ImageName = "";
         ImageTags = Array.Empty<string>();
         PublishDirectory = "";
@@ -138,6 +150,7 @@ partial class CreateNewImage
         Labels = Array.Empty<ITaskItem>();
         ExposedPorts = Array.Empty<ITaskItem>();
         ContainerEnvironmentVariables = Array.Empty<ITaskItem>();
+        GeneratedTars = Array.Empty<ITaskItem>();
         ContainerRuntimeIdentifier = "";
         RuntimeIdentifierGraphPath = "";
         LocalContainerDaemon = "";

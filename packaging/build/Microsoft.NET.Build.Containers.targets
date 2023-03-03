@@ -175,6 +175,7 @@
                     BaseImageTag="$(ContainerBaseTag)"
                     LocalContainerDaemon="$(LocalContainerDaemon)"
                     OutputRegistry="$(ContainerRegistry)"
+                    TarOutputDirectory="$(TarOutputDirectory)"
                     ImageName="$(ContainerImageName)"
                     ImageTags="@(ContainerImageTags)"
                     PublishDirectory="$(PublishDir)"
