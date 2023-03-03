@@ -9,7 +9,7 @@ namespace Microsoft.NET.Build.Containers;
 
 public static class ContainerBuilder
 {
-    public static async Task Containerize(DirectoryInfo folder, string workingDir, string registryName, string baseName, string baseTag, string[] entrypoint, string[] entrypointArgs, string imageName, string[] imageTags, string? outputRegistry, string[] labels, Port[] exposedPorts, string[] envVars, string containerRuntimeIdentifier, string ridGraphPath, string localContainerDaemon, string tarFilePath)
+    public static async Task Containerize(DirectoryInfo folder, string workingDir, string registryName, string baseName, string baseTag, string[] entrypoint, string[] entrypointArgs, string imageName, string[] imageTags, string? outputRegistry, string[] labels, Port[] exposedPorts, string[] envVars, string containerRuntimeIdentifier, string ridGraphPath, string localContainerDaemon, string outputFilePath)
     {
         var isDaemonPull = String.IsNullOrEmpty(registryName);
         if (isDaemonPull)
@@ -22,7 +22,7 @@ public static class ContainerBuilder
         var isDockerPush = String.IsNullOrEmpty(outputRegistry);
         var destinationImageReferences = imageTags.Select(t => new ImageReference(isDockerPush ? null : new Registry(ContainerHelpers.TryExpandRegistryToUri(outputRegistry!)), imageName, t));
 
-        var isFileExport = !String.IsNullOrEmpty(tarFilePath);
+        var shouldExportFile = !String.IsNullOrEmpty(outputFilePath);
 
         ImageBuilder imageBuilder = await baseRegistry.GetImageManifest(baseName, baseTag, containerRuntimeIdentifier, ridGraphPath).ConfigureAwait(false);
 
@@ -79,12 +79,22 @@ public static class ContainerBuilder
             }
             else
             {
-                if (isFileExport)
+                if (shouldExportFile)
                 {
-                    var fileExporter = new FileOutput(Console.WriteLine);
-                    fileExporter.Export(tarFilePath, builtImage, sourceImageReference, destinationImageReference).Wait();
-                    Console.WriteLine("Containerize: File '{0}' created ", tarFilePath);
+                    try
+                    {
+                        var fileExporter = new FileOutput(Console.WriteLine);
+                        fileExporter.Export(outputFilePath, builtImage, sourceImageReference, destinationImageReference).Wait();
+                        Console.WriteLine("Containerize: File '{0}' created ", outputFilePath);
+                    }
+                    catch(Exception e)
+                    {
+                        Console.WriteLine($"Containerize: error CONTAINER008: Failed to create tar.gz file: {e.Message}");
+                        Environment.ExitCode = 1;
+                    }
+
                     return;
+
                 }
 
                 var localDaemon = GetLocalDaemon(localContainerDaemon, Console.WriteLine);

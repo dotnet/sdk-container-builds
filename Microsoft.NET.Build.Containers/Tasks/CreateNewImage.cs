@@ -24,7 +24,7 @@ public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task
 
     private bool IsDaemonPull => string.IsNullOrEmpty(BaseRegistry);
 
-    private bool IsOutputFile => !string.IsNullOrEmpty(OutputFilePath);
+    private bool ShouldExportFile => !string.IsNullOrEmpty(OutputFilePath);
 
     public override bool Execute()
     {
@@ -74,7 +74,7 @@ public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task
 
         foreach (var destinationImageReference in destinationImageReferences)
         {
-            if (IsOutputFile)
+            if (ShouldExportFile)
             {
                 try
                 {
@@ -87,6 +87,7 @@ public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task
                 catch (Exception e)
                 {
                     Log.LogErrorFromException(e, true);
+                    return false;
                 }
             }
             if (IsDaemonPush)

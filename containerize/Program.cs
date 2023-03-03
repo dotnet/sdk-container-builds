@@ -210,8 +210,8 @@ root.SetHandler(async (context) =>
     string _rid = context.ParseResult.GetValueForOption(ridOpt) ?? "";
     string _ridGraphPath = context.ParseResult.GetValueForOption(ridGraphPathOpt) ?? "";
     string _localContainerDaemon = context.ParseResult.GetValueForOption(localContainerDaemonOpt) ?? "";
-    string _tarFilePath = context.ParseResult.GetValueForOption(outputFilePathOpt) ?? "";
-    await ContainerBuilder.Containerize(_publishDir, _workingDir, _baseReg, _baseName, _baseTag, _entrypoint, _entrypointArgs, _name, _tags, _outputReg, _labels, _ports, _envVars, _rid, _ridGraphPath, _localContainerDaemon, _tarFilePath).ConfigureAwait(false);
+    string _outputFilePath = context.ParseResult.GetValueForOption(outputFilePathOpt) ?? "";
+    await ContainerBuilder.Containerize(_publishDir, _workingDir, _baseReg, _baseName, _baseTag, _entrypoint, _entrypointArgs, _name, _tags, _outputReg, _labels, _ports, _envVars, _rid, _ridGraphPath, _localContainerDaemon, _outputFilePath).ConfigureAwait(false);
 });
 
 return await root.InvokeAsync(args).ConfigureAwait(false);
