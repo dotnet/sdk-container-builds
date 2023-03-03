@@ -26,7 +26,7 @@ public static class ContainerBuilder
         string containerRuntimeIdentifier,
         string ridGraphPath,
         string localContainerDaemon,
-        string tarFilePath,
+        string outputFilePath,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -45,7 +45,7 @@ public static class ContainerBuilder
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var isFileExport = !String.IsNullOrEmpty(tarFilePath);
+        var shouldExportFile = !String.IsNullOrEmpty(outputFilePath);
 
         imageBuilder.SetWorkingDirectory(workingDir);
 
@@ -107,12 +107,22 @@ public static class ContainerBuilder
             }
             else
             {
-                if (isFileExport)
+                if (shouldExportFile)
                 {
-                    var fileExporter = new FileOutput(Console.WriteLine);
-                    fileExporter.Export(tarFilePath, builtImage, sourceImageReference, destinationImageReference).Wait();
-                    Console.WriteLine("Containerize: File '{0}' created ", tarFilePath);
+                    try
+                    {
+                        var fileExporter = new FileOutput(Console.WriteLine);
+                        fileExporter.Export(outputFilePath, builtImage, sourceImageReference, destinationImageReference).Wait();
+                        Console.WriteLine("Containerize: File '{0}' created ", outputFilePath);
+                    }
+                    catch(Exception e)
+                    {
+                        Console.WriteLine($"Containerize: error CONTAINER008: Failed to create tar.gz file: {e.Message}");
+                        Environment.ExitCode = 1;
+                    }
+
                     return;
+
                 }
 
                 var localDaemon = GetLocalDaemon(localContainerDaemon, Console.WriteLine);

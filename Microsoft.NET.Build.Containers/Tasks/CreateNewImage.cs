@@ -28,7 +28,7 @@ public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task, ICa
 
     public void Cancel() => _cancellationTokenSource.Cancel();
 
-    private bool IsOutputFile => !string.IsNullOrEmpty(OutputFilePath);
+    private bool ShouldExportFile => !string.IsNullOrEmpty(OutputFilePath);
 
     public override bool Execute()
     {
@@ -98,7 +98,7 @@ public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task, ICa
 
         foreach (ImageReference destinationImageReference in destinationImageReferences)
         {
-            if (IsOutputFile)
+            if (ShouldExportFile)
             {
                 try
                 {
@@ -111,6 +111,7 @@ public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task, ICa
                 catch (Exception e)
                 {
                     Log.LogErrorFromException(e, true);
+                    return false;
                 }
             }
             if (IsDaemonPush)
