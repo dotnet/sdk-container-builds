@@ -32,6 +32,11 @@ internal sealed class ImageConfig
     }
 
     /// <summary>
+    /// Gets a value indicating whether the base image is has a Windows operating system.
+    /// </summary>
+    public bool IsWindows => "windows".Equals(_config["os"]?.GetValue<string>(), StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
     /// Builds in additional configuration and returns updated image configuration in JSON format as string.
     /// </summary>
     internal string BuildConfig()
@@ -43,7 +48,7 @@ internal sealed class ImageConfig
 
         //update creation date
         _config["created"] = DateTime.UtcNow;
-  
+
         config["ExposedPorts"] = CreatePortMap();
         config["Env"] = CreateEnvironmentVariablesMapping();
         config["Labels"] = CreateLabelMap();
@@ -137,7 +142,7 @@ internal sealed class ImageConfig
                 {
                     labels[propertyName] = propertyValue.ToString();
                 }
-            }    
+            }
         }
         return labels;
     }
