@@ -8,7 +8,7 @@ using Microsoft.NET.Build.Containers.Resources;
 
 namespace Microsoft.NET.Build.Containers.Tasks;
 
-public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task, ICancelableTask
+public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task, ICancelableTask, IDisposable
 {
     private readonly CancellationTokenSource _cancellationTokenSource = new();
 
@@ -261,5 +261,10 @@ public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task, ICa
 
     private void SafeLog(string message, params object[] formatParams) {
         if(BuildEngine != null) Log.LogMessage(MessageImportance.High, message, formatParams);
+    }
+
+    public void Dispose()
+    {
+        _cancellationTokenSource.Dispose();
     }
 }

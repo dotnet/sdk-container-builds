@@ -28,6 +28,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Microsoft.NET.Build.Containers\Microsoft.NET.Build.Containers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' != 'net472'">
     <ProjectReference Include="..\Microsoft.NET.Build.Containers.UnitTests\Microsoft.NET.Build.Containers.UnitTests.csproj" />
     <ProjectReference Include="..\Microsoft.NET.Build.Containers\Microsoft.NET.Build.Containers.csproj" />
   </ItemGroup>
