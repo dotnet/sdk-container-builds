@@ -103,7 +103,12 @@ public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task, ICa
                 try
                 {
                     var fileExporter = new FileOutput(msg => Log.LogMessage(msg));
-                    fileExporter.Export(OutputFilePath, builtImage, sourceImageReference, destinationImageReference).Wait();
+                    await fileExporter.ExportAsync(
+                        OutputFilePath,
+                        builtImage,
+                        sourceImageReference,
+                        destinationImageReference,
+                        cancellationToken).ConfigureAwait(false);
                     SafeLog("File {0} exported", OutputFilePath);
 
                     return true;

@@ -112,7 +112,12 @@ public static class ContainerBuilder
                     try
                     {
                         var fileExporter = new FileOutput(Console.WriteLine);
-                        fileExporter.Export(outputFilePath, builtImage, sourceImageReference, destinationImageReference).Wait();
+                        await fileExporter.ExportAsync(
+                            outputFilePath,
+                            builtImage,
+                            sourceImageReference,
+                            destinationImageReference,
+                            cancellationToken).ConfigureAwait(false);
                         Console.WriteLine("Containerize: File '{0}' created ", outputFilePath);
                     }
                     catch(Exception e)

@@ -121,11 +121,12 @@ public class EndToEndTests
         // Build the image
         Registry registry = new Registry(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.LocalRegistry));
 
-        ImageBuilder imageBuilder = await registry.GetImageManifest(
+        ImageBuilder imageBuilder = await registry.GetImageManifestAsync(
             DockerRegistryManager.BaseImage,
             DockerRegistryManager.Net6ImageTag,
             "linux-x64",
-            ToolsetUtils.GetRuntimeGraphFilePath()).ConfigureAwait(false);
+            ToolsetUtils.GetRuntimeGraphFilePath(),
+            default).ConfigureAwait(false);
         Assert.NotNull(imageBuilder);
 
         Layer l = Layer.FromDirectory(publishDirectory, "/app");
@@ -145,7 +146,7 @@ public class EndToEndTests
         if (File.Exists(filePath))
             File.Delete(filePath);
 
-        await new FileOutput(Console.WriteLine).Export(filePath, builtImage, sourceReference, destinationReference).ConfigureAwait(false);
+        await new FileOutput(Console.WriteLine).ExportAsync(filePath, builtImage, sourceReference, destinationReference, default).ConfigureAwait(false);
 
         File.Exists(filePath).Should().BeTrue();
 

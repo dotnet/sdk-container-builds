@@ -18,12 +18,12 @@ namespace Microsoft.NET.Build.Containers.Outputs
         }
 
         // This test use local registry to get some information like the sha256
-        public async Task Export(string outputFilePath, BuiltImage image, ImageReference sourceReference, ImageReference destinationReference)
+        public async Task ExportAsync(string outputFilePath, BuiltImage image, ImageReference sourceReference, ImageReference destinationReference, CancellationToken cancellationToken)
         {
             try
             {
                 using var streamWriter = new StreamWriter(outputFilePath);
-                await WriteImageToStream(image, sourceReference, destinationReference, streamWriter.BaseStream).ConfigureAwait(false);
+                await WriteImageToStreamAsync(image, sourceReference, destinationReference, streamWriter.BaseStream, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -32,9 +32,11 @@ namespace Microsoft.NET.Build.Containers.Outputs
         }
 
         // This function is the same on LocalDocker.cs file. We could refactor to use in multiple places
-        private static async Task WriteImageToStream(BuiltImage image, ImageReference sourceReference, ImageReference destinationReference, Stream imageStream)
+        private static async Task WriteImageToStreamAsync(BuiltImage image, ImageReference sourceReference, ImageReference destinationReference, Stream imageStream, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             using TarWriter writer = new(imageStream, TarEntryFormat.Pax, leaveOpen: true);
+
 
             // Feed each layer tarball into the stream
             JsonArray layerTarballPaths = new JsonArray();
@@ -43,23 +45,27 @@ namespace Microsoft.NET.Build.Containers.Outputs
             {
                 if (sourceReference.Registry is { } registry)
                 {
-                    string localPath = await registry.DownloadBlob(sourceReference.Repository, d).ConfigureAwait(false); ;
+                    cancellationToken.ThrowIfCancellationRequested();
+                    string localPath = await registry.DownloadBlobAsync(sourceReference.Repository, d, cancellationToken).ConfigureAwait(false); ;
 
                     // Stuff that (uncompressed) tarball into the image tar stream
                     // TODO uncompress!!
                     string layerTarballPath = $"{d.Digest.Substring("sha256:".Length)}/layer.tar";
-                    await writer.WriteEntryAsync(localPath, layerTarballPath).ConfigureAwait(false);
+                    await writer.WriteEntryAsync(localPath, layerTarballPath, cancellationToken).ConfigureAwait(false);
                     layerTarballPaths.Add(layerTarballPath);
                 }
                 else
                 {
-                    throw new NotImplementedException(Resource.GetString(nameof(Strings.MissingLinkToRegistry)));
+                    throw new NotImplementedException(Resource.FormatString(
+                        nameof(Strings.MissingLinkToRegistry),
+                        d.Digest,
+                        sourceReference.Registry?.ToString() ?? "<null>"));
                 }
             }
 
             // add config
             string configTarballPath = $"{image.ImageSha}.json";
-
+            cancellationToken.ThrowIfCancellationRequested();
             using (MemoryStream configStream = new MemoryStream(Encoding.UTF8.GetBytes(image.Config)))
             {
                 PaxTarEntry configEntry = new(TarEntryType.RegularFile, configTarballPath)
@@ -67,7 +73,7 @@ namespace Microsoft.NET.Build.Containers.Outputs
                     DataStream = configStream
                 };
 
-                await writer.WriteEntryAsync(configEntry).ConfigureAwait(false);
+                await writer.WriteEntryAsync(configEntry, cancellationToken).ConfigureAwait(false);
             }
 
             // Add manifest
@@ -83,13 +89,15 @@ namespace Microsoft.NET.Build.Containers.Outputs
                 { "Layers", layerTarballPaths }
             });
 
+            cancellationToken.ThrowIfCancellationRequested();
             using (MemoryStream manifestStream = new MemoryStream(Encoding.UTF8.GetBytes(manifestNode.ToJsonString())))
             {
                 PaxTarEntry manifestEntry = new(TarEntryType.RegularFile, "manifest.json")
                 {
                     DataStream = manifestStream
                 };
-                await writer.WriteEntryAsync(manifestEntry).ConfigureAwait(false);
+
+                await writer.WriteEntryAsync(manifestEntry, cancellationToken).ConfigureAwait(false);
             }
         }
     }
