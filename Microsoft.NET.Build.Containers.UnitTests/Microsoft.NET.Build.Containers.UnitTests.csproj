@@ -28,6 +28,7 @@
     <Compile Remove="RegistryTests.cs" />
     <Compile Remove="DescriptorTests.cs" />
     <Compile Remove="ImageBuilderTests.cs" />
+    <Compile Remove="ImageConfigTests.cs" />
   </ItemGroup>
 
 </Project>
