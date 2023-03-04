@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using System.Formats.Tar;
+using System.Globalization;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
@@ -110,7 +111,7 @@ internal record struct Layer
             var pathBuilder = new StringBuilder();
             for (int i = 0; i < filePathSegments.Count - 1; i++)
             {
-                pathBuilder.Append($"{filePathSegments[i]}/");
+                pathBuilder.Append(CultureInfo.InvariantCulture, $"{filePathSegments[i]}/");
 
                 string fullPath = pathBuilder.ToString();
                 if (!directoryEntries.Contains(fullPath))
