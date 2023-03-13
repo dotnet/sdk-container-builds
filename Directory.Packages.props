@@ -6,7 +6,7 @@
     <PackageVersion Include="FakeItEasy" Version="7.3.1" />
     <PackageVersion Include="FluentAssertions" Version="6.10.0" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="2.0.1" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="17.4.0" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.5.0" />
     <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.3.1" />
     <PackageVersion Include="Microsoft.Build" Version="17.3.1" />
     <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4" />
