@@ -12,6 +12,7 @@ public class DockerRegistryManager
     public const string BaseImageSource = "mcr.microsoft.com/";
     public const string Net6ImageTag = "6.0";
     public const string Net7ImageTag = "7.0";
+    public const string Net8PreviewImageTag = "8.0-preview";
     public const string LocalRegistry = "localhost:5010";
     public const string FullyQualifiedBaseImageDefault = $"{BaseImageSource}{BaseImage}:{Net6ImageTag}";
     private static string? s_registryContainerId;
