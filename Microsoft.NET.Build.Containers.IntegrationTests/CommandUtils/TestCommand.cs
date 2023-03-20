@@ -117,7 +117,7 @@ namespace Microsoft.DotNet.CommandUtils
                 commandSpec.WorkingDirectory = WorkingDirectory;
             }
 
-            if (Arguments.Any())
+            if (Arguments.Count > 0)
             {
                 commandSpec.Arguments = Arguments.Concat(commandSpec.Arguments).ToList();
             }

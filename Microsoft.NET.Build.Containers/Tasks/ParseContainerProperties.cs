@@ -106,7 +106,7 @@ public sealed class ParseContainerProperties : Microsoft.Build.Utilities.Task
         else if (ContainerImageTags.Length != 0 && TryValidateTags(ContainerImageTags, out var valids, out var invalids))
         {
             validTags = valids;
-            if (invalids.Any())
+            if (invalids.Length > 0)
             {
                 Log.LogErrorWithCodeFromResources(nameof(Strings.InvalidTags), nameof(ContainerImageTags), String.Join(",", invalids));
                 return !Log.HasLoggedErrors;

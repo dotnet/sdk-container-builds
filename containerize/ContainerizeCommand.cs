@@ -168,7 +168,7 @@ internal class ContainerizeCommand : RootCommand
 
 
     internal ContainerizeCommand() : base("Containerize an application without Docker.")
-    { 
+    {
         this.AddArgument(PublishDirectoryArgument);
         this.AddOption(BaseRegistryOption);
         this.AddOption(BaseImageNameOption);

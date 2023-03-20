@@ -66,15 +66,15 @@ internal sealed class ImageConfig
     {
         var newConfig = new JsonObject();
 
-        if (_exposedPorts.Any())
+        if (_exposedPorts.Count > 0)
         {
             newConfig["ExposedPorts"] = CreatePortMap();
         }
-        if (_labels.Any())
+        if (_labels.Count > 0)
         {
             newConfig["Labels"] = CreateLabelMap();
         }
-        if (_environmentVariables.Any())
+        if (_environmentVariables.Count > 0)
         {
             newConfig["Env"] = CreateEnvironmentVariablesMapping();
         }
