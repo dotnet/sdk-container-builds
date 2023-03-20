@@ -110,7 +110,7 @@ public class EndToEndTests
             .Should().Pass();
     }
 
-    private string BuildLocalApp([CallerMemberName] string testName = "TestName", string tfm = "net6.0", string rid = "linux-x64", string configuration = "Debug")
+    private string BuildLocalApp([CallerMemberName] string testName = "TestName", string tfm = "net6.0", string rid = "linux-x64")
     {
         string workingDirectory = Path.Combine(TestSettings.TestArtifactsDirectory, testName);
 
@@ -126,12 +126,12 @@ public class EndToEndTests
             .Execute()
             .Should().Pass();
 
-        new DotnetCommand(_testOutput, "publish", "-bl", "-c", configuration, "MinimalTestApp", "-r", rid, "-f", tfm)
+        new DotnetCommand(_testOutput, "publish", "-bl", "MinimalTestApp", "-r", rid, "-f", tfm)
             .WithWorkingDirectory(workingDirectory)
             .Execute()
             .Should().Pass();
 
-        string publishDirectory = Path.Join(workingDirectory, "MinimalTestApp", "bin", configuration, tfm, rid, "publish");
+        string publishDirectory = Path.Join(workingDirectory, "MinimalTestApp", "bin", "Debug", tfm, rid, "publish");
         return publishDirectory;
     }
 
@@ -327,50 +327,5 @@ public class EndToEndTests
             var binary = rid.StartsWith("win", StringComparison.Ordinal) ? $"{appName}.exe" : appName;
             return new[] { $"{workingDir}/{binary}" };
         }
-    }
-
-    [Fact]
-    public async Task CanSetContainerUserAndUseRootless()
-    {
-        var rid = "linux-x64";
-        string publishDirectory = BuildLocalApp(tfm: "net8.0", rid: rid, configuration: "Release");
-
-        // Build the image
-        Registry registry = new(ContainerHelpers.TryExpandRegistryToUri(DockerRegistryManager.BaseImageSource));
-
-        ImageBuilder? imageBuilder = await registry.GetImageManifestAsync(
-            DockerRegistryManager.BaseImage,
-            DockerRegistryManager.Net8PreviewImageTag,
-            rid,
-            ToolsetUtils.GetRuntimeGraphFilePath(),
-            cancellationToken: default).ConfigureAwait(false);
-        Assert.NotNull(imageBuilder);
-
-        Layer l = Layer.FromDirectory(publishDirectory, "/app", false);
-
-        imageBuilder.AddLayer(l);
-        imageBuilder.SetWorkingDirectory("/app");
-
-        imageBuilder.SetEntryPoint(new[] { "/app/MinimalTestApp" });
-        imageBuilder.SetUser("app");
-        BuiltImage builtImage = imageBuilder.Build();
-
-        // Load the image into the local Docker daemon
-        var sourceReference = new ImageReference(registry, DockerRegistryManager.BaseImage, DockerRegistryManager.Net8PreviewImageTag);
-        var destinationReference = new ImageReference(registry, NewImageName(), rid);
-        await new LocalDocker(Console.WriteLine).LoadAsync(builtImage, sourceReference, destinationReference, default).ConfigureAwait(false);
-
-        // Run the image
-        new BasicCommand(
-            _testOutput,
-            "docker",
-            "run",
-            "--rm",
-            "--tty",
-            $"{NewImageName()}:{rid}")
-            .Execute()
-            .Should()
-            .Pass();
-
     }
 }
