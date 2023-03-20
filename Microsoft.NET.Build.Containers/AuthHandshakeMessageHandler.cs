@@ -37,7 +37,7 @@ internal sealed partial class AuthHandshakeMessageHandler : DelegatingHandler
         scheme = null;
 
         var authenticateHeader = msg.Headers.WwwAuthenticate;
-        if (!(authenticateHeader.Count > 0))
+        if (!authenticateHeader.Any())
         {
             return false;
         }
@@ -111,7 +111,7 @@ internal sealed partial class AuthHandshakeMessageHandler : DelegatingHandler
                 throw new CredentialRetrievalException(registry, e);
             }
         }
-
+        
         if (scheme is "Basic")
         {
             var basicAuth = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{privateRepoCreds.Username}:{privateRepoCreds.Password}")));
