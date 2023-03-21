@@ -7,6 +7,7 @@ using Microsoft.Build.Execution;
 using Xunit;
 using Microsoft.NET.Build.Containers.IntegrationTests;
 using Microsoft.NET.Build.Containers.UnitTests;
+using System.Linq;
 
 namespace Microsoft.NET.Build.Containers.Targets.IntegrationTests;
 
@@ -18,10 +19,11 @@ public class TargetsTests
     [DockerDaemonAvailableTheory]
     public void CanSetEntrypointArgsToUseAppHost(bool useAppHost, params string[] entrypointArgs)
     {
-        var (project, _) = ProjectInitializer.InitProject(new()
+        var (project, _, d) = ProjectInitializer.InitProject(new()
         {
             [UseAppHost] = useAppHost.ToString()
         }, projectName: $"{nameof(CanSetEntrypointArgsToUseAppHost)}_{useAppHost}_{String.Join("_", entrypointArgs)}");
+        using var _ = d;
         Assert.True(project.Build(ComputeContainerConfig));
         var computedEntrypointArgs = project.GetItems(ContainerEntrypoint).Select(i => i.EvaluatedInclude).ToArray();
         foreach (var (First, Second) in entrypointArgs.Zip(computedEntrypointArgs))
@@ -38,10 +40,11 @@ public class TargetsTests
     [DockerDaemonAvailableTheory]
     public void CanNormalizeInputContainerNames(string projectName, string expectedContainerImageName, bool shouldPass)
     {
-        var (project, _) = ProjectInitializer.InitProject(new()
+        var (project, _, d) = ProjectInitializer.InitProject(new()
         {
             [AssemblyName] = projectName
         }, projectName: $"{nameof(CanNormalizeInputContainerNames)}_{projectName}_{expectedContainerImageName}_{shouldPass}");
+        using var _ = d;
         var instance = project.CreateProjectInstance(global::Microsoft.Build.Execution.ProjectInstanceSettings.None);
         instance.Build(new[] { ComputeContainerConfig }, null, null, out var outputs).Should().Be(shouldPass, "Build should have succeeded");
         Assert.Equal(expectedContainerImageName, instance.GetPropertyValue(ContainerImageName));
@@ -56,11 +59,12 @@ public class TargetsTests
     [DockerDaemonAvailableTheory]
     public void CanWarnOnInvalidSDKVersions(string sdkVersion, bool isAllowed)
     {
-        var (project, _) = ProjectInitializer.InitProject(new()
+        var (project, _, d) = ProjectInitializer.InitProject(new()
         {
             ["NETCoreSdkVersion"] = sdkVersion,
             ["PublishProfile"] = "DefaultContainer"
         }, projectName: $"{nameof(CanWarnOnInvalidSDKVersions)}_{sdkVersion}_{isAllowed}");
+        using var _ = d;
         var instance = project.CreateProjectInstance(global::Microsoft.Build.Execution.ProjectInstanceSettings.None);
         var derivedIsAllowed = Boolean.Parse(project.GetProperty("_IsSDKContainerAllowedVersion").EvaluatedValue);
         // var buildResult = instance.Build(new[]{"_ContainerVerifySDKVersion"}, null, null, out var outputs);
@@ -72,10 +76,11 @@ public class TargetsTests
     [DockerDaemonAvailableTheory]
     public void GetsConventionalLabelsByDefault(bool shouldEvaluateLabels)
     {
-        var (project, _) = ProjectInitializer.InitProject(new()
+        var (project, _, d) = ProjectInitializer.InitProject(new()
         {
             [ContainerGenerateLabels] = shouldEvaluateLabels.ToString()
         }, projectName: $"{nameof(GetsConventionalLabelsByDefault)}_{shouldEvaluateLabels}");
+        using var _ = d;
         var instance = project.CreateProjectInstance(global::Microsoft.Build.Execution.ProjectInstanceSettings.None);
         instance.Build(new[] { ComputeContainerConfig }, null, null, out var outputs).Should().BeTrue("Build should have succeeded");
         if (shouldEvaluateLabels)
@@ -98,14 +103,15 @@ public class TargetsTests
         var commitHash = "abcdef";
         var repoUrl = "https://git.cosmere.com/shard/whimsy.git";
 
-        var (project, _) = ProjectInitializer.InitProject(new()
+        var (project, logger, d) = ProjectInitializer.InitProject(new()
         {
             ["PublishRepositoryUrl"] = includeSourceControl.ToString(),
             ["PrivateRepositoryUrl"] = repoUrl,
             ["SourceRevisionId"] = commitHash
         }, projectName: $"{nameof(ShouldNotIncludeSourceControlLabelsUnlessUserOptsIn)}_{includeSourceControl}");
+        using var _ = d;
         var instance = project.CreateProjectInstance(global::Microsoft.Build.Execution.ProjectInstanceSettings.None);
-        instance.Build(new[] { ComputeContainerConfig }, null, null, out var outputs).Should().BeTrue("Build should have succeeded");
+        instance.Build(new[] { ComputeContainerConfig }, null, null, out var outputs).Should().BeTrue("Build should have succeeded but failed due to {0}", String.Join("\n", logger.AllMessages));
         var labels = instance.GetItems(ContainerLabel);
         if (includeSourceControl)
         {
@@ -121,32 +127,54 @@ public class TargetsTests
         };
     }
 
-    [InlineData("7.0.100", "7.0", "7.0")]
-    [InlineData("7.0.100-preview.7", "7.0", "7.0")]
-    [InlineData("7.0.100-rc.1", "7.0", "7.0")]
-    [InlineData("8.0.100", "8.0", "8.0")]
-    [InlineData("8.0.100", "7.0", "7.0")]
-    [InlineData("8.0.100-preview.7", "8.0", "8.0-preview.7")]
-    [InlineData("8.0.100-rc.1", "8.0", "8.0-rc.1")]
-    [InlineData("8.0.100-rc.1", "7.0", "7.0")]
-    [InlineData("8.0.200", "8.0", "8.0")]
-    [InlineData("8.0.200", "7.0", "7.0")]
-    [InlineData("8.0.200-preview3", "7.0", "7.0")]
-    [InlineData("8.0.200-preview3", "8.0", "8.0")]
-    [InlineData("6.0.100", "6.0", "6.0")]
-    [InlineData("6.0.100-preview.1", "6.0", "6.0")]
+    [InlineData("7.0.100", "v7.0", "7.0")]
+    [InlineData("7.0.100-preview.7", "v7.0", "7.0")]
+    [InlineData("7.0.100-rc.1", "v7.0", "7.0")]
+    [InlineData("8.0.100", "v8.0", "8.0")]
+    [InlineData("8.0.100", "v7.0", "7.0")]
+    [InlineData("8.0.100-preview.7", "v8.0", "8.0-preview.7")]
+    [InlineData("8.0.100-rc.1", "v8.0", "8.0-rc.1")]
+    [InlineData("8.0.100-rc.1", "v7.0", "7.0")]
+    [InlineData("8.0.200", "v8.0", "8.0")]
+    [InlineData("8.0.200", "v7.0", "7.0")]
+    [InlineData("8.0.200-preview3", "v7.0", "7.0")]
+    [InlineData("8.0.200-preview3", "v8.0", "8.0")]
+    [InlineData("6.0.100", "v6.0", "6.0")]
+    [InlineData("6.0.100-preview.1", "v6.0", "6.0")]
     [Theory]
     public void CanComputeTagsForSupportedSDKVersions(string sdkVersion, string tfm, string expectedTag)
     {
-        var (project, logger) = ProjectInitializer.InitProject(new()
+        var (project, logger, d) = ProjectInitializer.InitProject(new()
         {
             ["NETCoreSdkVersion"] = sdkVersion,
-            ["_TargetFrameworkVersionWithoutV"] = tfm,
+            ["TargetFrameworkVersion"] = tfm,
             ["PublishProfile"] = "DefaultContainer"
         }, projectName: $"{nameof(CanComputeTagsForSupportedSDKVersions)}_{sdkVersion}_{tfm}_{expectedTag}");
+        using var _ = d;
         var instance = project.CreateProjectInstance(global::Microsoft.Build.Execution.ProjectInstanceSettings.None);
         instance.Build(new[]{"_ComputeContainerBaseImageTag"}, null, null, out var outputs).Should().BeTrue(String.Join(Environment.NewLine, logger.Errors));
         var computedTag = instance.GetProperty("_ContainerBaseImageTag").EvaluatedValue;
         computedTag.Should().Be(expectedTag);
+    }
+
+    [InlineData("v8.0", "linux-x64", "64198")]
+    [InlineData("v8.0", "win-x64", "ContainerUser")]
+    [InlineData("v7.0", "linux-x64", null)]
+    [InlineData("v7.0", "win-x64", null)]
+    [InlineData("v9.0", "linux-x64", "64198")]
+    [InlineData("v9.0", "win-x64", "ContainerUser")]
+    [Theory]
+    public void CanComputeContainerUser(string tfm, string rid, string expectedUser)
+    {
+        var (project, logger, d) = ProjectInitializer.InitProject(new()
+        {
+            ["TargetFrameworkVersion"] = tfm,
+            ["ContainerRuntimeIdentifier"] = rid
+        }, projectName: $"{nameof(CanComputeTagsForSupportedSDKVersions)}_{tfm}_{rid}_{expectedUser}");
+        using var _ = d;
+        var instance = project.CreateProjectInstance(global::Microsoft.Build.Execution.ProjectInstanceSettings.None);
+        instance.Build(new[]{ComputeContainerConfig}, null, null, out var outputs).Should().BeTrue(String.Join(Environment.NewLine, logger.Errors));
+        var computedTag = instance.GetProperty("ContainerUser")?.EvaluatedValue;
+        computedTag.Should().Be(expectedUser);
     }
 }
