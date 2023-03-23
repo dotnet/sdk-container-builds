@@ -176,7 +176,7 @@ public partial class CreateNewImage : ToolTask, ICancelableTask
         return builder.ToString();
     }
 
-    private bool ValidateInput()
+    internal bool ValidateInput()
     {
         if (string.IsNullOrWhiteSpace(PublishDirectory))
         {
@@ -208,7 +208,7 @@ public partial class CreateNewImage : ToolTask, ICancelableTask
         }
         if (Entrypoint.Any(e => string.IsNullOrWhiteSpace(e.ItemSpec)))
         {
-            Log.LogErrorWithCodeFromResources(nameof(Strings.RequiredItemsNotSet), nameof(Entrypoint), Entrypoint);
+            Log.LogErrorWithCodeFromResources(nameof(Strings.RequiredItemsContainsEmptyItems), nameof(Entrypoint), Entrypoint);
         }
 
         return !Log.HasLoggedErrors;
