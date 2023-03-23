@@ -64,6 +64,7 @@ Microsoft.NET.Build.Containers.Tasks.CreateNewImage.RuntimeIdentifierGraphPath.s
 Microsoft.NET.Build.Containers.Tasks.CreateNewImage.WorkingDirectory.get -> string!
 Microsoft.NET.Build.Containers.Tasks.CreateNewImage.WorkingDirectory.set -> void
 override Microsoft.NET.Build.Containers.Tasks.ComputeDotnetBaseImageTag.Execute() -> bool
+override Microsoft.NET.Build.Containers.Tasks.CreateNewImage.Execute() -> bool
 override Microsoft.NET.Build.Containers.Tasks.CreateNewImage.ToolName.get -> string!
 override Microsoft.NET.Build.Containers.Tasks.CreateNewImage.GenerateCommandLineCommands() -> string!
 override Microsoft.NET.Build.Containers.Tasks.CreateNewImage.GenerateFullPathToTool() -> string!

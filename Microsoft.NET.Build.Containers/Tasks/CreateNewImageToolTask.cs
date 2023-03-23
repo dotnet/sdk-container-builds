@@ -35,6 +35,11 @@ public partial class CreateNewImage : ToolTask, ICancelableTask
         }
     }
 
+    public override bool Execute()
+    {
+        return ValidateInput() ? base.Execute() : false;
+    }
+
     protected override string GenerateFullPathToTool() => Path.Combine(DotNetPath, ToolExe);
 
     /// <summary>
@@ -74,35 +79,6 @@ public partial class CreateNewImage : ToolTask, ICancelableTask
     /// </remarks>
     internal string GenerateCommandLineCommandsInt()
     {
-        if (string.IsNullOrWhiteSpace(PublishDirectory))
-        {
-            throw new InvalidOperationException(Resource.FormatString(nameof(Strings.RequiredPropertyNotSetOrEmpty), nameof(PublishDirectory)));
-        }
-        if (string.IsNullOrWhiteSpace(BaseRegistry))
-        {
-            throw new InvalidOperationException(Resource.FormatString(nameof(Strings.RequiredPropertyNotSetOrEmpty), nameof(BaseRegistry)));
-        }
-        if (string.IsNullOrWhiteSpace(BaseImageName))
-        {
-            throw new InvalidOperationException(Resource.FormatString(nameof(Strings.RequiredPropertyNotSetOrEmpty), nameof(BaseImageName)));
-        }
-        if (string.IsNullOrWhiteSpace(ImageName))
-        {
-            throw new InvalidOperationException(Resource.FormatString(nameof(Strings.RequiredPropertyNotSetOrEmpty), nameof(ImageName)));
-        }
-        if (string.IsNullOrWhiteSpace(WorkingDirectory))
-        {
-            throw new InvalidOperationException(Resource.FormatString(nameof(Strings.RequiredPropertyNotSetOrEmpty), nameof(WorkingDirectory)));
-        }
-        if (Entrypoint.Length == 0)
-        {
-            throw new InvalidOperationException(Resource.FormatString(nameof(Strings.RequiredItemsNotSet), nameof(Entrypoint)));
-        }
-        if (Entrypoint.Any(e => string.IsNullOrWhiteSpace(e.ItemSpec)))
-        {
-            throw new InvalidOperationException(Resource.FormatString(nameof(Strings.RequiredItemsContainsEmptyItems), nameof(Entrypoint)));
-        }
-
         CommandLineBuilder builder = new();
 
         //mandatory options
@@ -198,6 +174,44 @@ public partial class CreateNewImage : ToolTask, ICancelableTask
         }
 
         return builder.ToString();
+    }
+
+    private bool ValidateInput()
+    {
+        if (string.IsNullOrWhiteSpace(PublishDirectory))
+        {
+            Log.LogErrorWithCodeFromResources(nameof(Strings.RequiredPropertyNotSetOrEmpty), nameof(PublishDirectory), PublishDirectory);
+        }
+        else if (!Directory.Exists(PublishDirectory))
+        {
+            Log.LogErrorWithCodeFromResources(nameof(Strings.PublishDirectoryDoesntExist), nameof(PublishDirectory), PublishDirectory);
+        }
+        if (string.IsNullOrWhiteSpace(BaseRegistry))
+        {
+            Log.LogErrorWithCodeFromResources(nameof(Strings.RequiredPropertyNotSetOrEmpty), nameof(BaseRegistry), BaseRegistry);
+        }
+        if (string.IsNullOrWhiteSpace(BaseImageName))
+        {
+            Log.LogErrorWithCodeFromResources(nameof(Strings.RequiredPropertyNotSetOrEmpty), nameof(BaseImageName), BaseImageName);
+        }
+        if (string.IsNullOrWhiteSpace(ImageName))
+        {
+            Log.LogErrorWithCodeFromResources(nameof(Strings.RequiredPropertyNotSetOrEmpty), nameof(ImageName), ImageName);
+        }
+        if (string.IsNullOrWhiteSpace(WorkingDirectory))
+        {
+            Log.LogErrorWithCodeFromResources(nameof(Strings.RequiredPropertyNotSetOrEmpty), nameof(WorkingDirectory), WorkingDirectory);
+        }
+        if (Entrypoint.Length == 0)
+        {
+            Log.LogErrorWithCodeFromResources(nameof(Strings.RequiredItemsNotSet), nameof(Entrypoint), Entrypoint);
+        }
+        if (Entrypoint.Any(e => string.IsNullOrWhiteSpace(e.ItemSpec)))
+        {
+            Log.LogErrorWithCodeFromResources(nameof(Strings.RequiredItemsNotSet), nameof(Entrypoint), Entrypoint);
+        }
+
+        return !Log.HasLoggedErrors;
     }
 }
 
