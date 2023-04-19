@@ -54,3 +54,7 @@ When using Docker Hub as a base image registry (via ContainerBaseImage) or as th
 The `docker.io` domain doesn't support the Registry API, so attempting to use it will result in errors.
 
 In addition, you should be sure to login via `docker login registry.hub.docker.com` or `docker login registry-1.docker.io` and not `docker login docker.io`, to ensure that the correct credentials are used by the tooling.
+
+#### ContainerImageName
+
+When pushing to Docker Hub, images _must_ include the user's login as a prefix - for example `chusk3/sdk-container-demo` instead of just `sdk-container-demo`.
