@@ -9,3 +9,4 @@ You can [Customize your container](./ContainerCustomization.md) easily as well!
 ## References
 
 * [Tutorial: Containerize a .NET app with dotnet publish](https://learn.microsoft.com/en-us/dotnet/core/docker/publish-as-container)
+* [Release notes](https://github.com/dotnet/sdk/tree/main/src/Containers/docs/ReleaseNotes)
