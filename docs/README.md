@@ -1,6 +1,6 @@
 # Documents Index
 
-This directory contains the documentation for this repo.
+This directory contains the documentation for .NET app containers.
 
 You can quickly try containerizing your applications by following the [Getting Started](./GettingStarted.md) guide.
 
@@ -8,4 +8,4 @@ You can [Customize your container](./ContainerCustomization.md) easily as well!
 
 ## References
 
-* [Tutorial: Containerize a .NET app](https://docs.microsoft.com/dotnet/core/docker/build-container?tabs=windows)
+* [Tutorial: Containerize a .NET app with dotnet publish](https://learn.microsoft.com/en-us/dotnet/core/docker/publish-as-container)
