@@ -19,8 +19,10 @@ dotnet publish --os linux --arch x64 -c Release /t:PublishContainer
 
 You can learn more about the project from the project [Documentation](./docs).
 
-Note: the source code is moved to [dotnet/sdk](https://github.com/dotnet/sdk/tree/main/src/Containers) repo.
-For easiness, please use [containers.slnf](https://github.com/dotnet/sdk/blob/main/containers.slnf) filter in case the intention is only to build and debug containers source code.
+
+> **Note**
+> The source code for these tools has been moved to the [dotnet/sdk](https://github.com/dotnet/sdk/tree/main/src/Containers) repo.
+> For easier development, please use the [containers.slnf](https://github.com/dotnet/sdk/blob/main/containers.slnf) solution filter when working on containers-only code.
 
 This repo only contains documentation and issues for the project.
 
