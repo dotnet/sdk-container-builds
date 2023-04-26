@@ -7,7 +7,7 @@ A basic start with tooling
 - for existing web project (the package is part of `Microsoft.NET.SDK.Web):
 
 ```shell
-dotnet publish --os linux --arch x64 -c Release /p:PublishProfile=DefaultContainer /p:EnableSDKContainerSupport=true
+dotnet publish --os linux --arch x64 -c Release /p:PublishProfile=DefaultContainer
 ```
 
 - for existing non-web project:
@@ -19,18 +19,13 @@ dotnet publish --os linux --arch x64 -c Release /t:PublishContainer
 
 You can learn more about the project from the project [Documentation](./docs).
 
-
-> **Note**
-> The source code for these tools has been moved to the [dotnet/sdk](https://github.com/dotnet/sdk/tree/main/src/Containers) repo.
-> For easier development, please use the [containers.slnf](https://github.com/dotnet/sdk/blob/main/containers.slnf) solution filter when working on containers-only code.
-
-This repo only contains documentation and issues for the project.
-
 ## Prerequisites
 
 [.NET SDK 7.0.100, preview 7](https://dotnet.microsoft.com/download/dotnet/7.0) or later 
 
 ## Contributing
+
+This repo only contains documentation and issues for the project.
 
 The source code was moved to [dotnet/sdk](https://github.com/dotnet/sdk/tree/main/src/Containers) repo.
 For easiness, please use [containers.slnf](https://github.com/dotnet/sdk/blob/main/containers.slnf) filter in case the intention is only to build and debug containers source code.
