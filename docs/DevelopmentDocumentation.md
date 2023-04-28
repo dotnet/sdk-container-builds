@@ -101,7 +101,7 @@ For web projects, package reference to `Microsoft.NET.Build.Containers` is alrea
 For non-web projects, as of .NET SDK 7.0.300 package reference to NuGet package is still needed, but we are working towards simplifying that.
 
 ## Short and long term vision for the project
-TBD
+See https://github.com/dotnet/sdk-container-builds/issues/428 for details.
 
 ## Troubleshooting
 
