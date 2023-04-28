@@ -1,17 +1,23 @@
 # .NET SDK Container Building Tools
 
-This repo contains APIs and MSBuild Tasks for generating and testing an [OCI Container](https://opencontainers.org/) from a .NET project.
+This project consists of APIs and MSBuild Tasks for generating and testing an [OCI Container](https://opencontainers.org/) from a .NET project.
 
-A basic start with the library in an existing project:
+A basic start with tooling 
+
+- for existing web project (the package is part of `Microsoft.NET.SDK.Web):
+
+```shell
+dotnet publish --os linux --arch x64 -c Release /p:PublishProfile=DefaultContainer
+```
+
+- for existing non-web project:
 
 ```shell
 dotnet add package Microsoft.NET.Build.Containers
-dotnet publish --os linux --arch x64 -c Release -p:PublishProfile=DefaultContainer
+dotnet publish --os linux --arch x64 -c Release /t:PublishContainer
 ```
 
 You can learn more about the project from the project [Documentation](./docs).
-
-[![.NET](https://github.com/dotnet/sdk-container-builds/actions/workflows/dotnet.yml/badge.svg)](https://github.com/dotnet/sdk-container-builds/actions/workflows/dotnet.yml)
 
 ## Prerequisites
 
@@ -19,10 +25,13 @@ You can learn more about the project from the project [Documentation](./docs).
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for information on contributing to this project.
+This repo only contains documentation and issues for the project.
 
-This project has adopted the code of conduct defined by the [Contributor Covenant](http://contributor-covenant.org/)
-to clarify expected behavior in our community. For more information, see the [.NET Foundation Code of Conduct](http://www.dotnetfoundation.org/code-of-conduct).
+The source code was moved to [dotnet/sdk](https://github.com/dotnet/sdk/tree/main/src/Containers) repo.
+For easiness, please use [containers.slnf](https://github.com/dotnet/sdk/blob/main/containers.slnf) filter in case the intention is only to build and debug containers source code.
+
+If you would like to contribute by creating a pull request, please refer to [dotnet/sdk contributing guide](https://github.com/dotnet/sdk#how-do-i-engage-and-contribute). 
+Ideally, prior starting the effort find a corresponding issue in [this repo](https://github.com/dotnet/sdk-container-builds/issues) and let us and others know in a comment. If you plan to address the problem that is not reflected in any issue, please create one. Consider helping us triaging the pull request by adding 'Area-Containers' repo.
 
 ## License
 

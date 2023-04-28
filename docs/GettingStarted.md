@@ -4,7 +4,6 @@
 
 If you're on .NET SDK 7.0.200 or up and you're a Web SDK project, then you can just set the `EnableSdkContainerSupport` property to `true` in your project file. Otherwise, you'll need to add the latest version of the `Microsoft.NET.Build.Containers` package. You can do this with the .NET CLI via the following command:
 
-
 ```shell
 >dotnet add package Microsoft.NET.Build.Containers
 ```
@@ -13,8 +12,19 @@ If you're on .NET SDK 7.0.200 or up and you're a Web SDK project, then you can j
 
 Now that you've got the package, build a default container for your application via the following command:
 
+- for web project:
+
 ```shell
->dotnet publish --os linux --arch x64 -p:PublishProfile=DefaultContainer
+>dotnet publish --os linux --arch x64 -c Release /p:PublishProfile=DefaultContainer
+...
+Pushed container '<your app name>:<your app version>' to registry 'docker://'
+...
+```
+
+- for non-web project:
+
+```shell
+>dotnet publish --os linux --arch x64 -c Release /t:PublishContainer
 ...
 Pushed container '<your app name>:<your app version>' to registry 'docker://'
 ...
