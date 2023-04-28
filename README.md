@@ -33,6 +33,8 @@ For easiness, please use [containers.slnf](https://github.com/dotnet/sdk/blob/ma
 If you would like to contribute by creating a pull request, please refer to [dotnet/sdk contributing guide](https://github.com/dotnet/sdk#how-do-i-engage-and-contribute). 
 Ideally, prior starting the effort find a corresponding issue in [this repo](https://github.com/dotnet/sdk-container-builds/issues) and let us and others know in a comment. If you plan to address the problem that is not reflected in any issue, please create one. Consider helping us triaging the pull request by adding 'Area-Containers' repo.
 
+Development documentation is available [here](./docs/DevelopmentDocumentation.md)
+
 ## License
 
 This project is licensed with the [MIT license](LICENSE).
