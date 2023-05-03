@@ -59,15 +59,15 @@ Be default, we push to the local Docker daemon (annotated by `docker://`), but y
 </PropertyGroup>
 ```
 
-## ContainerImageName
+## ContainerRepository
 
-This property controls the name of the image itself, e.g `dotnet/runtime` or `my-awesome-app`.
+This property controls the name of the generated image itself, e.g `dotnet/runtime` or `my-awesome-app`.
 
-By default, the value used will be the `AssemblyName` of the project.
+By default, the value used will be the `AssemblyName` of the project. In previous versions, this property was called `ContainerImageName` - that name is still supported for backwards compatibility but will issue a warning.
 
 ```xml
 <PropertyGroup>
-    <ContainerImageName>my-super-awesome-app</ContainerImageName>
+    <ContainerRepository>my-super-awesome-app</ContainerRepository>
 </PropertyGroup>
 ```
 
