@@ -25,11 +25,11 @@ If you set a value here, you should set the fully-qualified name of the image to
 
 ## ContainerRuntimeIdentifier
 
-This property controls the OS and platform used by your container if your [`ContainerBaseImage`](#containerbaseimage) is a 'Manifest List'. Manifest Lists are images that support more than one architecture behind a single, common, name. For example, the `mcr.microsoft.com/dotnet/runtime` image is a manifest list that supports `linux-x64`, `linux-arm`, `linux-arm64` and `win10-x64` images.
+This property controls the OS and platform used by your container if your [`ContainerBaseImage`](#containerbaseimage) is a 'Manifest List'. Manifest Lists are images that support more than one architecture behind a single, common, name. For example, the `mcr.microsoft.com/dotnet/runtime` image is a manifest list that supports the `linux-x64`, `linux-arm`, `linux-arm64` images.
 
 When a Manifest List is your base image, we need to choose the most relevant image to use as the base. We do this by choosing the image that best matches the `RuntimeIdentifier` of your project. If you set a value here, we will use that value to choose the best image to use as the base. Valid values for this property will vary based on the image you choose, but will always be in the form of a .NET SDK Runtime Identifier.
 
-By default, if your project has a RuntimeIdentifier set, that value will be used. A RuntimeIdentifer is usually set via the `-r` parameter to the `dotnet publish` command, or by setting the `RuntimeIdentifier` property in a PublishProfile used from Visual Studio.
+By default, if your project has a RuntimeIdentifier set, that value will be used. Starting with the .NET SDK 7.0.400, if no ContainerRuntimeIdentifier or RuntimeIdentifier is set, the `linux-x64` ContainerRuntimeIdentifier will be used. A RuntimeIdentifier is usually set via the `-r` parameter to the `dotnet publish` command, or by setting the `RuntimeIdentifier` property in a PublishProfile used from Visual Studio.
 
 ```xml
 <PropertyGroup>
@@ -46,6 +46,9 @@ By default, if your project has a RuntimeIdentifier set, that value will be used
 >     <ContainerBaseImage>mcr.microsoft.com/dotnet/runtime:7.0-alpine-amd64</ContainerBaseImage>
 > </PropertyGroup>
 > ```
+
+> **Note**
+> Starting in .NET 8, the Microsoft container images will not include the Windows variants of the images in the manifest list. If you need to target Windows, you will need to use a specific image tag as your `<ContainerBaseImage>`, for example `mcr.microsoft.com/dotnet/aspnet:8.0-preview-windowsservercore-ltsc2022` or `mcr.microsoft.com/dotnet/aspnet:8.0-preview-nanoserver-ltsc2022`.
 
 ## ContainerRegistry
 
