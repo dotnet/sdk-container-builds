@@ -21,7 +21,7 @@ You can learn more about the project from the project [Documentation](./docs).
 
 ## Prerequisites
 
-[.NET SDK 7.0.100, preview 7](https://dotnet.microsoft.com/download/dotnet/7.0) or later 
+[.NET 7 SDK](https://dotnet.microsoft.com/download/dotnet/7.0) or later 
 
 ## Contributing
 
