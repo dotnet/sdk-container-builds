@@ -81,13 +81,21 @@ By default, the value used will be the `AssemblyName` of the project. In previou
 
 This property controls the tag that is generated for the image. Tags are often used to refer to different versions of an application, but they can also refer to different operating system distributions, or even just different baked-in configuration. This property also can be used to push multiple tags - simply use a semicolon-delimited set of tags in the `ContainerImageTags` property, similar to setting multiple `TargetFrameworks`.
 
-By default, the value used will be the `Version` of the project.
+By default in .NET 8, the value used will be `latest` - keeping in line with experiences offered by other container tooling. In previous versions, the default value was the `Version` of the project. To continue using the `Version`, 
+
 
 ```xml
+<!-- set an explicit version -->
 <PropertyGroup>
     <ContainerImageTag>1.2.3-alpha2</ContainerImageTag>
 </PropertyGroup>
 ```
+
+```xml
+<!-- set the version based on Version -->
+<PropertyGroup>
+    <ContainerImageTag>$(Version)</ContainerImageTag>
+</PropertyGroup>
 
 ```xml
 <PropertyGroup>
