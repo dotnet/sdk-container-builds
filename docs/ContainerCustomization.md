@@ -23,6 +23,20 @@ If you set a value here, you should set the fully-qualified name of the image to
 <PropertyGroup>
 ```
 
+## ContainerFamily
+
+Starting in .NET 8, `ContainerFamily` can be used to choose a different family of Microsoft-provided container images as the base image for your application. When set, this value will be appended to the end of the selected TFM-specific tag, changing the tag provided. For example, to use the Alpine Linux variants of the .NET base images, you can set `ContainerFamily` to `alpine`:
+
+```xml
+<PropertyGroup>
+    <ContainerFamily>alpine</ContainerFamily>
+</PropertyGroup>
+```
+
+which results in a final tag of `8.0-alpine` for a .NET 8-targeting application.
+
+This field is very free-form, and often can be used to select different operating system distributions, default package configurations, or any other 'flavor' of changes to a base image. Consult your base image's documentation for more details.
+
 ## ContainerRuntimeIdentifier
 
 This property controls the OS and platform used by your container if your [`ContainerBaseImage`](#containerbaseimage) is a 'Manifest List'. Manifest Lists are images that support more than one architecture behind a single, common, name. For example, the `mcr.microsoft.com/dotnet/runtime` image is a manifest list that supports the `linux-x64`, `linux-arm`, `linux-arm64` images.
@@ -44,6 +58,14 @@ By default, if your project has a RuntimeIdentifier set, that value will be used
 > ```xml
 > <PropertyGroup>
 >     <ContainerBaseImage>mcr.microsoft.com/dotnet/runtime:7.0-alpine-amd64</ContainerBaseImage>
+> </PropertyGroup>
+> ```
+>
+> Starting in .NET 8, however, you can use `ContainerFamily` to make this easier:
+>
+> ```xml
+> <PropertyGroup>
+>     <ContainerFamily>alpine</ContainerFamily>
 > </PropertyGroup>
 > ```
 
@@ -81,7 +103,7 @@ By default, the value used will be the `AssemblyName` of the project. In previou
 
 This property controls the tag that is generated for the image. Tags are often used to refer to different versions of an application, but they can also refer to different operating system distributions, or even just different baked-in configuration. This property also can be used to push multiple tags - simply use a semicolon-delimited set of tags in the `ContainerImageTags` property, similar to setting multiple `TargetFrameworks`.
 
-By default in .NET 8, the value used will be `latest` - keeping in line with experiences offered by other container tooling. In previous versions, the default value was the `Version` of the project. To continue using the `Version`, 
+By default in .NET 8, the value used will be `latest` - keeping in line with experiences offered by other container tooling. In previous versions, the default value was the `Version` of the project. To continue using the `Version`,
 
 
 ```xml
@@ -122,6 +144,14 @@ By default, we use the `/app` directory as the working directory.
 
 This item adds TCP or UDP ports to the list of known ports for the container. This enables container runtimes like Docker to map these ports to the host machine automatically. This is often used as documentation for the container, but can also be used to enable automatic port mapping.
 
+In .NET 8, we will infer `ContainerPort` data for your application based on several well-known ASP.NET Environment variables:
+
+* ASPNETCORE_URLS
+* ASPNETCORE_HTTP_PORTS
+* ASPNETCORE_HTTPS_PORTS
+
+The values of the environment variables, if present, will be parsed and converted to TCP port mappings. These environment variables will be read from your base image, if present, or from the environment variables defined in your project through `ContainerEnvironmentVariable` items.
+
 ContainerPort items have two properties:
 
 * Include
@@ -136,7 +166,7 @@ ContainerPort items have two properties:
 ```
 
 > **Note**
-> This item does nothing for the container by default and should be considered advisory at best.
+> This item typically does not influence running the container directly - most runtimes will still need to explicitly assign port mappings. Some tooling, like the Docker Tools for Visual Studio Code, will read this data and automatically open ports on your behalf.
 
 ## ContainerLabel
 
@@ -238,6 +268,9 @@ The default value of this field varies by project TFM and target operating syste
     <ContainerUser>my-existing-app-user</ContainerUser>
 </PropertyGroup>
 ```
+
+> **Note**
+> In .NET 8 the APP_UID environment variable will be used to set user information in your container. This value can come from environment variables defined in your base image (like that Microsoft .NET images do), or you can set it yourself via the `ContainerEnvironmentVariable` syntax described in this document.
 
 ## Default container labels
 
