@@ -24,6 +24,18 @@ The `credHelpers` section of the config.json file is a key/value map between reg
 
 The `credsStore` section is a single string property whose value is the name of a docker credential helper program that knows how to interface with the system's password manager. For Windows this might be `wincred` for example. These are very popular with Docker installers for MacOS and Windows.
 
+
+## Authentication via environment variables
+
+In some scenarios the standard Docker authentication mechanism described above just doesn't cut it. This tooling has an additional mechanism for providing credentials to registries: environment variables. If environment variables are used, the credential provide mechanism will not be used at all. The following environment variables are supported:
+
+* SDK_CONTAINER_REGISTRY_UNAME
+  * This should be the username for the registry. If the password for the registry is a token, then the username should be "<token>".
+* SDK_CONTAINER_REGISTRY_PWORD
+  * This should be the password, token, etc for the registry.
+
+This mechanism is potentially vulnerable to credential leakage, so it should only be used in scenarios where the other mechanism is not available. For example, if you are using the SDK Container tooling inside a Docker container itself. In addition, this mechanism isn't namespaced - it will attempt to use the same credentials for both the 'source' registry (where your base image is located) as well as the 'destination' registry (where you are pushing your final image).
+
 ## Known-supported registries
 
 All of the above mechanisms are supported by this package. When we push or pull from a registry we will incorporate these credential helpers and invoke them to get any necessary credentials the registry asks for.
