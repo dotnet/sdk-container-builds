@@ -113,19 +113,23 @@ This property controls the tag that is generated for the image. Tags are often u
 
 By default in .NET 8, the value used will be `latest` - keeping in line with experiences offered by other container tooling. In previous versions, the default value was the `Version` of the project. To continue using the `Version`,
 
+_Set an explicit tag:_
 
 ```xml
-<!-- set an explicit version -->
 <PropertyGroup>
     <ContainerImageTag>1.2.3-alpha2</ContainerImageTag>
 </PropertyGroup>
 ```
 
+_Set the tag based on the apps `Version`:_
+
 ```xml
-<!-- set the version based on Version -->
 <PropertyGroup>
     <ContainerImageTag>$(Version)</ContainerImageTag>
 </PropertyGroup>
+```
+
+_Set multiple tags (tags are `;` delimited):_
 
 ```xml
 <PropertyGroup>
