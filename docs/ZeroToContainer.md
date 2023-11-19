@@ -5,7 +5,7 @@ You should expect it to shrink noticeably over time!
 
 ## Prerequisites
 
-* [.NET SDK 7.0.100-preview.7](https://dotnet.microsoft.com/download/dotnet/7.0) or higher
+* [.NET SDK 8.0.100](https://dotnet.microsoft.com/download/dotnet/8.0) or higher
 * Docker should be installed and running
 
 ## Usage
@@ -15,14 +15,11 @@ You should expect it to shrink noticeably over time!
 dotnet new web -n my-awesome-container-app
 cd my-awesome-container-app
 
-# add a reference to the package
-dotnet add package Microsoft.NET.Build.Containers
-
 # publish your project
 dotnet publish --os linux --arch x64 -p:PublishProfile=DefaultContainer
 
 # run your app
-docker run -it --rm -p 5010:80 my-awesome-container-app:1.0.0
+docker run -it --rm -p 5010:8080 my-awesome-container-app:latest
 ```
 
 Now you can go to `localhost:5010` and you should see the `Hello World!` text!
