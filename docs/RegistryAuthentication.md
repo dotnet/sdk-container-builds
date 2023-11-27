@@ -2,7 +2,7 @@
 
 Interacting with private container registries requires authenticating with those registries.
 
-Docker has established a pattern with this via the [`docker login`](https://docs.docker.com/engine/reference/commandline/login/) command, which is a way of interacting with a Docker config file that contains rules for authenticating with specific registries. This file, and the authentication types it encodes, are supported by Microsoft.Net.Build.Containers for registry authentication. This should ensure that this package works seamlessly with any registry you can `docker pull` from and `docker push`.
+Docker has established a pattern with this via the [`docker login`](https://docs.docker.com/engine/reference/commandline/login/) command, which is a way of interacting with a Docker config file that contains rules for authenticating with specific registries. This file, and the authentication types it encodes, are supported by Microsoft.Net.Build.Containers for registry authentication. This should ensure that this package works seamlessly with any registry you can `docker pull` from and `docker push`. This file is normally stored at `~/.docker/config.json`, but it can be specified additionally through the `DOCKER_CONFIG` variable, which points to a directory containing a `config.json` file.
 
 ## Kinds of authentication
 
@@ -30,7 +30,7 @@ The `credsStore` section is a single string property whose value is the name of 
 In some scenarios the standard Docker authentication mechanism described above just doesn't cut it. This tooling has an additional mechanism for providing credentials to registries: environment variables. If environment variables are used, the credential provide mechanism will not be used at all. The following environment variables are supported:
 
 * SDK_CONTAINER_REGISTRY_UNAME
-  * This should be the username for the registry. If the password for the registry is a token, then the username should be "<token>".
+  * This should be the username for the registry. If the password for the registry is a token, then the username should be `"<token>"`.
 * SDK_CONTAINER_REGISTRY_PWORD
   * This should be the password, token, etc for the registry.
 
