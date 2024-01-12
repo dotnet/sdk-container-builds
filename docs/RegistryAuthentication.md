@@ -58,14 +58,16 @@ None! We're compatible with most registries.
 
 ### Docker Hub
 
-When using Docker Hub as a base image registry (via ContainerBaseImage) or as the destination registry for pushing your images (via ContainerRegistry), you must use the one of the URLs that point to the _registry_ portion of Docker Hub. This means one of the following domains must be used:
+### Authentication
+
+In .NET SDK 7.0.400 and earlier, you must log in to 
 
 * `registry.hub.docker.com`
 * `registry-1.docker.io`
 
-The `docker.io` domain doesn't support the Registry API, so attempting to use it will result in errors.
+via `docker login` in order to read base images from Docker Hub, and you must set `<ContainerRegistry>` to one of these in order to _push_ images to Docker Hub.
 
-In addition, you should be sure to login via `docker login registry.hub.docker.com` or `docker login registry-1.docker.io` and not `docker login docker.io`, to ensure that the correct credentials are used by the tooling.
+In .NET SDK 8.0.100 and greater neither of these is required - you can use `<ContainerRegistry>docker.io</ContainerRegistry>` as expected, and `docker login` directly.
 
 #### ContainerImageName
 
