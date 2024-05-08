@@ -58,7 +58,7 @@ None! We're compatible with most registries.
 
 ### Docker Hub
 
-### Authentication
+#### Authentication
 
 In .NET SDK 7.0.400 and earlier, you must log in to 
 
@@ -72,3 +72,10 @@ In .NET SDK 8.0.100 and greater neither of these is required - you can use `<Con
 #### ContainerImageName
 
 When pushing to Docker Hub, images _must_ include the user's login as a prefix - for example `chusk3/sdk-container-demo` instead of just `sdk-container-demo`.
+
+### GitHub Packages
+
+#### Authentication
+
+GitHub Packages requires authentication even for 'public' containers, so you will need to [authenticate to GitHub Packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry) before publishing containers.
+
