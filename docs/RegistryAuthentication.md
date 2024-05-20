@@ -79,3 +79,38 @@ When pushing to Docker Hub, images _must_ include the user's login as a prefix -
 
 GitHub Packages requires authentication even for 'public' containers, so you will need to [authenticate to GitHub Packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry) before publishing containers.
 
+## Using insecure registries
+
+Most registry access is assumed to be secure, meaning HTTPS is used to interact with the registry. However, not all registries are configured with TLS certificates - especially in situations like a
+private corporate registry behind a VPN. To support these use cases, container tools provide ways of declaring that a specific registry uses insecure communication. 
+
+Starting in .NET 8.0.400, the SDK understands these configuration files and formats and will automatically use that configuration to determine if HTTP or HTTPS should be used.
+Configuring a registry for insecure communication varies based on your container tool of choice.
+
+### Docker
+
+Docker stores its registry configuration in the [daemon configuration](https://docs.docker.com/config/daemon/#configuration-file). To add new insecure registries, new hosts are added to the `"insecure-registries"` array property:
+
+```json
+{
+  "insecure-registries": [
+    "registry.mycorp.net"
+  ]
+}
+```
+
+> [!NOTE]
+> You must restart the Docker daemon to apply any changes to this file.
+
+### Podman
+
+Podman uses a [`registries.conf`](https://podman-desktop.io/docs/containers/registries#setting-up-a-registry-with-an-insecure-certificate) TOML file to store registry connection information. This file typically lives at `/etc/containers/registries.conf`. To add new insecure registries, a TOML section is added to hold the settings for the registry, then the `insecure` option must be set to `true`.
+
+```toml
+[[registry]]
+location = "registry.mycorp.net"
+insecure = true
+```
+
+> [!NOTE]
+> You must restart Podman to apply any changes to this file
