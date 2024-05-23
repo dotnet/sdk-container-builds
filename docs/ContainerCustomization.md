@@ -24,7 +24,7 @@ If you set a value here, you should set the fully-qualified name of the image to
 ```xml
 <PropertyGroup>
     <ContainerBaseImage>mcr.microsoft.com/dotnet/runtime:6.0</ContainerBaseImage>
-<PropertyGroup>
+</PropertyGroup>
 ```
 
 ### ContainerFamily
