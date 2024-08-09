@@ -1,7 +1,7 @@
 # Telemetry reporting in the .NET SDK Container tools
 
 Starting in .NET SDK 8.0.400, the Container tooling collects and sends usage telemetry about how the tools are used.
-This is in addition to the [telemetry sent by the CLI](https://learn.microsoft.com/en-us/dotnet/core/tools/telemetry), but uses the same mechanisms and, importantly, adheres to the same [opt-out](https://learn.microsoft.com/en-us/dotnet/core/tools/telemetry#how-to-opt-out) controle.
+This is in addition to the [telemetry sent by the CLI](https://learn.microsoft.com/en-us/dotnet/core/tools/telemetry), but uses the same mechanisms and, importantly, adheres to the same [opt-out](https://learn.microsoft.com/en-us/dotnet/core/tools/telemetry#how-to-opt-out) controls.
 
 The telemetry we gather is intended to be general in nature and not leak any personal information - we intend to use this telemetry to help us measure
 * usage of the SDK Containerization feature overall
