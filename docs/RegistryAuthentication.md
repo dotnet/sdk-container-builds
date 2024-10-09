@@ -114,3 +114,13 @@ insecure = true
 
 > [!NOTE]
 > You must restart Podman to apply any changes to this file
+
+
+### Environment Variables
+
+Starting in 9.0.1xx, the SDK will also recognize insecure registries passed through the `SDK_CONTAINER_INSECURE_REGISTRIES` environment variable. This variable takes a comma-separated list of domains to treat as insecure in the 
+same manner as the Docker and Podman examples above.
+
+```shell
+SDK_CONTAINER_INSECURE_REGISTRIES=localhost:5000,registry.mycorp.com dotnet publish -t:PublishContainer -p:ContainerRegistry=registry.mycorp.com -p:ContainerBaseImage=localhost:5000/dotnet/runtime:8.0
+```
