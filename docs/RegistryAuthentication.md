@@ -29,10 +29,14 @@ The `credsStore` section is a single string property whose value is the name of 
 
 In some scenarios the standard Docker authentication mechanism described above just doesn't cut it. This tooling has an additional mechanism for providing credentials to registries: environment variables. If environment variables are used, the credential provide mechanism will not be used at all. The following environment variables are supported:
 
-* SDK_CONTAINER_REGISTRY_UNAME
+* DOTNET_CONTAINER_REGISTRY_UNAME
   * This should be the username for the registry. If the password for the registry is a token, then the username should be `"<token>"`.
-* SDK_CONTAINER_REGISTRY_PWORD
+* DOTNET_CONTAINER_REGISTRY_PWORD
   * This should be the password, token, etc for the registry.
+
+> [!NOTE]
+> As of .NET SDK 8.0.400, the environment variables for container operations have been updated.  
+> `SDK_CONTAINER_*` variables are now prefixed with `DOTNET_CONTAINER_*`. Please use the old prefixes in your configuration files or scripts.
 
 This mechanism is potentially vulnerable to credential leakage, so it should only be used in scenarios where the other mechanism is not available. For example, if you are using the SDK Container tooling inside a Docker container itself. In addition, this mechanism isn't namespaced - it will attempt to use the same credentials for both the 'source' registry (where your base image is located) as well as the 'destination' registry (where you are pushing your final image).
 
@@ -118,9 +122,9 @@ insecure = true
 
 ### Environment Variables
 
-Starting in 9.0.1xx, the SDK will also recognize insecure registries passed through the `SDK_CONTAINER_INSECURE_REGISTRIES` environment variable. This variable takes a comma-separated list of domains to treat as insecure in the 
+Starting in 9.0.1xx, the SDK will also recognize insecure registries passed through the `DOTNET_CONTAINER_INSECURE_REGISTRIES` environment variable. This variable takes a comma-separated list of domains to treat as insecure in the 
 same manner as the Docker and Podman examples above.
 
 ```shell
-SDK_CONTAINER_INSECURE_REGISTRIES=localhost:5000,registry.mycorp.com dotnet publish -t:PublishContainer -p:ContainerRegistry=registry.mycorp.com -p:ContainerBaseImage=localhost:5000/dotnet/runtime:8.0
+DOTNET_CONTAINER_INSECURE_REGISTRIES=localhost:5000,registry.mycorp.com dotnet publish -t:PublishContainer -p:ContainerRegistry=registry.mycorp.com -p:ContainerBaseImage=localhost:5000/dotnet/runtime:8.0
 ```
