@@ -34,6 +34,10 @@ In some scenarios the standard Docker authentication mechanism described above j
 * DOTNET_CONTAINER_REGISTRY_PWORD
   * This should be the password, token, etc for the registry.
 
+> [!NOTE]
+> As of .NET SDK 8.0.400, the environment variables for container operations have been updated.  
+> `SDK_CONTAINER_*` variables are now prefixed with `DOTNET_CONTAINER_*`. Please use the old prefixes in your configuration files or scripts.
+
 This mechanism is potentially vulnerable to credential leakage, so it should only be used in scenarios where the other mechanism is not available. For example, if you are using the SDK Container tooling inside a Docker container itself. In addition, this mechanism isn't namespaced - it will attempt to use the same credentials for both the 'source' registry (where your base image is located) as well as the 'destination' registry (where you are pushing your final image).
 
 ## Known-supported registries
