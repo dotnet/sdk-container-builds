@@ -4,16 +4,7 @@ This project consists of APIs and MSBuild Tasks for generating and testing an [O
 
 A basic start with tooling 
 
-- for existing web project (the package is part of `Microsoft.NET.SDK.Web):
-
 ```shell
-dotnet publish --os linux --arch x64 -t:PublishContainer
-```
-
-- for existing non-web project:
-
-```shell
-dotnet add package Microsoft.NET.Build.Containers
 dotnet publish --os linux --arch x64 -c Release /t:PublishContainer
 ```
 
