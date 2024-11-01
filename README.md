@@ -7,7 +7,7 @@ A basic start with tooling
 - for existing web project (the package is part of `Microsoft.NET.SDK.Web):
 
 ```shell
-dotnet publish --os linux --arch x64 -c Release /p:PublishProfile=DefaultContainer
+dotnet publish --os linux --arch x64 -t:PublishContainer
 ```
 
 - for existing non-web project:

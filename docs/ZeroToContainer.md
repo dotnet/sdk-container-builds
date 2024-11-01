@@ -16,7 +16,7 @@ dotnet new web -n my-awesome-container-app
 cd my-awesome-container-app
 
 # publish your project
-dotnet publish --os linux --arch x64 -p:PublishProfile=DefaultContainer
+dotnet publish --os linux --arch x64 -t:PublishContainer
 
 # run your app
 docker run -it --rm -p 5010:8080 my-awesome-container-app:latest

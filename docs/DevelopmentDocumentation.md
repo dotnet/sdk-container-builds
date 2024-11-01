@@ -42,7 +42,7 @@ All non-debug output should be localized.
 
 - for web project:
 ```shell
->dotnet publish --os linux --arch x64 -c Release /p:PublishProfile=DefaultContainer
+>dotnet publish --os linux --arch x64 -t:PublishContainer
 ...
 Pushed container '<your app name>:<your app version>' to registry 'docker://'
 ...
@@ -50,7 +50,7 @@ Pushed container '<your app name>:<your app version>' to registry 'docker://'
 
 - for non-web project:
 ```shell
->dotnet publish --os linux --arch x64 -c Release /t:PublishContainer
+>dotnet publish --os linux --arch x64 -t:PublishContainer
 ...
 Pushed container '<your app name>:<your app version>' to registry 'docker://'
 ...
