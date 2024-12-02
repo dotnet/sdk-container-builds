@@ -401,6 +401,7 @@ Labels are often used to provide consistent metadata on container images. This p
 | `org.opencontainers.image.licenses` | | `ContainerLicenseExpression` | `PackageLicenseExpression` | `ContainerGenerateLabelsImageLicenses` | |
 | `org.opencontainers.image.title` | | `ContainerTitle` | `Title` | `ContainerGenerateLabelsImageTitle` | |
 | `org.opencontainers.image.base.name` | | `ContainerBaseImage` | | `ContainerGenerateLabelsImageBaseName` | |
+| `org.opencontainers.image.base.digest` | | | `ContainerGenerateLabelsImageBaseDigest` | This will be the SHA digest of the chosen base image. Available from .NET SDK 9.0.100 onwards. |
 | `org.opencontainers.image.source` | | `PrivateRepositoryUrl` | | `ContainerGenerateLabelsImageSource` | Only written if `PublishRepositoryUrl` is `true`. Also relies on Sourcelink infrastructure being part of the build. |
 | `org.opencontainers.image.revision` | | `SourceRevisionId` | | `ContainerGenerateLabelsImageRevision` | Only written if `PublishRepositoryUrl` is `true`. Also relies on Sourcelink infrastructure being part of the build. |
 
