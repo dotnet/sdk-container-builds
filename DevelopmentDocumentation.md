@@ -40,17 +40,8 @@ All non-debug output should be localized.
 
 ### .NET SDK / `dotnet publish`
 
-- for web project:
 ```shell
->dotnet publish --os linux --arch x64 -t:PublishContainer
-...
-Pushed container '<your app name>:<your app version>' to registry 'docker://'
-...
-```
-
-- for non-web project:
-```shell
->dotnet publish --os linux --arch x64 -t:PublishContainer
+>dotnet publish --os linux --arch x64 -c Release /t:PublishContainer
 ...
 Pushed container '<your app name>:<your app version>' to registry 'docker://'
 ...
