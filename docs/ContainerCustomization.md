@@ -41,7 +41,7 @@ which results in a final tag of `8.0-alpine` for a .NET 8-targeting application.
 
 This field is very free-form, and often can be used to select different operating system distributions, default package configurations, or any other 'flavor' of changes to a base image. Consult your base image's documentation for more details.
 
-### ContainerRuntimeIdentifier
+### ContainerRuntimeIdentifier(s)
 
 This property controls the OS and platform used by your container if your [`ContainerBaseImage`](#containerbaseimage) is a 'Manifest List'. Manifest Lists are images that support more than one architecture behind a single, common, name. For example, the `mcr.microsoft.com/dotnet/runtime` image is a manifest list that supports the `linux-x64`, `linux-arm`, `linux-arm64` images.
 
@@ -52,6 +52,14 @@ By default, if your project has a RuntimeIdentifier set, that value will be used
 ```xml
 <PropertyGroup>
     <ContainerRuntimeIdentifier>linux-x64</ContainerRuntimeIdentifier>
+</PropertyGroup>
+```
+
+_Set multiple container runtime identifiers for multi-architecture images (tags are `;` delimited):_
+
+```xml
+<PropertyGroup>
+    <ContainerRuntimeIdentifiers>linux-x64;linux-arm64</ContainerRuntimeIdentifiers>
 </PropertyGroup>
 ```
 
