@@ -32,14 +32,14 @@ In some scenarios the standard Docker authentication mechanism described above j
 _Preferred_
 
 * DOTNET_CONTAINER_PUSH_REGISTRY_UNAME
-      * This should be the username for the _destination_ registry. If the password for the registry is a token, then the username should be `"<token>"`.
+  * This should be the username for the _destination_ registry. If the password for the registry is a token, then the username should be `"<token>"`.
 * DOTNET_CONTAINER_PUSH_REGISTRY_PWORD
-    * This should be the password, token, etc for the _destination_ registry.
+  * This should be the password, token, etc for the _destination_ registry.
 
 * DOTNET_CONTAINER_PULL_REGISTRY_UNAME
-      * This should be the username for the _source_ registry. If the password for the registry is a token, then the username should be `"<token>"`.
+  * This should be the username for the _source_ registry. If the password for the registry is a token, then the username should be `"<token>"`.
 * DOTNET_CONTAINER_PULL_REGISTRY_PWORD
-    * This should be the password, token, etc for the _source_ registry.
+  * This should be the password, token, etc for the _source_ registry.
 
 _Supported but not recommended_
 * DOTNET_CONTAINER_REGISTRY_UNAME
